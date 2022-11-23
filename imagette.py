@@ -1,0 +1,96 @@
+# This module will generate the imagette of a target and a contaminant for a given PSF
+import numpy as np
+import matplotlib.pyplot as plt
+from astropy.io import fits as pyfits
+import spline2dbase
+
+# Let's load the data that we need from the catalogue
+def catalogue(path):
+    data_gaia = np.load(path)
+    return data_gaia
+
+# Let's load the data that we need from the list of the PSFS
+def list_psf(path):
+    Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[2, 3])
+    return Xpsf, Ypsf
+
+# Defining the barycenter
+def barycenter(array, mask=None, x=None, y=None, subres=1):
+    if isinstance(x, (np.ndarray, np.generic)) == False:
+        x = (np.arange(0, array.shape[1]) + 0.5) / float(subres)
+    if isinstance(y, (np.ndarray, np.generic)) == False:
+        y = (np.arange(0, array.shape[0]) + 0.5) / float(subres)
+
+    if x.ndim == 1 & y.ndim == 1:
+        x, y = np.meshgrid(x, y)
+
+    if mask is not None:
+        weight = np.sum(array * mask)
+        bx = np.sum(array * x * mask) / weight
+        by = np.sum(array * y * mask) / weight
+    else:
+        tmp = np.sum(array)
+        bx = np.sum(array * x) / tmp
+        by = np.sum(array * y) / tmp
+    return bx, by
+
+# Defiinig the function that produces a Gaussian kernel
+def gauss(xc,yc,width,size,subres=1):
+    # 2D Gaussian function centered on (xc,yc)
+    s = float(subres)
+    p = subres*size
+    (RX, RY) = np.meshgrid( np.arange(0,p)/s - xc  + 0.5/s,
+                            np.arange(0,p)/s - yc  + 0.5/s)
+    D2 = RX*RX + RY*RY
+
+    return np.exp(-D2/(2*width*width))
+
+# Let's define the imagette window
+def window(xt, yt, sx, sy):
+    i0 = np.round(xt - sx / 2)
+    j0 = np.round(yt - sy / 2)
+    x = xt - i0
+    y = yt - j0
+    return x, y, i0, j0
+
+
+# This function plots the imagette and the PSF
+def ploting_initial(rows, cols, psf, imagette, i, j):
+    fig, axs = plt.subplots(rows, cols)
+    axs[0].imshow(psf, origin='lower', interpolation=None)
+    axs[0].set_title(i)
+    axs[1].imshow(imagette, origin='lower')
+    axs[1].set_title(j)
+    axs[1].set_xticks([0, 1, 2, 3, 4, 5])
+    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5])
+    fig.tight_layout()
+    plt.show()
+
+
+# This function plots the imagettes for both target and contaminant
+def ploting_imagettes(rows, cols, ft, fc):
+    fig, axs = plt.subplots(rows, cols)
+    axs[0].imshow(ft, origin='lower', cmap='viridis')
+    axs[0].set_title(f'For the Target')
+    axs[0].set_xticks([0, 1, 2, 3, 4, 5])
+    axs[0].set_xticklabels([0, 1, 2, 3, 4, 5])
+    axs[1].imshow(fc, origin='lower')
+    axs[1].set_title(f'For the Contaminant')
+    axs[1].set_xticks([0, 1, 2, 3, 4, 5])
+    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5])
+    fig.tight_layout()
+    plt.show()
+
+
+# This function plots the unsorted nsr imagette
+def ploting_nsr(n, i):
+    plt.imshow(n, origin='lower', cmap='viridis')
+    plt.title(i)
+    plt.show()
+
+
+# This function plots the sorted nsr imagette
+def ploting_nsr_s(n, i):
+    plt.imshow(n, origin='lower', cmap='viridis')
+    plt.title(i)
+    plt.show()
