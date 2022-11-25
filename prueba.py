@@ -3,9 +3,11 @@ import spline2dbase
 import scipy.signal
 import h5py as h5py
 import numpy as np
-from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, contaminants, reference_flux_target, reference_flux_contaminant
-from imagette import catalogue, list_psf, barycenter, gauss, window, ploting_imagettes, ploting_nsr, ploting_nsr_s, ploting_initial
-from NSR import spr_crit, NSRn, nsr1h, nsr_AGG
+from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, contaminants, reference_flux_target, \
+    reference_flux_contaminant
+from imagette import catalogue, list_psf, barycenter, gauss, window, ploting_imagettes, ploting_nsr, ploting_nsr_s, \
+    ploting_initial
+from NSR import spr_crit, aperture, NSRn, nsr_AGG
 from pylab import *
 
 # The first thing to do is to load the GAIA catalogue with all the stars
@@ -24,9 +26,14 @@ GaussKernel = gauss(math.floor(DifKerSize / 2.) + 0.5, math.floor(DifKerSize / 2
 GaussKernel /= GaussKernel.sum()
 
 # Parameters for the NSR
-sb = 45.  # Background noise form zodiacal light
-sd = 50.2  # Overall detector noise (including readout, smearing and dark current)
-sq = 7.2  # Quantization noise
+sb = (45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
+sd = 50.2  # Overall detector noise (including readout at beginning of life, smearing and dark current) in units of e- rms/px
+sq = 7.2  # Quantization noise in units of e-rms/px
+
+# Parameters for the eclispigin binaries
+dback = 85000  # transit depth in ppm
+td = 4  # transit duration in hours
+ntr = 3  # number of transits
 
 # Now we save the x and y coordinates on the focal plane of all the stars in the catalogue
 x_star = data[:, 3]
@@ -58,18 +65,14 @@ for i in range(0, len(x_tar)):
     # First we compute the angle for obtaining the vignetting
     alpha = np.arctan(np.sqrt(x_tar_mm[i] ** 2 + y_tar_mm[i] ** 2) / 247.732)
     # Now we found the closest psf to every target (we will use this psf for the contaminants as well)
-    sd = (xpsf_pix - x_tar[i]) ** 2 + (ypsf_pix - y_tar[i]) ** 2
+    s_d = (xpsf_pix - x_tar[i]) ** 2 + (ypsf_pix - y_tar[i]) ** 2
     # We store as a string the psf index of the closest psf
-    k = str(np.argmin(sd) + 1)
-    #print("The closest PSF, with difussion, is the one with number:", k)
+    k = str(np.argmin(s_d) + 1)
+    # print("The closest PSF, with difussion, is the one with number:", k)
     # We select the closest psf from the .hdf5 file
     psf = np.array(file_hdf5[k])
     # Convolving now the optical PSF by the Gaussian kernel defined previously
     psf = scipy.signal.fftconvolve(psf, GaussKernel, mode='same')
-    # We plot the PSF (optional)
-    #plt.imshow(psf, origin='lower')
-    #plt.title('PSF after adding the difussion')
-    #plt.show()
     # Now we normalize the psf
     psf /= psf.sum()
     # We compute the barycenter of the psf
@@ -83,7 +86,7 @@ for i in range(0, len(x_tar)):
     psfbs = spline2dbase.Pixel2Spline(psf, lx=20 * 8, ly=20 * 8)
     # Then we finally compute the imagette for the target by integrating the b-spline decomposition of the PSF
     imagette = spline2dbase.Spline2Imagette(psfbs, 20, 6, 6, offx=offx, offy=offy)
-    #print('Target imagette:', imagette)
+    ploting_initial(2, 1, psf, imagette, i='PSF', j='Target')
     # Then we can print the coordinates of the C.O.B.
     COBx, COBy = barycenter(imagette, subres=1)
     # Let's obtain the value of the reference flux after the integration time for the target star including the vignetting
@@ -96,11 +99,10 @@ for i in range(0, len(x_tar)):
     m = (dist > 0) & (dist <= 10)
     # We get the the index of all the contaminants now with the following line
     j = np.where(m)[0]
-    #print('index of the contaminants', j)
+    # print('index of the contaminants', j)
     # Now we find the magnitude of each contaminant
     m_c = data[:, 2][j]
-    #print('Magnitudes', m_c)
-    #m_c = m_c[~np.isnan(m_c)]
+    # m_c = m_c[~np.isnan(m_c)]
     # Getting rid of the nans
     # Now we get the coordinates of all the contaminants for the given target as well as their total number
     x_c = x_star[j]
@@ -114,14 +116,11 @@ for i in range(0, len(x_tar)):
     offy_c = y_c_im - pyc
     # We define an array that will contain the 'imagettes' of every contaminant
     Ic = np.zeros((n_c, 6, 6))
-    #print(Ic)
-    # We define an array that will contain the 'reference fluxes' of every contaminant
-    #f_ref_c = np.zeros(n_c)
     for l in range(0, n_c):
-        #print('magnitude', m_c[l])
+        # print('magnitude', m_c[l])
         # Then we finally compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
         Ic[l, :, :] = spline2dbase.Spline2Imagette(psfbs, 20, 6, 6, offx=offx_c[l], offy=offy_c[l])
-        # Now we make sure to deal only with positive magnitudes
+        # Now we make sure to deal only with stars with positive magnitudes
         if m_c[l] > 0:
             COBx_c, COBy_c = barycenter(Ic[l], subres=1)
             # Let's obtain the value of the reference flux for every contaminant star
@@ -130,84 +129,82 @@ for i in range(0, len(x_tar)):
             Ic[l, :, :] = f_ref_c * Ic[l]
 
     # Now we define an array with the contribution from all the stars to each pixel
-    IC = np.nansum(Ic, axis=0)
-    #print('Your summed array is: {}'.format(IC))
-    #print(fpixt_1d)
-    #print(Ic_1d)
-    # print(np.sum(Ic_1d))
-    # Let's calculate the NSR of the imagette where the target is the target
-    #nsr_t = NSRn(sb=sb, sd=sd, sq=sq, ft=f_pix_t, fc=IC)
-    nsr_t = NSRn(45, 50.2, 7.2, I_pix_t, IC)
-    # Let's plot now the NSR of the imagette of the system
-    ploting_nsr(nsr_t, i='NSR of the Target')
+    Ic_acc = np.sum(Ic, axis=0)
 
-    # Now the most intelligent thing to do right now is to convert nsr_t into a 1-D array for the rest of the script and
-    # then, at the end, we convert it again into a 2-D array. Of course, it will be useful to do the same thing for the
-    # fluxes per pixel of both contaminant and target
-    It_1d = I_pix_t.flatten()
-    Ic_1d = IC.flatten()
-    nsrt_1d = nsr_t.flatten()
+    # Let's compute the aperture of the target
+    NSR1h, w_t = aperture(ft=I_pix_t, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
 
-    # Now we sort the nsr in increasing order
-    nsrt_1d_sorted = np.sort(nsrt_1d)
+    # We compute now the flux over the mask pixels for both target and all contaminants
+    f_t = I_pix_t.flatten() * w_t
+    f_c = Ic_acc.flatten() * w_t
 
-    # Now, in order to compute NSR_agg, I need to know the values of the flux of every pixel in the sorted NSR. So I need
-    # to have an array with the sorted indexes of the original flux array, as follows:
-    It_index = np.argsort(nsrt_1d)
-
-    # We can do the same for the flux of the contaminant
-    Ic_index = np.argsort(nsrt_1d)
-
-    # Now I re-arrange the original flux array with the indexes of the sorted array
-    It_1d = It_1d[It_index]
-    Ic_1d = Ic_1d[Ic_index]
-    # Now we compute the aggregate noise to signal ratio
-    NSR_agg = nsr_AGG(It_1d, Ic_1d, 45, 50.2, 7.2)
-    NSR_agg = np.array(NSR_agg)
-    # Let's obtain NSR_1h
-    NSR1h = nsr1h((10 ** 6) / (12 * np.sqrt(24)), NSR_agg)
-
+    # Let's plot the aperture
     plt.plot(NSR1h, 'o-')
     plt.xlabel('Number of pixels $m$  composing the binary mask', fontsize=14)
     plt.ylabel('$ NSR_{1h}[ppm \, \sqrt{hr}] $', fontsize=14)
-    plt.title('NSR evolution curve for the target mask', fontsize=14)
+    plt.title('Aperture size for the target', fontsize=14)
     # plt.savefig('binary_mask.pdf', format='pdf', bbox_inches='tight', dpi=300)
     plt.show()
 
-    # Now it's time to compute the mask vector
-    print(f'The size of the mask is:\n', np.argmin(NSR1h) + 1, 'pixels')
+    # We compute the critical SPR now
+    SPR_crit = spr_crit(dback=dback, nsr=NSR1h, td=td, ntr=ntr)
 
-    # Now it's time to compute the flux over the mask, i.e. The Flux
-    f_t = It_1d[:np.argmin(NSR1h) + 1]
-    f_c = Ic_1d[:np.argmin(NSR1h) + 1]
+    # We compute the denominator of the sprk outside the loop
+    f_tot_t = (np.sum(f_t) + np.sum(f_c))
 
-    # First we create a vector wiht only zeroes
-    w_t = np.zeros(36)
-
-    # Then we create a vector with just the amount of indexes of the mask
-    #mask = fpixt_index[0:np.argmin(NSR1h) + 1]
-    mask = It_index[:np.argmin(NSR1h) + 1]
-
-    # Then we create our mask, we show the index where the mask vector has a value of 1
-    w_t[mask] = 1
-
-    print(f'This is the mask for the target:\n', mask)
-
-    # We compute the critical SPR
-    SPR_crit = spr_crit(dback=85000, nsr=NSR1h, td=4, ntr=3)
-
-    # We create an array to store the imagettes of the contaminants which sprk > spr_crit
-    n_bad = np.zeros((len(targets), 6, 6))
+    # We create a vector for saving the spr of every contaminant
+    sprk = np.zeros(n_c)
     # Now we can compute the SPRk for every contaminant
-    for n in range(0, len(Ic)):
+    for n in range(0, n_c):
         # We compute the sprk of every contaminant
-        sprk = np.sum(Ic[n].flatten() * w_t) / (np.sum(f_t) + np.sum(f_c))
-        print('The sprk of the contaminant number', n, ' is:', sprk)
-        if sprk > SPR_crit:
-            print("The previous star can produce a false positive")
-            # We store the imagette of the contaminant with sprk > spr_crit
-            n_bad[n] = Ic[n]
+        sprk[n] = np.sum(Ic[n].flatten() * w_t) / f_tot_t
 
+    # We define now a mask for getting the index of all the contaminants that fulfills spr > SPR_crit
+    p = np.where(sprk > SPR_crit)[0]
+    # Now we define the number of contaminant stars for which sprk > SPR_crit
+    n_bad = len(p)
+    # And then we compute the aperture for every of this contaminants (n_bad)
+    for o in p:
+        # We define the term that englobes the sigma of the target and the accumulated flux of the contaminants without the contaminant of interest
+        Itc_acc = I_pix_t + Ic_acc - Ic[o]
 
+        # Then we procedd to compute the secondary aperture
+        NSR1h_c, w_c = aperture(ft=Ic[o], fc=Itc_acc, sb=sb, sd=sd, sq=sq)
 
+        # Let's plot the aperture
+        plt.plot(NSR1h_c, 'o-')
+        plt.xlabel('Number of pixels $m$  composing the binary mask', fontsize=14)
+        plt.ylabel('$ NSR_{1h}[ppm \, \sqrt{hr}] $', fontsize=14)
+        plt.title('Aperture size for a contaminant that $SPR_{k} > SPR_{crit}$', fontsize=14)
+        # plt.savefig('binary_mask.pdf', format='pdf', bbox_inches='tight', dpi=300)
+        plt.show()
 
+        # We compute the flux over the secondary mask
+        f_beb = Ic_acc.flatten() * w_c
+        f_t_c = I_pix_t.flatten() * w_c
+
+        # We define the denominator of the spr_c calculation
+        f_tot_c = (np.sum(f_t_c) + np.sum(f_beb))
+
+        # We compute spr_c
+        spr_c = np.sum(Itc_acc.flatten() * w_c) / f_tot_c
+
+        # We compute now the delta_obs for the two apertures
+        delta_obs_t = sprk[o] * dback
+        delta_obs_c = (1 - spr_c) * dback
+        print(min(NSR1h))
+        print(min(NSR1h_c))
+        print(m_c[o])
+        print(sprk[o])
+        print(spr_c)
+        print(w_t)
+        print(w_c)
+        print('delta obs of the target is:', delta_obs_t)
+        print('delta obs of the contaminant is:', delta_obs_c)
+
+        # We compute now the statistical significances for a given transit event
+        eta_t = sprk[o] * np.sqrt(td * ntr) * dback / min(NSR1h)
+        eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / min(NSR1h_c)
+
+        print('eta of the target is:', eta_t)
+        print('eta of the contaminant is:', eta_c)
