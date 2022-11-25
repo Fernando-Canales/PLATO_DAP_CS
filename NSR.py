@@ -6,22 +6,55 @@ def spr_crit(dback, nsr, td, ntr):
     term2 = min(nsr) / np.sqrt(td * ntr)
     return term1 * term2
 
-# Let's calculate the NSR of the system
+# Let's calculate the NSR of the target
 def NSRn(sb, sd, sq, ft, fc):
-    n = np.sqrt(ft + fc + sb ** 2 + sd ** 2 + sq ** 2) / ft
+    n = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
     return n
-
-# Let's define a function that is just a multiplicatin for obtaining the NSR_1h, z is the factor of 10^6 / (12 * sqrt(number of cameras))
-def nsr1h(z, nsr):
-    return z*nsr
-
 
 # Let's go Aussie mode, keegan, yo!
 def nsr_AGG(x, y, sb, sd, sq):
     n = []
     for i in range(1, len(x)+1):
-        n.append(np.sqrt(np.sum(x[:i] + y[:i] + sb ** 2 + sd ** 2 + sq ** 2))/np.sum(x[:i]))
+        n.append(np.sqrt(np.sum(x[:i] + y[:i] + sb + sd ** 2 + sq ** 2))/np.sum(x[:i]))
     return n
+
+def aperture(ft, fc, sb, sd, sq):
+
+    # First we compute the NSR of the system
+    nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
+
+    # Then we flatten that nsr and the fluxes
+    nsr_1d = nsr.flatten()
+    ft_1d = ft.flatten()
+    fc_1d = fc.flatten()
+
+    # Then we sort the 1-D nsr in increasing order and obtain the index of the elements of the array before sorting
+    nsr_1d_index = np.argsort(nsr_1d)
+
+    # Then we compute the intensity over those index for the target and the contaminant
+    ft_1d = ft_1d[nsr_1d_index]
+    fc_1d = fc_1d[nsr_1d_index]
+
+    # Then we compute the aggregate noise-to-signal ratio
+    n = []
+    for i in range(1, len(ft_1d) + 1):
+        n.append(np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i]))
+
+    n = np.array(n)
+
+    # We compute the nsr_agg over 1h
+    nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
+
+    # First we create a vector wiht only zeroes
+    w = np.zeros(36)
+
+    # Then we create a vector with just the amount of indexes of the mask
+    mask = nsr_1d_index[:np.argmin(nsr1h) + 1]
+
+    # Then we create our mask, we show the index where the mask vector has a value of 1
+    w[mask] = 1
+
+    return nsr1h, w
 
 # Let's try the code!
 if __name__ == '__main__':
