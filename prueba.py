@@ -75,7 +75,7 @@ for i in range(11, 13):
     # Now we start the loop over all the randomly chosen targets
     for k in range(0, len(x_tar)):
         # Define target ID
-        ID[k]
+        ID[k] # RS: this is not the ID of the target being processed
         # First we compute the angle for obtaining the vignetting
         alpha = np.arctan(np.sqrt(x_tar_mm[k] ** 2 + y_tar_mm[k] ** 2) / 247.732)
         # Now we found the closest psf to every target (we will use this psf for the contaminants as well)
@@ -113,7 +113,7 @@ for i in range(11, 13):
         # We get the the index of all the contaminants now with the following line
         n = np.where(m)[0]
         # Now we find the magnitude of each contaminant
-        m_c = data[:, 2][n]
+        m_c = data[:, 2][n] # RS: note that is equivalent to m_c = data[n, 2]
         # m_c = m_c[~np.isnan(m_c)]
         # Getting rid of the nans
         # Now we get the coordinates of all the contaminants for the given target as well as their total number
@@ -156,6 +156,10 @@ for i in range(11, 13):
         w_bray[ind] = 1
         w_bray = w_bray.reshape(6, 6)
 
+        # RS an equivalent and more meaningful  code would have been:
+        # w_bray =  = np.zeros((6,6))
+        # w_bray[1:3,1:3] = 1
+
         NSR_bray = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_bray)) / np.sum(It * w_bray)
         NSR_bray_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_bray
 
@@ -176,10 +180,11 @@ for i in range(11, 13):
         n_bad_bray = len(q)
         print(n_bad_bray)
 #######################################################################################################################
+        # RS: please introduce here the purpose of this part of the code
 
         # We compute now the flux over the mask pixels for both target and all contaminants
         f_t = It * w_t
-        f_c = Ic_acc * w_t
+        f_c = Ic_acc * w_t # RS: strictly speaking f_c should rather been named f_c_acc or something like that
 
         # We compute the critical SPR now
         SPR_crit = spr_crit(dback=dback, nsr=NSR1h, td=td, ntr=ntr)
@@ -199,8 +204,11 @@ for i in range(11, 13):
         # Now we define the number of contaminant stars for which sprk > SPR_crit
         n_bad = len(s)
         # Getting the system Imagette with the target and the contribution of all the stars
-        Im_all = It + Ic_acc
+        Im_all = It + Ic_acc  # RS not used in the code
+
         # And then we compute the aperture for every of this contaminants (n_bad)
+        # RS: the quantities used in this loop are not used further
+        # RS: At this stage we only matter about the contaminant that has the highest SPRk
         for t in s:
             # We define the term that englobes the sigma of the target and the accumulated flux of the contaminants without the contaminant of interest
             Itc_acc = It + Ic_acc - Ic[t]
@@ -236,7 +244,8 @@ for i in range(11, 13):
             print('spr_t', sprk[t])
             print('spr_c', spr_c)
 
-        save_info[counter, :] = [ID[k], targets_P5[:, 2][k], SPR_crit, n_c, n_bad, max(sprk)]
+        # RS: the information about the PSF used for that targets should also be stored
+        save_info[counter, :] = [ID[k], targets_P5[:, 2][k], SPR_crit, n_c, n_bad, max(sprk)] # RS: again ID[k] is not the ID of the target being processed
         save_info_bray[counter, :] = [ID[k], targets_P5[:, 2][k], SPR_crit_bray, n_c, n_bad_bray]
         counter = counter + 1
 
