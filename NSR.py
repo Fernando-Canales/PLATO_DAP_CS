@@ -26,7 +26,7 @@ def aperture(ft, fc, sb, sd, sq):
     # First we compute the NSR of the system
     nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
 
-    # Then we flatten that nsr and the fluxes
+    # Then we flatten that nsr and the fluxes since it is easier this way
     nsr_1d = nsr.flatten()
     ft_1d = ft.flatten()
     fc_1d = fc.flatten()
@@ -56,11 +56,61 @@ def aperture(ft, fc, sb, sd, sq):
 
     # Then we create our mask, we show the index where the mask vector has a value of 1
     w[mask] = 1
+
+    #Then we reshape that mask
     w = w.reshape((6, 6))
 
     return nsr1h, w
 
+# We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
+# SPR_tot and the total number of stars for which spr_k is above SPR_crit
+def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
+    # Then we compute the sprk over the extended mask for all the contaminants for a this target
+    sprk = np.zeros(n_c)
+    for i in range(0, n_c):
+        # We compute the sprk of every contaminant
+        sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
 
+    # We compute SPR_tot now
+    SPR_tot = np.sum(sprk)
+
+    # And now we store here the highest sprk value
+    sprk_max = max(sprk)
+
+    # Now we obtain the index of all contaminants above SPR_crit
+    j = np.where(sprk > SPR_crit)[0]
+    # Now we define the number of those contaminants above SPR_crit_ext
+    n_bad = len(j)
+    return sprk, sprk_max, SPR_tot, n_bad
+
+
+# We define now a function for creating a mask_key
+def mask_to_bitmask(mask):
+    # As we save data within a bit array of 64 cells, we are able to save a mask of maximum size 8*8
+    if mask.shape[0] * mask.shape[1] > 64:
+        print('ERROR: Mask size too big to be converted into a 64 bits unsigned integer')
+        sys.exit(0)
+
+    bitmask = np.uint64(0)
+    flat_mask = mask.flatten() # This line flattens the mask array
+    for i in range(flat_mask.shape[0]):
+        if (flat_mask[i]) == 1:
+            bitmask += np.uint64(2 ** i)
+    return bitmask
+
+# Now we define a function for obtaining a mask from a mask key
+def bitmask_to_mask(bitmask, mask_row_nb, mask_col_nb):
+    # As we save data within a bit array of 64 celss, we are able to build a mask of maximum 8  * 8
+    if mask_row_nb * mask_col_nb > 64:
+        print("ERROR: Mask size too big to be converted from a 64 bits unsigned integer")
+        sys.exit(0)
+
+    flat_mask = np.zeros(mask_row_nb * mask_col_nb, dtype=np.bool_)
+    for i in range(mask_row_nb*mask_col_nb):
+        flat_mask[i] = 1 if bitmask & np.uint64(2 ** i) == 2 ** i else 0
+    return flat_mask.reshape(mask_row_nb, mask_col_nb)
+
+# We define here a function for obtaining an extended mask given a nominal-binary mask
 def extended_binary_mask(mask, W):
     ny, nx = mask.shape
     maske = np.zeros((ny, nx))
