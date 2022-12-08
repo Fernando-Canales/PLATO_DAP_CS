@@ -249,7 +249,7 @@ for i in range(7, 15):
         eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / min(NSR1h_c)
 
         print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
-        print('Distance between the target and contaminant', (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        print('Distance between the target and contaminant', (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2) # this is here the square distance not the distance, furthermore the latter is already stored in s_d[ind_sprk]
         # if eta_t > eta_c:
         print('NSR_T is:', min(NSR1h))
         print('NSR_c is:', min(NSR1h_c))
