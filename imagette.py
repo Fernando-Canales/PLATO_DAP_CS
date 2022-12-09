@@ -4,15 +4,18 @@ import matplotlib.pyplot as plt
 from astropy.io import fits as pyfits
 import spline2dbase
 
+
 # Let's load the data that we need from the catalogue
 def catalogue(path):
     data_gaia = np.load(path)
     return data_gaia
 
+
 # Let's load the data that we need from the list of the PSFS
 def list_psf(path):
     Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[2, 3])
     return Xpsf, Ypsf
+
 
 # Defining the barycenter
 def barycenter(array, mask=None, x=None, y=None, subres=1):
@@ -34,16 +37,18 @@ def barycenter(array, mask=None, x=None, y=None, subres=1):
         by = np.sum(array * y) / tmp
     return bx, by
 
+
 # Defiinig the function that produces a Gaussian kernel
-def gauss(xc,yc,width,size,subres=1):
+def gauss(xc, yc, width, size, subres=1):
     # 2D Gaussian function centered on (xc,yc)
     s = float(subres)
-    p = subres*size
-    (RX, RY) = np.meshgrid( np.arange(0,p)/s - xc  + 0.5/s,
-                            np.arange(0,p)/s - yc  + 0.5/s)
-    D2 = RX*RX + RY*RY
+    p = subres * size
+    (RX, RY) = np.meshgrid(np.arange(0, p) / s - xc + 0.5 / s,
+                           np.arange(0, p) / s - yc + 0.5 / s)
+    D2 = RX * RX + RY * RY
 
-    return np.exp(-D2/(2*width*width))
+    return np.exp(-D2 / (2 * width * width))
+
 
 # Let's define the imagette window
 def window(xt, yt, sx, sy):
@@ -52,6 +57,24 @@ def window(xt, yt, sx, sy):
     x = xt - i0
     y = yt - j0
     return x, y, i0, j0
+
+# Let's create a function that draws a randomly  targets from my interval
+def ran_unique_int(n, interval):
+    """
+    Generate n unique random integer numbers in the given interval
+    """
+    r = np.random.randint(interval[0], interval[1], size=n)
+    if interval[1] - interval[0] + 1 < n:
+        print('more requested random integers than possible given the interval')
+        return r
+    p = 0
+    while p < n:
+        u = np.unique(r)
+        p = len(u)
+        r[0:p] = u
+        if p < n:
+            r[p:] = np.random.randint(interval[0], interval[1], size=n-p)
+    return r
 
 
 # This function plots the imagette and the PSF
