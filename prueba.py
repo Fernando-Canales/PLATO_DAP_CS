@@ -27,8 +27,7 @@ GaussKernel = gauss(math.floor(DifKerSize / 2.) + 0.5, math.floor(DifKerSize / 2
 GaussKernel /= GaussKernel.sum()
 
 # Parameters for the NSR
-sb = (
-            45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
+sb = (45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
 sd = 50.2  # Overall detector noise (including readout at beginning of life, smearing and dark current) in units of e- rms/px
 sq = 7.2  # Quantization noise in units of e-rms/px
 
@@ -51,11 +50,11 @@ xpsf, ypsf = list_psf('list')
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((300 * 9, 16))
+save_info = np.zeros((300 * 8, 17))
 # The same for the extended mask
-save_info_ext = np.zeros((300 * 9, 8))
+save_info_ext = np.zeros((300 * 8, 8))
 # The same for bray's et al. assumption of using 2 x 2 masks
-save_info_bray = np.zeros((300 * 9, 6))
+save_info_bray = np.zeros((300 * 8, 6))
 
 # Now we choose the random targets using Réza's function
 np.random.seed(300)
@@ -63,7 +62,7 @@ np.random.seed(300)
 # We define a counter to store our data
 counter = 0
 # Now we can create the mask for getting only stars from P5 sample magnitude range
-for i in range(7, 15):
+for i in range(7, 14):
     mask = (data[:, 2] >= i - 0.5) & (data[:, 2] < i)
     targets_P5 = data[mask, :]
     ID_target = ID[mask]
@@ -152,40 +151,35 @@ for i in range(7, 15):
         # Let's compute the aperture of the target
         NSR1h, w_t = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
 
-        print(min(NSR1h))
-        breakpoint()
         # Now we store the nominal mask into a mask_key
         w_t_key = mask_to_bitmask(w_t)
 
-# Now let's compute some other aperture models before going further
-
 ########################################################################################################################
-#                                           THE EXTENDED MASK                                                          #
+#                                   NOW THE EXTENDED MASK METHOD                                                       #
 ########################################################################################################################
 
         # First we create the extended mask given the nominal mask
-        w_t_ext = extended_binary_mask(w_t, W=1)
+        w_ext = extended_binary_mask(w_t, W=1)
 
         # Now we compute all the metrics associated with this mask. Let's begin with the NSR
-        NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_t_ext)) / np.sum(It * w_t_ext)
+        NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_ext)) / np.sum(It * w_ext)
         NSR_ext_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_ext
 
-        # We compute the SPR_crit  now
-        SPR_crit_ext = (7.1 / dback) * (NSR_ext_1h / np.sqrt(td * ntr))
+        # Then compute the critical SPR
+        SPR_crit_ext = spr_crit(dback=dback, nsr=NSR_ext_1h, td=td, ntr=ntr)
 
-        # Then we compute the sprk over the extended mask for all the contaminants for a this target, as well as the SPR
-        # _tot and N_bad
+        # Then we compute the sprk over the extended mask for all the contaminants for a this target
         sprk_ext, sprk_max_ext, SPR_tot_ext, n_bad_ext = SPR(SPR_crit=SPR_crit_ext, n_c=n_c, f_contaminant=Ic,
-                                                             f_tot=(It + Ic_acc), w=w_t_ext)
+                                                             f_tot=(It + Ic_acc), w=w_ext)
 
         # Now we compute the observed transit depth given the maximum value of sprk
-        delta_obs_t_ext = sprk_max_ext * dback
+        delta_obs_ext = sprk_max_ext * dback
 
         # And now we compute the statistical significance of an Earth-like planet over the extended mask
         eta_ext = sprk_max_ext * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
 ########################################################################################################################
-#                                            END OF THE EXTENDED MASK                                                  #
+#                                     END OF THE EXTENDED MASK METHOD                                                  #
 ########################################################################################################################
 
 ########################################################################################################################
@@ -196,17 +190,12 @@ for i in range(7, 15):
         w_bray = np.zeros((6, 6))
         w_bray[2:4, 2:4] = 1
 
-        # We compute the NSR of the aperture following equation (11) in Marchiori et al. (2019)
         NSR_bray = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_bray)) / np.sum(It * w_bray)
-
-        # Now we compute the NSR over 1 hour and 24 cameras following equation (13) of Marchiori et al. (2019)
         NSR_bray_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_bray
 
-        # We compute the SPR_crit
-        SPR_crit_bray = (7.1 / dback) * (NSR_bray_1h / np.sqrt(td * ntr))
+        # We compute the critical SPR now
+        SPR_crit_bray = spr_crit(dback=dback, nsr=NSR_bray_1h, td=td, ntr=ntr)
 
-        # Now we compute the sprk of every contaminant of this target, as well as the SPR_tot and the number of contamin
-        #ants fo which sprk > SPR_crit
         sprk_bray, sprk_max_bray, SPR_tot_bray, n_bad_bray = SPR(SPR_crit=SPR_crit_bray, n_c=n_c, f_contaminant=Ic,
                                                                  f_tot=(It + Ic_acc), w=w_bray)
 
@@ -214,19 +203,15 @@ for i in range(7, 15):
 #                                          END OF TESTING Bray et al's ASSUMPTION                                      #
 ########################################################################################################################
 
-# Now we are back to the normal
-
         # Now in this part of the code we present the calculations for the sprk of every contaminant as well as the
-        # calculation of the SPR_crit
+        # calculation of the SPR_crit.
 
         # We compute the critical SPR now
         SPR_crit = spr_crit(dback=dback, nsr=NSR1h, td=td, ntr=ntr)
 
-        # Now we compute the sprk of every contaminant of this target, as well as the SPR_tot and the number of contamin
-        #ants fo which sprk > SPR_crit
         sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
 
-        # Now we have to know for which contaminant corresponds the highest sprk value
+        # Now we have to know for which contaminant corresponds the highest sprk value we just found
         ind_sprk = np.argmax(sprk)
         Ic_max = Ic[ind_sprk]
 
@@ -257,16 +242,30 @@ for i in range(7, 15):
         delta_obs_c = (1 - spr_c) * dback
 
         # We compute now the statistical significances for a given transit event
-        eta_t = sprk_max * np.sqrt(td * ntr) * dback / min(NSR1h)
-        eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / min(NSR1h_c)
+        eta_t = sprk_max * np.sqrt(td * ntr) * dback / NSR1h
+        eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / NSR1h_c
 
         print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
         print('Distance between the target and contaminant',
               (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        # if eta_t > eta_c:
+        print('NSR_T is:', NSR1h)
+        print('NSR_c is:', NSR1h_c)
+        print('eta_t is:', eta_t)
+        print('eta_c is:', eta_c)
+        print('spr_t', sprk_max)
+        print('spr_c', spr_c)
 
-        # Save the corresponding metrics for each aperture model
-        save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], l, n_c, w_t_key, min(NSR1h), n_bad, SPR_crit,
-                                 m_c[ind_sprk], sprk_max, min(NSR1h_c), w_c_key, SPR_tot, eta_t, eta_c, eta_ext]
+        # Now we need to compute the efficiency of the extended mask, this is donde by computing the ratio of the number
+        # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
+        # given by the nominal mask.
+
+        # The number of false positives given by the extended mask such that etat_ext > eta_t is given by
+        n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk > SPR_crit) & (sprk_ext > sprk))[0])
+
+
+        save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], l, n_c, w_t_key, NSR1h, n_bad, SPR_crit,
+                                 m_c[ind_sprk], sprk_max, NSR1h_c, w_c_key, SPR_tot, eta_t, eta_c, eta_ext, n_eff_ext]
         save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_ext_1h, n_bad_ext, SPR_crit_ext,
                                      SPR_tot_ext, eta_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray]
