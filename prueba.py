@@ -51,7 +51,7 @@ xpsf, ypsf = list_psf('list')
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((300 * 9, 15))
+save_info = np.zeros((300 * 9, 16))
 # The same for the extended mask
 save_info_ext = np.zeros((300 * 9, 8))
 # The same for bray's et al. assumption of using 2 x 2 masks
@@ -152,6 +152,8 @@ for i in range(7, 15):
         # Let's compute the aperture of the target
         NSR1h, w_t = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
 
+        print(min(NSR1h))
+        breakpoint()
         # Now we store the nominal mask into a mask_key
         w_t_key = mask_to_bitmask(w_t)
 
@@ -180,7 +182,7 @@ for i in range(7, 15):
         delta_obs_t_ext = sprk_max_ext * dback
 
         # And now we compute the statistical significance of an Earth-like planet over the extended mask
-        eta_t_ext = sprk_max_ext * np.sqrt(td * ntr) * dback / NSR_ext_1h
+        eta_ext = sprk_max_ext * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
 ########################################################################################################################
 #                                            END OF THE EXTENDED MASK                                                  #
@@ -194,8 +196,10 @@ for i in range(7, 15):
         w_bray = np.zeros((6, 6))
         w_bray[2:4, 2:4] = 1
 
-        # We compute the NSR of the aperture
+        # We compute the NSR of the aperture following equation (11) in Marchiori et al. (2019)
         NSR_bray = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_bray)) / np.sum(It * w_bray)
+
+        # Now we compute the NSR over 1 hour and 24 cameras following equation (13) of Marchiori et al. (2019)
         NSR_bray_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_bray
 
         # We compute the SPR_crit
@@ -256,15 +260,15 @@ for i in range(7, 15):
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / min(NSR1h)
         eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / min(NSR1h_c)
 
-        #print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
-        #print('Distance between the target and contaminant',
-        #      (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
+        print('Distance between the target and contaminant',
+              (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
 
         # Save the corresponding metrics for each aperture model
         save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], l, n_c, w_t_key, min(NSR1h), n_bad, SPR_crit,
-                                 m_c[ind_sprk], sprk_max, min(NSR1h_c), w_c_key, SPR_tot, eta_t, eta_c]
+                                 m_c[ind_sprk], sprk_max, min(NSR1h_c), w_c_key, SPR_tot, eta_t, eta_c, eta_ext]
         save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_ext_1h, n_bad_ext, SPR_crit_ext,
-                                     SPR_tot_ext, eta_t_ext]
+                                     SPR_tot_ext, eta_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray]
         counter = counter + 1
 
