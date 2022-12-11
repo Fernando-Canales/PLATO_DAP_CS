@@ -71,7 +71,6 @@ def reference_flux_contaminant(ft, mc, mt):
     :param ft: Reference flux of the target star in the PLATO band
     :param mt: Magnitude of the target star in the PLATO band
     :param mc: Magnitude of the contaminant star in the PLATO band
-    :param 21: Integration time (21 seconds), but we do not need it, since we already took it into account in ft(fp)
     """
     fc = (ft * 10 ** (-0.4 * (mc - mt)))
     return fc
