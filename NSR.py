@@ -3,9 +3,7 @@ import numpy as np
 
 # Let's calculate  the critical SPR
 def spr_crit(dback, nsr, td, ntr):
-    term1 = 7.1 / dback
-    term2 = min(nsr) / np.sqrt(td * ntr)
-    return term1 * term2
+    return 7.1 * nsr / (np.sqrt(td * ntr) * dback)
 
 
 # Let's calculate the NSR of the target
@@ -45,7 +43,7 @@ def aperture(ft, fc, sb, sd, sq):
 
     n = np.array(n)
 
-    # We compute the nsr_agg over 1h
+    # We compute the aggregate noise-to-signal ratio over 1h and 24 cameras
     nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
 
     # First we create a vector with only zeroes
@@ -60,7 +58,7 @@ def aperture(ft, fc, sb, sd, sq):
     #Then we reshape that mask
     w = w.reshape((6, 6))
 
-    return nsr1h, w
+    return min(nsr1h), w
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
 # SPR_tot and the total number of stars for which spr_k is above SPR_crit
