@@ -245,16 +245,27 @@ for i in range(7, 14):
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / NSR1h
         eta_c = (1 - spr_c) * np.sqrt(td * ntr) * dback / NSR1h_c
 
+        print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
+        print('Distance between the target and contaminant',
+              (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        # if eta_t > eta_c:
+        print('NSR_T is:', NSR1h)
+        print('NSR_c is:', NSR1h_c)
+        print('eta_t is:', eta_t)
+        print('eta_c is:', eta_c)
+        print('spr_t', sprk_max)
+        print('spr_c', spr_c)
 
-        #print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
-        #print('Distance between the target and contaminant',
-        #      (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        # Now we need to compute the efficiency of the extended mask, this is donde by computing the ratio of the number
+        # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
+        # given by the nominal mask.
+
+        # The number of false positives given by the extended mask such that etat_ext > eta_t is given by
+        n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk > SPR_crit) & (sprk_ext > sprk))[0])
 
 
-        # Save the corresponding metrics for each aperture model
-        save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], l, n_c, w_t_key, min(NSR1h), n_bad, SPR_crit,
-                                 m_c[ind_sprk], sprk_max, min(NSR1h_c), w_c_key, SPR_tot, eta_t, eta_c]
-
+        save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], l, n_c, w_t_key, NSR1h, n_bad, SPR_crit,
+                                 m_c[ind_sprk], sprk_max, NSR1h_c, w_c_key, SPR_tot, eta_t, eta_c, eta_ext, n_eff_ext]
         save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_ext_1h, n_bad_ext, SPR_crit_ext,
                                      SPR_tot_ext, eta_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray]
@@ -265,6 +276,5 @@ save_info_ext = save_info_ext[0:counter]
 save_info_bray = save_info_bray[0:counter]
 # Now it is time to save the metrics of interest into a.npy file
 np.save('targets_P5.npy', save_info)
-
 np.save('targets_P5_extended.npy', save_info_ext)
 np.save('targets_P5_bray.npy', save_info_bray)
