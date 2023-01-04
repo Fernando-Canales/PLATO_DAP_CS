@@ -2,8 +2,8 @@ import numpy as np
 
 
 # Let's calculate  the critical SPR
-def spr_crit(dback, nsr, td, ntr):
-    return 7.1 * nsr / (np.sqrt(td * ntr) * dback)
+def spr_crit(dback, nsr, td, ntr,sprtot):
+    return 7.1 * nsr * (1. - sprtot) / (np.sqrt(td * ntr) * dback)
 
 
 # Let's calculate the NSR of the target
@@ -37,11 +37,9 @@ def aperture(ft, fc, sb, sd, sq):
     fc_1d = fc_1d[nsr_1d_index]
 
     # Then we compute the aggregate noise-to-signal ratio
-    n = []
+    n = np.zeros(len(ft_1d))
     for i in range(1, len(ft_1d) + 1):
-        n.append(np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i]))
-
-    n = np.array(n)
+        n[i-1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
 
     # We compute the aggregate noise-to-signal ratio over 1h and 24 cameras
     nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
@@ -62,7 +60,7 @@ def aperture(ft, fc, sb, sd, sq):
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
 # SPR_tot and the total number of stars for which spr_k is above SPR_crit
-def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
+def SPR(n_c, f_contaminant, f_tot, w):
     # Then we compute the sprk over the extended mask for all the contaminants for a this target
     sprk = np.zeros(n_c)
     for i in range(0, n_c):
@@ -75,11 +73,7 @@ def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
     # And now we store here the highest sprk value
     sprk_max = max(sprk)
 
-    # Now we obtain the index of all contaminants above SPR_crit
-    j = np.where(sprk > SPR_crit)[0]
-    # Now we define the number of those contaminants above SPR_crit_ext
-    n_bad = len(j)
-    return sprk, sprk_max, SPR_tot, n_bad
+    return sprk, sprk_max, SPR_tot
 
 
 # We define now a function for creating a mask_key
