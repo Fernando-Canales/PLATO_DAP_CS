@@ -60,24 +60,12 @@ def aperture(ft, fc, sb, sd, sq):
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
 # SPR_tot and the total number of stars for which spr_k is above SPR_crit
-<<<<<<< HEAD
-def SPR(n_c, f_contaminant, f_tot, w):
-    # Then we compute the sprk over the extended mask for all the contaminants for a this target
-    sprk = np.zeros(n_c)
-    for i in range(0, n_c):
-||||||| a686442
-def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
-    # Then we compute the sprk over the extended mask for all the contaminants for a this target
-    sprk = np.zeros(n_c)
-    for i in range(0, n_c):
-=======
 
 # ---------------------- We introduce now Réza's correction to Marchiori's formulas --------------------
 #def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
     # Then we compute the sprk over the extended mask for all the contaminants for a given target
     #sprk = np.zeros(n_c)
     #for i in range(0, n_c):
->>>>>>> 8a4e7b56c4400e9d9add2659a23b2327774e2c9e
         # We compute the sprk of every contaminant
         #sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
 
