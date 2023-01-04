@@ -3,7 +3,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits as pyfits
 import spline2dbase
+import math
+import scipy.special
 
+def psf_gauss_int(xc,yc,width_x,width_y,sizex,sizey):
+    '''
+    Gaussian PSF integrated over the pixels of an imagette
+    '''
+
+    zx = 1./(math.sqrt(2.)*width_x)
+    zy = 1./(math.sqrt(2.)*width_y)
+    # Error function
+    erfx = scipy.special.erf((np.arange(0,sizex+1) - xc)*zx)
+    erfy = scipy.special.erf((np.arange(0,sizey+1) - yc)*zy)
+    # normalization required to have the flux density equals to one  at the center
+    ## u = math.sqrt(math.pi/2.)*width
+    u = 0.5 # normalization required to have the mask integral equals to one
+    maskx = (erfx[1:sizex+1] - erfx[0:sizex])*u
+    masky = (erfy[1:sizey+1] - erfy[0:sizey])*u
+    maskx = np.reshape(maskx,(1,sizex))
+    masky = np.reshape(masky,(sizey,1))
+    maskx = np.repeat(maskx,sizey,axis=0)
+    masky = np.repeat(masky,sizex,axis=1)
+    return masky*maskx
 
 # Let's load the data that we need from the catalogue
 def catalogue(path):
@@ -13,7 +35,7 @@ def catalogue(path):
 
 # Let's load the data that we need from the list of the PSFS
 def list_psf(path):
-    Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[2, 3])
+    Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[4,5])
     return Xpsf, Ypsf
 
 
