@@ -2,7 +2,7 @@ import spline2dbase
 import h5py as h5py
 import numpy as np
 from fitting_psf import from_mm_2_pix, from_pix_2_mm
-from imagette import list_psf, barycenter,gauss
+from imagette import list_psf, barycenter, gauss
 import math
 import scipy.signal
 
@@ -10,6 +10,12 @@ import scipy.signal
 
 PSFDIR = './'
 # PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
+
+# Let's define the PSF parameters
+sizex = 8  # physical size of the PSF (x-direction)
+sizey = 8  # physical size of the PSF (y-direction)
+subres = 128  # resolution of the PSF
+bsres = 20  # resolution of the b-spline decomposition of the PSF
 
 # The second thing to do is to open the .hdf5 file that containg all the PSFs from biruni3
 file_hdf5 = h5py.File(PSFDIR+'PSF.hdf5', 'r')
@@ -22,7 +28,7 @@ bsres = 20 # resolution adopted for the b-spline decomposition
 
 # Now we build the diffusion kernel, a Gaussian function of size DifKerSize x DifKerSize centered on the middle of the central pixel
 GaussKernel = gauss(math.floor(DifKerSize / 2.) + 0.5, math.floor(DifKerSize / 2.) + 0.5, DifKerWidth, DifKerSize,
-                    subres=128)
+                    subres=subres)
 GaussKernel /= GaussKernel.sum()
 
 
@@ -32,8 +38,11 @@ xpsf, ypsf = list_psf(PSFDIR+'list')
 # Third, we convert the PSF coordinates on the Focal Planet from mm to pixel
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
+# We compute the folowing parameters
+lx = bsres * sizex
+ly = bsres * sizey
 npsf = len(xpsf)
-psfbs = np.zeros((npsf,bsres*8,bsres*8))
+psfbs = np.zeros((npsf, lx, ly))
 pxc = np.zeros(npsf)
 pyc = np.zeros(npsf)
 print('Processing the PSF')
@@ -46,12 +55,12 @@ for k in range(npsf):
     # Now we normalize the psf
     psf /= psf.sum()
     # We compute the barycenter of the psf
-    pxc[k], pyc[k] = barycenter(psf, subres=128)
+    pxc[k], pyc[k] = barycenter(psf, subres=subres)
 
     # Then we convert the PSFs to b-spline
-    psfbs[k] = spline2dbase.Pixel2Spline(psf, lx=bsres * 8, ly=bsres * 8)
+    psfbs[k] = spline2dbase.Pixel2Spline(psf, lx, ly)
 
-np.savez('PSF.npz',psfbs=psfbs,pxc=pxc,pyc=pyc,xpsf_pix=xpsf_pix,ypsf_pix=ypsf_pix)
+np.savez('PSF.npz', psfbs=psfbs, pxc=pxc, pyc=pyc, xpsf_pix=xpsf_pix, ypsf_pix=ypsf_pix)
 
 
 file_hdf5.close()

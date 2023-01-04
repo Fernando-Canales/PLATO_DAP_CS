@@ -2,8 +2,8 @@ import numpy as np
 
 
 # Let's calculate  the critical SPR
-def spr_crit(dback, nsr, td, ntr,sprtot):
-    return 7.1 * nsr * (1. - sprtot) / (np.sqrt(td * ntr) * dback)
+def spr_crit(dback, SPR_tot, nsr, td, ntr):
+    return 7.1 * nsr * (1 - SPR_tot) / (np.sqrt(td * ntr) * dback)
 
 
 # Let's calculate the NSR of the target
@@ -60,21 +60,53 @@ def aperture(ft, fc, sb, sd, sq):
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
 # SPR_tot and the total number of stars for which spr_k is above SPR_crit
+<<<<<<< HEAD
 def SPR(n_c, f_contaminant, f_tot, w):
     # Then we compute the sprk over the extended mask for all the contaminants for a this target
     sprk = np.zeros(n_c)
     for i in range(0, n_c):
+||||||| a686442
+def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
+    # Then we compute the sprk over the extended mask for all the contaminants for a this target
+    sprk = np.zeros(n_c)
+    for i in range(0, n_c):
+=======
+
+# ---------------------- We introduce now Réza's correction to Marchiori's formulas --------------------
+#def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
+    # Then we compute the sprk over the extended mask for all the contaminants for a given target
+    #sprk = np.zeros(n_c)
+    #for i in range(0, n_c):
+>>>>>>> 8a4e7b56c4400e9d9add2659a23b2327774e2c9e
         # We compute the sprk of every contaminant
-        sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
+        #sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
 
     # We compute SPR_tot now
-    SPR_tot = np.sum(sprk)
+    #SPR_tot = np.sum(sprk)
 
     # And now we store here the highest sprk value
+    #sprk_max = max(sprk)
+
+    # Now we obtain the index of all contaminants above SPR_crit for a given target
+    #j = np.where(sprk > SPR_crit)[0]
+    # Now we obtain the number of contaminants above SPR_crit for a given target
+    #n_bad = len(j)
+    #return sprk, sprk_max, SPR_tot, n_bad
+
+def SPR(n_c, f_contaminant, f_tot, w):
+    # First we compute the sprk over the extended mask for all the contaminants for a given target
+    sprk = np.zeros(n_c)
+    for i in range(0, n_c):
+        # Then we compute the sprk of every contaminant
+        sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
+
+    # Then we compute SPR_tot
+    SPR_tot = np.sum(sprk)
+
+    # And finaly we store the value of the highest sprk
     sprk_max = max(sprk)
 
     return sprk, sprk_max, SPR_tot
-
 
 # We define now a function for creating a mask_key
 def mask_to_bitmask(mask):
