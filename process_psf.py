@@ -7,6 +7,7 @@ import math
 import scipy.signal
 
 
+
 PSFDIR = './'
 # PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
 
@@ -16,6 +17,8 @@ file_hdf5 = h5py.File(PSFDIR+'PSF.hdf5', 'r')
 # The third thing to do is to define the parameters for the Diffusion Kernel to covolve the PSFs
 DifKerSize = 3  # Size [pixel]
 DifKerWidth = 0.2  # width [pixel] 0.1 -> 99.99% in the central pixel ; 0.2 -> 97.5% ; 0.3 -> 81.8%% ; 0.5 -> 46.8%
+
+bsres = 20 # resolution adopted for the b-spline decomposition
 
 # Now we build the diffusion kernel, a Gaussian function of size DifKerSize x DifKerSize centered on the middle of the central pixel
 GaussKernel = gauss(math.floor(DifKerSize / 2.) + 0.5, math.floor(DifKerSize / 2.) + 0.5, DifKerWidth, DifKerSize,
@@ -30,7 +33,7 @@ xpsf, ypsf = list_psf(PSFDIR+'list')
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
 npsf = len(xpsf)
-psfbs = np.zeros((npsf,20*8,20*8))
+psfbs = np.zeros((npsf,bsres*8,bsres*8))
 pxc = np.zeros(npsf)
 pyc = np.zeros(npsf)
 print('Processing the PSF')
@@ -46,7 +49,7 @@ for k in range(npsf):
     pxc[k], pyc[k] = barycenter(psf, subres=128)
 
     # Then we convert the PSFs to b-spline
-    psfbs[k] = spline2dbase.Pixel2Spline(psf, lx=20 * 8, ly=20 * 8)
+    psfbs[k] = spline2dbase.Pixel2Spline(psf, lx=bsres * 8, ly=bsres * 8)
 
 np.savez('PSF.npz',psfbs=psfbs,pxc=pxc,pyc=pyc,xpsf_pix=xpsf_pix,ypsf_pix=ypsf_pix)
 
