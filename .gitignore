@@ -1,3 +1,4 @@
+/targets_P5.npy
 /tour_eiffel.fits
 /list
 /__pycache__/
@@ -452,3 +453,6 @@
 /process_psf.py
 /NSR.py
 /plotting.py
+targets_P5_extended.npy
+targets_P5_bray.npy
+targets_P5_contaminant.npy

@@ -6,8 +6,6 @@ from imagette import list_psf, barycenter, gauss
 import math
 import scipy.signal
 
-
-
 PSFDIR = './'
 # PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
 

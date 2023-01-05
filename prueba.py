@@ -50,7 +50,7 @@ save_info = np.zeros((300 * 8, 14))
 # The same for the secondary/contaminant mask
 save_info_contaminant = np.zeros((300 * 8, 8))
 # The same for the extended mask
-save_info_ext = np.zeros((300 * 8, 8))
+save_info_ext = np.zeros((300 * 8, 9))
 # The same for bray's et al. assumption of using 2 x 2 masks
 save_info_bray = np.zeros((300 * 8, 8))
 
@@ -170,10 +170,10 @@ for i in range(7, 14):
         Ic_max = Ic[ind_sprk]
 
         # Now we define a term that contains the flux of the targets and their respective contaminants except the one
-        # with the highest value of SPRk (i. e. the contaminant of interest)
+        # with the highest value of SPRk (i.e. the contaminant of interest)
         Itc_acc = It + Ic_acc - Ic_max
 
-        # Then we procedd to compute the secondary aperture
+        # Then we proceed to compute the secondary aperture
         NSR1h_c, w_c = aperture(ft=Ic_max, fc=Itc_acc, sb=sb, sd=sd, sq=sq)
 
         # Now we store each secondary mask in a mask key
@@ -220,7 +220,7 @@ for i in range(7, 14):
         # Then we compute the sprk over the extended mask for all the contaminants for a this target
         sprk_ext, sprk_max_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_ext)
 
-        # Then compute the critical SPR
+        # Then compute the critical SPR of the extended mask (SPR_crit_ext)
         SPR_crit_ext = spr_crit(dback=dback, SPR_tot=SPR_tot_ext, nsr=NSR_ext_1h, td=td, ntr=ntr)
 
         # Now we compute the observed transit depth given the contaminant with the highest sprk on the nominal mask
@@ -234,7 +234,7 @@ for i in range(7, 14):
 ########################################################################################################################
 
 ########################################################################################################################
-#                                   TESTING  J.C. Bray et al's ASSUMPTION OF A 2 x 2 MASK                              #
+#                                   TESTING  J.C. Bray et al.'s ASSUMPTION OF A 2 x 2 MASK                              #
 ########################################################################################################################
 
         # The mask has to contain the 4 pixels around the center,
@@ -258,7 +258,7 @@ for i in range(7, 14):
 ########################################################################################################################
 #                        NOW IT'S TIME TO IMPLEMENT THE CENTER OF BRIGHTNESS METHOD                                    #
 ########################################################################################################################
-        # First we deifne the centroid along the X direction
+        # First we define the centroid along the X direction
         cx = np.sum(w_t * x_t_im * It)/np.sum(It * w_t)
         # Then we define the centroid along the Y direction
         cy = np.sum(w_t * y_t_im * It)/np.sum(It * w_t)
@@ -272,7 +272,7 @@ for i in range(7, 14):
         centroid_shift = (dback / (1 - dback * sprk_max)) * np.sqrt(gammax ** 2 + gammay ** 2)
 
         # Now we can compute the absolute centroid shift error
-        sigma_cs = (1 / centroid_shift) *
+        #sigma_cs = (1 / centroid_shift) *
 
 
         print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
@@ -297,8 +297,8 @@ for i in range(7, 14):
                                  n_bad, SPR_crit, sprk_max, SPR_tot, eta_t, delta_obs_t]
         save_info_contaminant[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_c_key, w_c_size, NSR1h_c, spr_c, eta_c,
                                              delta_obs_c]
-        save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk], eta_ext,
-                                     delta_obs_ext]
+        save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
+                                     SPR_crit_ext, eta_ext, delta_obs_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray,
                                       sprk_max_bray, SPR_tot_bray]
         counter = counter + 1
