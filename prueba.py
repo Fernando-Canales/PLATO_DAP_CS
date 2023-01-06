@@ -44,11 +44,11 @@ xpsf_pix = psfdata['xpsf_pix']
 ypsf_pix = psfdata['ypsf_pix']
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((300 * 8, 14))
+save_info = np.zeros((300 * 8, 17))
 # The same for the secondary/contaminant mask
-save_info_contaminant = np.zeros((300 * 8, 8))
+save_info_contaminant = np.zeros((300 * 8, 11))
 # The same for the extended mask
-save_info_ext = np.zeros((300 * 8, 9))
+save_info_ext = np.zeros((300 * 8, 12))
 # The same for bray's et al. assumption of using 2 x 2 masks
 save_info_bray = np.zeros((300 * 8, 8))
 
@@ -98,7 +98,7 @@ for i in range(7, 14):
         # ploting_initial(2, 1, psf, imagette, i='PSF', j='Target')
         # Then we can print the coordinates of the C.O.B.
         COBx, COBy = barycenter(imagette, subres=1)
-        # Let's obtain the value of the reference flux after the integration time for the target star including the vignetting
+        # Let's obtain the value of the reference flux after the integration time for the target star with vignetting
         f_ref_t = reference_flux_target(targets_P5[:, 2][k]) * (np.cos(alpha) ** 2)
         # Let's obtain the flux per pixel of the target
         It = f_ref_t * imagette
@@ -200,6 +200,8 @@ for i in range(7, 14):
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / (NSR1h * (1 - SPR_tot))
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
+        #------------------------------------------SECONDARY COB-------------------------------------------------------#
+
         # First we define the centroid along the X direction
         c_x_c = np.sum(w_c * x_t_im * It) / np.sum(f_tot * w_c)
         # Then we define the centroid along the Y direction
@@ -228,7 +230,8 @@ for i in range(7, 14):
                     np.sum(w_c * var_delta) / (np.sum(f_tot * w_c) ** 2))
 
         # Now we compute the error associated with the absolute centroid shift
-        sigma_cs_c = (1 / abs_cob_c) * np.sqrt((delta_c_x_c ** 2) * (sigma_x_c ** 2) + (delta_c_y_c ** 2) + (sigma_y_c ** 2))
+        sigma_cs_c = (1 / abs_cob_c) * np.sqrt((delta_c_x_c ** 2) * (sigma_x_c ** 2) + (delta_c_y_c ** 2) +
+                                               (sigma_y_c ** 2))
 
         # Now we average the error over 1 hour and 24 cameras
         sigma_1_24_c = sigma_cs_c / (12 * np.sqrt(24))
@@ -266,6 +269,8 @@ for i in range(7, 14):
         # Now we compute the statistical significance of the signal over the extended mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+
         # First we define the centroid along the X direction
         c_x_ext = np.sum(w_ext * x_t_im * It) / np.sum(f_tot * w_ext)
         # Then we define the centroid along the Y direction
@@ -294,7 +299,8 @@ for i in range(7, 14):
                     np.sum(w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2))
 
         # Now we compute the error associated with the absolute centroid shift
-        sigma_cs_ext = (1 / abs_cob_ext) * np.sqrt((delta_c_x_ext ** 2) * (sigma_x_ext ** 2) + (delta_c_y_ext ** 2) + (sigma_y_ext ** 2))
+        sigma_cs_ext = (1 / abs_cob_ext) * np.sqrt((delta_c_x_ext ** 2) * (sigma_x_ext ** 2) + (delta_c_y_ext ** 2) +
+                                                   (sigma_y_ext ** 2))
 
         # Now we average the error over 1 hour and 24 cameras
         sigma_1_24_ext = sigma_cs_ext / (12 * np.sqrt(24))
@@ -352,9 +358,11 @@ for i in range(7, 14):
         # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
         var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
         # Now we compute the centroid error along the X direction
-        sigma_x = np.sum(x_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_x ** 2) * (np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
+        sigma_x = np.sum(x_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_x ** 2) * (
+                np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
         # Now we compute the centroid error along the Y direction
-        sigma_y = np.sum(y_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_y ** 2) * (np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
+        sigma_y = np.sum(y_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_y ** 2) * (
+                np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
 
         # Now we compute the error associated with the absolute centroid shift
         sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
@@ -385,11 +393,11 @@ for i in range(7, 14):
 
 
         save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h,
-                                 n_bad, SPR_crit, sprk_max, SPR_tot, eta_t, delta_obs_t]
+                                 n_bad, SPR_crit, sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
         save_info_contaminant[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_c_key, w_c_size, NSR1h_c, spr_c, eta_c,
-                                             delta_obs_c]
+                                             delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
         save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
-                                     SPR_crit_ext, eta_ext, delta_obs_ext]
+                                     SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray,
                                       sprk_max_bray, SPR_tot_bray]
         counter = counter + 1
