@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import spline2dbase
-import scipy.signal
-import h5py as h5py
 import numpy as np
 from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, reference_flux_target, \
     reference_flux_contaminant
@@ -104,11 +102,11 @@ for i in range(7, 14):
         f_ref_t = reference_flux_target(targets_P5[:, 2][k]) * (np.cos(alpha) ** 2)
         # Let's obtain the flux per pixel of the target
         It = f_ref_t * imagette
-        # Now it is time to find all the contaminants sorrounding each target. We put the distance condition (10 pixels)
+        # Now it is time to find all the contaminants surrounding each target. We put the distance condition (10 pixels)
         dist = np.sqrt((x_star - x_tar[k]) ** 2 + (y_star - y_tar[k]) ** 2)
         # Now we define a useful mask
         m = (dist > 0) & (dist < 10)
-        # Now we get the the index of all the contaminants that fullfils the mask requirement
+        # Now we get the index of all the contaminants that fulfills the mask requirement
         n = np.where(m)[0]
         # Now we find the magnitude of each contaminant of the given target
         m_c = data[:, 2][n]
@@ -139,6 +137,8 @@ for i in range(7, 14):
         # Now we define an array with the contribution from all the stars to each pixel
         Ic_acc = np.sum(Ic, axis=0)
 
+        # Now we define the total flux (target and all contaminants)
+        f_tot = It + Ic_acc
         # Let's compute the aperture of the target
         NSR1h, w_t = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
 
@@ -151,7 +151,7 @@ for i in range(7, 14):
         # Now we present the calculation for the sprk of every contaminant as well as the one from SPR_crit.
 
         #sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
-        sprk, sprk_max, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
+        sprk, sprk_max, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_t)
 
         # We compute the critical SPR now
         SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr)
@@ -200,6 +200,43 @@ for i in range(7, 14):
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / (NSR1h * (1 - SPR_tot))
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
+        # First we define the centroid along the X direction
+        c_x_c = np.sum(w_c * x_t_im * It) / np.sum(f_tot * w_c)
+        # Then we define the centroid along the Y direction
+        c_y_c = np.sum(w_c * y_t_im * It) / np.sum(f_tot * w_c)
+
+        # Then we define the Gamma factor along the X direction
+        gamma_x_c = (np.sum(w_c * x_t_im * Ic_max) / np.sum(f_tot * w_c) - c_x_c * spr_c)
+        # Then we define the Gamma factor along the Y direction
+        gamma_y_c = (np.sum(w_c * y_t_im * Ic_max) / np.sum(f_tot * w_c) - c_y_c * spr_c)
+
+        # Now we define the centroid shift along the X direction
+        delta_c_x_c = (dback / (1 - dback * spr_c)) * gamma_x_c
+        # Now we define the centroid shift along the Y direction
+        delta_c_y_c = (dback / (1 - dback * spr_c)) * gamma_y_c
+
+        # The absolute centroid shift is denoted by
+        abs_cob_c = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x_c ** 2 + gamma_y_c ** 2)
+
+        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
+        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
+        # Now we compute the centroid error along the X direction
+        sigma_x_c = np.sum(x_t_im ** 2 * w_c * var_delta) / (np.sum(f_tot * w_c) ** 2) + (c_x_c ** 2) * (
+                    np.sum(w_c * var_delta) / (np.sum(f_tot * w_c) ** 2))
+        # Now we compute the centroid error along the Y direction
+        sigma_y_c = np.sum(y_t_im ** 2 * w_c * var_delta) / (np.sum(f_tot * w_c) ** 2) + (c_y_c ** 2) * (
+                    np.sum(w_c * var_delta) / (np.sum(f_tot * w_c) ** 2))
+
+        # Now we compute the error associated with the absolute centroid shift
+        sigma_cs_c = (1 / abs_cob_c) * np.sqrt((delta_c_x_c ** 2) * (sigma_x_c ** 2) + (delta_c_y_c ** 2) + (sigma_y_c ** 2))
+
+        # Now we average the error over 1 hour and 24 cameras
+        sigma_1_24_c = sigma_cs_c / (12 * np.sqrt(24))
+
+        # Now we compute the statistical significance of the centroid shift
+        eta_cob_c = abs_cob_c * np.sqrt(td * ntr) / sigma_1_24_c
+
+
 ########################################################################################################################
 #                                   NOW THE EXTENDED MASK METHOD                                                       #
 ########################################################################################################################
@@ -229,6 +266,42 @@ for i in range(7, 14):
         # Now we compute the statistical significance of the signal over the extended mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
+        # First we define the centroid along the X direction
+        c_x_ext = np.sum(w_ext * x_t_im * It) / np.sum(f_tot * w_ext)
+        # Then we define the centroid along the Y direction
+        c_y_ext = np.sum(w_ext * y_t_im * It) / np.sum(f_tot * w_ext)
+
+        # Then we define the Gamma factor along the X direction
+        gamma_x_ext = (np.sum(w_ext * x_t_im * Ic_max) / np.sum(f_tot * w_ext) - c_x_ext * sprk_max)
+        # Then we define the Gamma factor along the Y direction
+        gamma_y_ext = (np.sum(w_ext * y_t_im * Ic_max) / np.sum(f_tot * w_ext) - c_y_ext * sprk_max)
+
+        # Now we define the centroid shift along the X direction
+        delta_c_x_ext = (dback / (1 - dback * sprk_ext[ind_sprk])) * gamma_x_ext
+        # Now we define the centroid shift along the Y direction
+        delta_c_y_ext = (dback / (1 - dback * sprk_ext[ind_sprk])) * gamma_y_ext
+
+        # The absolute centroid shift is denoted by
+        abs_cob_ext = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x_ext ** 2 + gamma_y_ext ** 2)
+
+        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
+        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
+        # Now we compute the centroid error along the X direction
+        sigma_x_ext = np.sum(x_t_im ** 2 * w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2) + (c_x_ext ** 2) * (
+                    np.sum(w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2))
+        # Now we compute the centroid error along the Y direction
+        sigma_y_ext = np.sum(y_t_im ** 2 * w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2) + (c_y_ext ** 2) * (
+                    np.sum(w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2))
+
+        # Now we compute the error associated with the absolute centroid shift
+        sigma_cs_ext = (1 / abs_cob_ext) * np.sqrt((delta_c_x_ext ** 2) * (sigma_x_ext ** 2) + (delta_c_y_ext ** 2) + (sigma_y_ext ** 2))
+
+        # Now we average the error over 1 hour and 24 cameras
+        sigma_1_24_ext = sigma_cs_ext / (12 * np.sqrt(24))
+
+        # Now we compute the statistical significance of the centroid shift
+        eta_cob_ext = abs_cob_ext * np.sqrt(td * ntr) / sigma_1_24_ext
+
 ########################################################################################################################
 #                                     END OF THE EXTENDED MASK METHOD                                                  #
 ########################################################################################################################
@@ -252,27 +325,45 @@ for i in range(7, 14):
         n_bad_bray = np.sum(sprk_bray > SPR_crit_bray)
 
 ########################################################################################################################
-#                                          END OF TESTING Bray et al's ASSUMPTION                                      #
+#                                          END OF TESTING Bray et al.'s ASSUMPTION                                      #
 ########################################################################################################################
 
 ########################################################################################################################
 #                        NOW IT'S TIME TO IMPLEMENT THE CENTER OF BRIGHTNESS METHOD                                    #
 ########################################################################################################################
         # First we define the centroid along the X direction
-        cx = np.sum(w_t * x_t_im * It)/np.sum(It * w_t)
+        c_x = np.sum(w_t * x_t_im * It)/np.sum(f_tot * w_t)
         # Then we define the centroid along the Y direction
-        cy = np.sum(w_t * y_t_im * It)/np.sum(It * w_t)
+        c_y = np.sum(w_t * y_t_im * It)/np.sum(f_tot * w_t)
 
         # Then we define the Gamma factor along the X direction
-        gammax = (np.sum(w_t * x_t_im * Ic_max) / np.sum(It * w_t) - cx * sprk_max)
+        gamma_x = (np.sum(w_t * x_t_im * Ic_max) / np.sum(f_tot * w_t) - c_x * sprk_max)
         # Then we define the Gamma factor along the Y direction
-        gammay = (np.sum(w_t * y_t_im * Ic_max) / np.sum(It * w_t) - cy * sprk_max)
+        gamma_y = (np.sum(w_t * y_t_im * Ic_max) / np.sum(f_tot * w_t) - c_y * sprk_max)
 
-        # The abosolute centroid shift is denoted by
-        centroid_shift = (dback / (1 - dback * sprk_max)) * np.sqrt(gammax ** 2 + gammay ** 2)
+        # Now we define the centroid shift along the X direction
+        delta_c_x = (dback / (1 - dback * sprk_max)) * gamma_x
+        # Now we define the centroid shift along the Y direction
+        delta_c_y = (dback / (1 - dback * sprk_max)) * gamma_y
 
-        # Now we can compute the absolute centroid shift error
-        #sigma_cs = (1 / centroid_shift) *
+        # The absolute centroid shift is denoted by
+        abs_cob = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
+
+        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
+        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
+        # Now we compute the centroid error along the X direction
+        sigma_x = np.sum(x_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_x ** 2) * (np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
+        # Now we compute the centroid error along the Y direction
+        sigma_y = np.sum(y_t_im ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_y ** 2) * (np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
+
+        # Now we compute the error associated with the absolute centroid shift
+        sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
+
+        # Now we average the error over 1 hour and 24 cameras
+        sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
+
+        # Now we compute the statistical significance of the centroid shift
+        eta_cob = abs_cob * np.sqrt(td * ntr) / sigma_1_24
 
 
         print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
