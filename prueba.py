@@ -166,7 +166,7 @@ for i in range(7, 14):
         # Now we find the distance between the given target and the contaminant with the highest value of SPRk
         dist_bad = (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2
 
-        # Now we select the (intensity per pixel array) imagete of the contaminant star with the highest value of SPRk
+        # Now we select the (intensity per pixel array) imagette of the contaminant star with the highest value of SPRk
         Ic_max = Ic[ind_sprk]
 
         # Now we define a term that contains the flux of the targets and their respective contaminants except the one
