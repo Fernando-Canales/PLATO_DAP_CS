@@ -3,9 +3,8 @@ import spline2dbase
 import numpy as np
 from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, reference_flux_target, \
     reference_flux_contaminant
-from imagette import catalogue, list_psf, barycenter, gauss, window, ran_unique_int, ploting_imagettes, ploting_nsr, \
-    ploting_nsr_s, \
-    ploting_initial
+from imagette import catalogue, list_psf, barycenter, gauss, window, ran_unique_int, ploting_imagettes, centroid_shift, \
+    ploting_nsr, ploting_nsr_s, ploting_initial
 from NSR import spr_crit, aperture, NSRn, nsr_AGG, SPR, mask_to_bitmask, bitmask_to_mask, extended_binary_mask
 from pylab import *
 
@@ -201,81 +200,12 @@ for i in range(7, 14):
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        # First we define the centroid along the X direction
-        c_x = np.sum(w_t * COBx * It)/np.sum(f_tot * w_t)
-        # Then we define the centroid along the Y direction
-        c_y = np.sum(w_t * COBy * It)/np.sum(f_tot * w_t)
-
-        # Then we define the Gamma factor along the X direction
-        gamma_x = (np.sum(w_t * COBx * Ic_max) / np.sum(f_tot * w_t) - c_x * sprk_max)
-        # Then we define the Gamma factor along the Y direction
-        gamma_y = (np.sum(w_t * COBy * Ic_max) / np.sum(f_tot * w_t) - c_y * sprk_max)
-
-        # Now we define the centroid shift along the X direction
-        delta_c_x = (dback / (1 - dback * sprk_max)) * gamma_x
-        # Now we define the centroid shift along the Y direction
-        delta_c_y = (dback / (1 - dback * sprk_max)) * gamma_y
-
-        # The absolute centroid shift is denoted by
-        abs_cob = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
-
-        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
-        # Now we compute the centroid error along the X direction
-        sigma_x = np.sum(COBx ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_x ** 2) * (
-                np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
-        # Now we compute the centroid error along the Y direction
-        sigma_y = np.sum(COBy ** 2 * w_t * var_delta) / (np.sum(f_tot * w_t) ** 2) + (c_y ** 2) * (
-                np.sum(w_t * var_delta) / (np.sum(f_tot * w_t) ** 2))
-
-        # Now we compute the error associated with the absolute centroid shift
-        sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
-
-        # Now we average the error over 1 hour and 24 cameras
-        sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
-
-        # Now we compute the statistical significance of the centroid shift
-        eta_cob = abs_cob * np.sqrt(td * ntr) / sigma_1_24
+        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-
-        # First we define the centroid along the X direction
-        c_x_c = np.sum(w_c * COBx * It) / np.sum(f_tot * w_c)
-        # Then we define the centroid along the Y direction
-        c_y_c = np.sum(w_c * COBy * It) / np.sum(f_tot * w_c)
-
-        # Then we define the Gamma factor along the X direction
-        gamma_x_c = (np.sum(w_c * COBx * Ic_max) / np.sum(f_tot * w_c) - c_x_c * spr_c)
-        # Then we define the Gamma factor along the Y direction
-        gamma_y_c = (np.sum(w_c * COBy * Ic_max) / np.sum(f_tot * w_c) - c_y_c * spr_c)
-
-        # Now we define the centroid shift along the X direction
-        delta_c_x_c = (dback / (1 - dback * spr_c)) * gamma_x_c
-        # Now we define the centroid shift along the Y direction
-        delta_c_y_c = (dback / (1 - dback * spr_c)) * gamma_y_c
-
-        # The absolute centroid shift is denoted by
-        abs_cob_c = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x_c ** 2 + gamma_y_c ** 2)
-
-        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
-        # Now we compute the centroid error along the X direction
-        sigma_x_c = np.sum(COBx ** 2 * w_c * var_delta) / (np.sum(f_tot * w_c) ** 2) + (c_x_c ** 2) * (
-                    np.sum(w_c * var_delta) / (np.sum(f_tot * w_c) ** 2))
-        # Now we compute the centroid error along the Y direction
-        sigma_y_c = np.sum(COBy ** 2 * w_c * var_delta) / (np.sum(f_tot * w_c) ** 2) + (c_y_c ** 2) * (
-                    np.sum(w_c * var_delta) / (np.sum(f_tot * w_c) ** 2))
-
-        # Now we compute the error associated with the absolute centroid shift
-        sigma_cs_c = (1 / abs_cob_c) * np.sqrt((delta_c_x_c ** 2) * (sigma_x_c ** 2) + (delta_c_y_c ** 2) +
-                                               (sigma_y_c ** 2))
-
-        # Now we average the error over 1 hour and 24 cameras
-        sigma_1_24_c = sigma_cs_c / (12 * np.sqrt(24))
-
-        # Now we compute the statistical significance of the centroid shift
-        eta_cob_c = abs_cob_c * np.sqrt(td * ntr) / sigma_1_24_c
-
+        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        #------------------------------------------SECONDARY COB-------------------------------------------------------#
 
 ########################################################################################################################
 #                                   NOW THE EXTENDED MASK METHOD                                                       #
@@ -306,51 +236,16 @@ for i in range(7, 14):
         # Now we compute the statistical significance of the signal over the extended mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
-        #------------------------------------------EXTENDED COB--------------------------------------------------------#
-
-        # First we define the centroid along the X direction
-        c_x_ext = np.sum(w_ext * COBx * It) / np.sum(f_tot * w_ext)
-        # Then we define the centroid along the Y direction
-        c_y_ext = np.sum(w_ext * COBy * It) / np.sum(f_tot * w_ext)
-
-        # Then we define the Gamma factor along the X direction
-        gamma_x_ext = (np.sum(w_ext * COBx * Ic_max) / np.sum(f_tot * w_ext) - c_x_ext * sprk_max)
-        # Then we define the Gamma factor along the Y direction
-        gamma_y_ext = (np.sum(w_ext * COBy * Ic_max) / np.sum(f_tot * w_ext) - c_y_ext * sprk_max)
-
-        # Now we define the centroid shift along the X direction
-        delta_c_x_ext = (dback / (1 - dback * sprk_ext[ind_sprk])) * gamma_x_ext
-        # Now we define the centroid shift along the Y direction
-        delta_c_y_ext = (dback / (1 - dback * sprk_ext[ind_sprk])) * gamma_y_ext
-
-        # The absolute centroid shift is denoted by
-        abs_cob_ext = (dback / (1 - dback * sprk_max)) * np.sqrt(gamma_x_ext ** 2 + gamma_y_ext ** 2)
-
-        # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-        var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
-        # Now we compute the centroid error along the X direction
-        sigma_x_ext = np.sum(COBx ** 2 * w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2) + (c_x_ext ** 2) * (
-                    np.sum(w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2))
-        # Now we compute the centroid error along the Y direction
-        sigma_y_ext = np.sum(COBy ** 2 * w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2) + (c_y_ext ** 2) * (
-                    np.sum(w_ext * var_delta) / (np.sum(f_tot * w_ext) ** 2))
-
-        # Now we compute the error associated with the absolute centroid shift
-        sigma_cs_ext = (1 / abs_cob_ext) * np.sqrt((delta_c_x_ext ** 2) * (sigma_x_ext ** 2) + (delta_c_y_ext ** 2) +
-                                                   (sigma_y_ext ** 2))
-
-        # Now we average the error over 1 hour and 24 cameras
-        sigma_1_24_ext = sigma_cs_ext / (12 * np.sqrt(24))
-
-        # Now we compute the statistical significance of the centroid shift
-        eta_cob_ext = abs_cob_ext * np.sqrt(td * ntr) / sigma_1_24_ext
-
 ########################################################################################################################
 #                                     END OF THE EXTENDED MASK METHOD                                                  #
 ########################################################################################################################
 
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+
 ########################################################################################################################
-#                                   TESTING  J.C. Bray et al.'s ASSUMPTION OF A 2 x 2 MASK                              #
+#                                   TESTING  J.C. Bray et al.'s ASSUMPTION OF A 2 x 2 MASK                             #
 ########################################################################################################################
 
         # The mask has to contain the 4 pixels around the center,
@@ -368,7 +263,7 @@ for i in range(7, 14):
         n_bad_bray = np.sum(sprk_bray > SPR_crit_bray)
 
 ########################################################################################################################
-#                                          END OF TESTING Bray et al.'s ASSUMPTION                                      #
+#                                          END OF TESTING Bray et al.'s ASSUMPTION                                     #
 ########################################################################################################################
 
 ########################################################################################################################
