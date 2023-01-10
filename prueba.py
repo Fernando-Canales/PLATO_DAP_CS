@@ -200,11 +200,15 @@ for i in range(7, 14):
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc,
+                                                      sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq,
+                                                      td=td, ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc,
+                                                            sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq,
+                                                            td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
 
 ########################################################################################################################
@@ -224,7 +228,7 @@ for i in range(7, 14):
         NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_ext)) / np.sum(It * w_ext)
         NSR_ext_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_ext
 
-        # Then we compute the sprk over the extended mask for all the contaminants for a this target
+        # Then we compute the sprk over the extended mask for all the contaminants for a given target
         sprk_ext, sprk_max_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_ext)
 
         # Then compute the critical SPR of the extended mask (SPR_crit_ext)
@@ -236,13 +240,15 @@ for i in range(7, 14):
         # Now we compute the statistical significance of the signal over the extended mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, COBx=COBx, COBy=COBy, It=It,
+                                                                  f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max,
+                                                                  dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+
 ########################################################################################################################
 #                                     END OF THE EXTENDED MASK METHOD                                                  #
 ########################################################################################################################
-
-        #------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
-        #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
 ########################################################################################################################
 #                                   TESTING  J.C. Bray et al.'s ASSUMPTION OF A 2 x 2 MASK                             #
