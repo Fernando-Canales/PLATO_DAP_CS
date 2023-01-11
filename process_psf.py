@@ -36,7 +36,7 @@ xpsf, ypsf = list_psf(PSFDIR+'list')
 # Third, we convert the PSF coordinates on the Focal Planet from mm to pixel
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
-# We compute the folowing parameters
+# We compute the following parameters
 lx = bsres * sizex
 ly = bsres * sizey
 npsf = len(xpsf)

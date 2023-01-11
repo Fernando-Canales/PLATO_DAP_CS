@@ -185,15 +185,15 @@ for i in range(7, 14):
         f_beb = Ic_acc * w_c
         f_t_c = It * w_c
 
-        # We define the denominator of the spr_c calculation
+        # We define the denominator of the spr_tot_c calculation
         f_tot_c = (np.sum(f_t_c) + np.sum(f_beb))
 
-        # We compute spr_c
-        spr_c = np.sum(Itc_acc * w_c) / f_tot_c
+        # We compute spr_tot_c
+        spr_tot_c = np.sum(Itc_acc * w_c) / f_tot_c
 
         # We compute now the delta_obs for the two apertures
         delta_obs_t = sprk_max * dback
-        delta_obs_c = (1 - spr_c) * dback
+        delta_obs_c = (1 - spr_tot_c) * dback
 
         # We compute now the statistical significances for a given transit event
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / (NSR1h * (1 - SPR_tot))
@@ -285,7 +285,7 @@ for i in range(7, 14):
         print('eta_t is:', eta_t)
         print('eta_c is:', eta_c)
         print('spr_t is:', sprk_max)
-        print('spr_c is:', spr_c)
+        print('spr_tot_c is:', spr_tot_c)
 
         # Now we need to compute the efficiency of the extended mask, this is donde by computing the ratio of the number
         # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
@@ -297,8 +297,8 @@ for i in range(7, 14):
 
         save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h,
                                  n_bad, SPR_crit, sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
-        save_info_contaminant[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_c_key, w_c_size, NSR1h_c, spr_c, eta_c,
-                                             delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
+        save_info_contaminant[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_c_key, w_c_size, NSR1h_c, spr_tot_c,
+                                             eta_c, delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
         save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
                                      SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext]
         save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray,
