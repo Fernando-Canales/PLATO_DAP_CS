@@ -15,7 +15,7 @@ mag = data[:, 1]
 n_bad = data[:, 8]
 
 # We create a useful mask for getting the magnitude range for the P5 sample only (P = 10.66 - 12.66)
-mask_p5 = (mag >= 10.66) & (mag <= 12.66)
+mask_p5 = (mag >= 10) & (mag <= 13)
 
 # Now we apply the mask for getting the magnitude range
 mag_p5 = mag[mask_p5]
@@ -76,12 +76,38 @@ false_positives_extended = ((eta_t_P5 > 7.1) & (delta_obs_ext_P5 > delta_obs_t_P
 # Now we obtain the efficiency of the extended mask
 print("The efficiency of Extended mask's method is:", "%.4f" % (false_positives_extended / false_positives_p5))
 
+# Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
+# of the magnitude of the target
+extended = []
+secondary = []
+magnitude = [10.5, 11, 11.5, 12, 12.5, 13]
+for i in range(7, 13):
+    mask_mag = (mag >= i + 0.5)
+    mag_plot = mag[mask_mag]
+    fp_marchiori = ((eta_t[mask_mag] > 7.1) & (delta_obs_c[mask_mag] > delta_obs_t[mask_mag]) & (eta_c[mask_mag] > 7.1)).sum()
+    fp_extended = ((eta_t[mask_mag] > 7.1) & (delta_obs_ext[mask_mag] > delta_obs_t[mask_mag]) & (eta_ext[mask_mag] > 7.1)).sum()
+    fp = (eta_t[mask_mag] > 7.1).sum()
+    e_marchiori = np.median(fp_marchiori / fp)
+    e_extended = np.median(fp_extended / fp)
+    secondary.append(e_marchiori)
+    extended.append(e_extended)
+    #magnitude.append(min(mag_plot))
+    #magnitude.append(np.mean(mag_plot))
 
-plt.plot(mag_p5,   label='Nominal Mask', alpha=0.5)
-plt.plot(mag_p5, label='Secondary Mask', alpha=0.5)
+extended = np.array(extended)
+secondary = np.array(secondary)
+magnitude = np.array(magnitude)
+
+print(secondary)
+print(extended)
+print(magnitude)
+
+plt.plot(magnitude, secondary * 100, 'o', label='Secondary Mask')
+plt.plot(magnitude, extended * 100, 'o', label='Extended Mask')
+plt.xlabel('P Magnitude')
+plt.ylabel('Efficiency [%]')
 plt.legend()
 plt.show()
-
 # Now bray's assumption
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
