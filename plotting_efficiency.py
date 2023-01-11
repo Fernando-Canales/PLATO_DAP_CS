@@ -23,17 +23,28 @@ mag_p5 = mag[mask_p5]
 # Now we apply the mask again to estimate the number of N_bad in the P5 sample magnitude range given the nominal mask
 n_bad_p5 = n_bad[mask_p5]
 
-# Now we make percentage histogram as the one presented by Marchiori
+# Now we plot a percentage histogram like the one presented by Marchiori
 bins = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]
 plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8)
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.show()
 
-# Now we compute the efficiency of Marchiori's method. For doing that, we compute the number of false positives detected
-# by the secondary mask over the total number of false positives detected by the nominal mask. For doing so, we compute
-# the number of cases where the statistical significance of the secondary mask (eta_c) is higher than the statistical
-# significance of the nominal mask (eta_t) given that the statistical significance of the nominal mask is higher than
-# 7.1 (eta_t > 7.1).
+# Now we compute the efficiency for both Extended and Marchiori's methods. For doing that, we are going to compute the
+# ratio between the total number of false positives detected by the nominal mask (i.e N_bad) over the total number of
+# false positives detected by the secondary mask (N_bad_sec) and by the Extended mask (N_bad_ext). This means, the
+# efficiency of Marchiori's method is just N_bad_sec / N_bad, while the efficiency of the Extended mask would be
+# N_bad_ext / N_bad.
+
+#
+
+# The thing to do is therefore to write an expression for obtaining each of these three quantities. In our code, we are
+# assuming (and that is quite a strong assumption!) that all contaminant stars for every target are eclipsing binaries
+# with the same transit depth for every of them. In such a case, the total number of false positives detectable for
+# the nominal mask is just the number of contaminant stars that could generate a detectable signal on the nominal mask
+# (i.e \eta_t > 7.1). On the other hand, the number of false positives that can be spotted by the secondary or Extended
+# masks is the number of stars that can produce a detectable signal on the nominal mask as well (eta_t > 7.1) given
+# that they are detectable on their respective masks (eta_c > 7.1 and eta_ext > 7.1) and (delta_obs_c > delta_obs_t
+# delta_obs_ext > delta_obs_t). (This can be discussed as well)
 
 # We get the eta_t and eta_c
 eta_t = data[:, 12]
@@ -120,9 +131,9 @@ n_bad_bray_p5 = n_bad_bray[mask_p5]
 nsr1h_bray_p5 = nsr1h_bray[mask_p5]
 
 # Now we make percentage histogram as the one presented by Marchiori
-bins = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]
-plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8, label='Marchiori', alpha=0.5)
-plt.hist(n_bad_bray_p5, bins=bins, weights=[1 / len(n_bad_bray_p5)] * len(n_bad_bray_p5), edgecolor='black', rwidth=0.8, label='Bray', alpha=0.5)
+bins = [10, 11, 12, 13]
+plt.hist(mag_p5[nsr1h_bray_p5], bins=bins, edgecolor='black', rwidth=0.8, label='Marchiori', alpha=0.5)
+#plt.hist(mag_p5, bins=bins, edgecolor='black', rwidth=0.8, label='Bray', alpha=0.5)
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.legend()
 plt.show()
