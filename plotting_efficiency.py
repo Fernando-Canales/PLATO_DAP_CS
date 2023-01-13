@@ -98,10 +98,6 @@ extended = np.array(extended)
 secondary = np.array(secondary)
 magnitude = np.array(magnitude)
 
-print(secondary)
-print(extended)
-print(magnitude)
-
 plt.plot(magnitude, secondary * 100, 'o', label='Secondary Mask')
 plt.plot(magnitude, extended * 100, 'o', label='Extended Mask')
 plt.xlabel('P Magnitude')
