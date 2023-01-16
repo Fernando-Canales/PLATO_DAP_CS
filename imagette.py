@@ -33,9 +33,9 @@ def catalogue(path):
     return data_gaia
 
 
-# Let's load the data that we need from the list of the PSFS
+# Let's load the data that we need from the list of the PSFs
 def list_psf(path):
-    Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[4,5])
+    Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[4, 5])
     return Xpsf, Ypsf
 
 
@@ -60,7 +60,7 @@ def barycenter(array, mask=None, x=None, y=None, subres=1):
     return bx, by
 
 
-# Defiinig the function that produces a Gaussian kernel
+# Defining the function that produces a Gaussian kernel
 def gauss(xc, yc, width, size, subres=1):
     # 2D Gaussian function centered on (xc,yc)
     s = float(subres)
