@@ -101,11 +101,10 @@ def ran_unique_int(n, interval):
 
 # Let's define a function that computes the COB as well as its significance and its associated error
 def centroid_shift(w, COBx, COBy, It, f_tot, sprk, Ic, dback, sb, sd, sq, td, ntr):
-    # First we define the COB on the X-direction
+    # First we define the COB on the X-direction and on the Y-direction
     c_x = np.sum(w * COBx * It)/np.sum(f_tot * w)
-    # Now we define the COB on the Y-directio
+    # Now we define the COB on the Y-direction
     c_y = np.sum(w * COBy * It)/np.sum(f_tot * w)
-
     # Now we define the Gamma factor along the X-direction
     gamma_x = (np.sum(w * COBx * Ic) / np.sum(f_tot * w) - c_x * sprk)
     # Now we define the Gamma factor along the Y-direction

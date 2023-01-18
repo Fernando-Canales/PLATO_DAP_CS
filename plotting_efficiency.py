@@ -27,6 +27,8 @@ n_bad_p5 = n_bad[mask_p5]
 bins = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]
 plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8)
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.title('N_bad')
+plt.xlabel('N')
 plt.show()
 
 """
@@ -62,7 +64,7 @@ target's photometry is produced by the signal coming from the contaminant star.
 3.- the signal of the transit is detectable on the Nominal mask (i.e. eta_t > 7.1)
  
 The number of detectable false positives by the Extended mask is computed in a complete analogous way to what was just
-described for the Secondary mask. It is enough to chance the subscripts "c" for "ext". 
+described for the Secondary mask. It is enough to change the subscripts "c" for "ext". 
 
 """
 

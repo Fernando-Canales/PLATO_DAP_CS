@@ -1,11 +1,7 @@
-import matplotlib.pyplot as plt
 import spline2dbase
-import numpy as np
-from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, reference_flux_target, \
-    reference_flux_contaminant
-from imagette import catalogue, list_psf, barycenter, gauss, window, ran_unique_int, ploting_imagettes, centroid_shift, \
-    ploting_nsr, ploting_nsr_s, ploting_initial
-from NSR import spr_crit, aperture, NSRn, nsr_AGG, SPR, mask_to_bitmask, bitmask_to_mask, extended_binary_mask
+from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
+from imagette import catalogue, barycenter, window, ran_unique_int, centroid_shift
+from NSR import spr_crit, aperture, SPR, mask_to_bitmask, extended_binary_mask
 from pylab import *
 
 # The first thing to do is to load the GAIA catalogue with all the stars
@@ -87,7 +83,7 @@ for i in range(7, 14):
         pyc[psf_idx]
         # Now we get the b-spline decomposition of the closest PSF
         psfbs[psf_idx]
-        # Now we we define the window (imagette) and find the coordinates of the target inside of it
+        # Now we define the window (imagette) and find the coordinates of the target inside of it
         x_t_im, y_t_im, i0, j0 = window(x_tar[k], y_tar[k], 6, 6)
         # Then we obtain the offset between the center of the imagette and the center of the PSF
         offx = x_t_im - pxc[psf_idx]
@@ -287,11 +283,11 @@ for i in range(7, 14):
         print('spr_t is:', sprk_max)
         print('spr_tot_c is:', spr_tot_c)
 
-        # Now we need to compute the efficiency of the extended mask, this is donde by computing the ratio of the number
+        # Now we need to compute the efficiency of the extended mask, this is done by computing the ratio of the number
         # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
         # given by the nominal mask.
 
-        # The number of false positives given by the extended mask such that etat_ext > eta_t is given by
+        # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
         n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk > SPR_crit) & (sprk_ext > sprk))[0])
 
 
