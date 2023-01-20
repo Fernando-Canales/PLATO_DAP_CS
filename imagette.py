@@ -103,7 +103,7 @@ def ran_unique_int(n, interval):
 
 
 # Let's define a function that computes the COB as well as its significance and its associated error
-def centroid_shift(w, Ic, I, sprk, dback, sb, sd, sq, td, ntr):
+def centroid_shift(w, Ik, I, sprk, dback, sb, sd, sq, td, ntr):
     """"
     Computes the COB and COB shift for the full image (Target + Contaminants) as well as the COB shift error
     and COB shift significance.d
@@ -112,24 +112,29 @@ def centroid_shift(w, Ic, I, sprk, dback, sb, sd, sq, td, ntr):
     x = np.arange(0, I.shape[1]) + 0.5
     # Second we define the ordinate of each pixel in the array with the target and all contaminants
     y = np.arange(0, I.shape[0]) + 0.5
+    # Now we make a grid out of them
+    x, y = np.meshgrid(x, y)
     # Now we define the total flux
     f_tot = np.sum(I * w)
     # Now we define the COB on the X-direction
-    c_x = np.sum(w * x * I) / f_tot
+    c_x = np.sum(I * x * w) / f_tot
     # Now we define the COB on the Y-direction
-    c_y = np.sum(w * y * I) / f_tot
+    c_y = np.sum(I * y * w) / f_tot
     # Now we define the Gamma factor along the X-direction
-    gamma_x = ((np.sum(w * x * Ic) / f_tot) - c_x * sprk)
+    gamma_x = ((np.sum(Ik * x * w) / f_tot) - c_x * sprk)
     # Now we define the Gamma factor along the Y-direction
-    gamma_y = ((np.sum(w * y * Ic) / f_tot) - c_y * sprk)
+    gamma_y = ((np.sum(Ik * y * w) / f_tot) - c_y * sprk)
+
+    # Now we make sure to deal with the correct units (no ppm)
+    Dback = dback * 10 ** -6
 
     # Now we define the centroid shift along the X-direction
-    delta_c_x = (dback / (1 - dback * sprk)) * gamma_x
+    delta_c_x = (Dback / (1 - Dback * sprk)) * gamma_x
     # Now we define the centroid shift along the Y-direction
-    delta_c_y = (dback / (1 - dback * sprk)) * gamma_y
+    delta_c_y = (Dback / (1 - Dback * sprk)) * gamma_y
 
     # Then we define the absolute centroid shift
-    abs_cob = (dback / (1 - dback * sprk)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
+    abs_cob = (Dback / (1 - Dback * sprk)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
 
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
     var_delta = np.mean(I) + sb + sd ** 2 * sq ** 2

@@ -196,12 +196,12 @@ for i in range(7, 14):
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
+        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
                                                       sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
+        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
                                                             sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
 
@@ -235,7 +235,7 @@ for i in range(7, 14):
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max,
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max,
                                                                   dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
