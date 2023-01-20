@@ -6,26 +6,28 @@ import spline2dbase
 import math
 import scipy.special
 
+
 def psf_gauss_int(xc, yc, width_x, width_y, sizex, sizey):
     '''
     Gaussian PSF integrated over the pixels of an imagette
     '''
 
-    zx = 1./(math.sqrt(2.)*width_x)
-    zy = 1./(math.sqrt(2.)*width_y)
+    zx = 1. / (math.sqrt(2.) * width_x)
+    zy = 1. / (math.sqrt(2.) * width_y)
     # Error function
-    erfx = scipy.special.erf((np.arange(0, sizex+1) - xc)*zx)
-    erfy = scipy.special.erf((np.arange(0, sizey+1) - yc)*zy)
+    erfx = scipy.special.erf((np.arange(0, sizex + 1) - xc) * zx)
+    erfy = scipy.special.erf((np.arange(0, sizey + 1) - yc) * zy)
     # normalization required to have the flux density equals to one  at the center
     ## u = math.sqrt(math.pi/2.)*width
     u = 0.5  # normalization required to have the mask integral equals to one
-    maskx = (erfx[1:sizex+1] - erfx[0:sizex])*u
-    masky = (erfy[1:sizey+1] - erfy[0:sizey])*u
+    maskx = (erfx[1:sizex + 1] - erfx[0:sizex]) * u
+    masky = (erfy[1:sizey + 1] - erfy[0:sizey]) * u
     maskx = np.reshape(maskx, (1, sizex))
     masky = np.reshape(masky, (sizey, 1))
     maskx = np.repeat(maskx, sizey, axis=0)
     masky = np.repeat(masky, sizex, axis=1)
-    return masky*maskx
+    return masky * maskx
+
 
 # Let's load the data that we need from the catalogue
 def catalogue(path):
@@ -80,6 +82,7 @@ def window(xt, yt, sx, sy):
     y = yt - j0
     return x, y, i0, j0
 
+
 # Let's create a function that draws a randomly  targets from my interval
 def ran_unique_int(n, interval):
     """
@@ -95,20 +98,30 @@ def ran_unique_int(n, interval):
         p = len(u)
         r[0:p] = u
         if p < n:
-            r[p:] = np.random.randint(interval[0], interval[1], size=n-p)
+            r[p:] = np.random.randint(interval[0], interval[1], size=n - p)
     return r
 
 
 # Let's define a function that computes the COB as well as its significance and its associated error
-def centroid_shift(w, COBx, COBy, It, f_tot, sprk, Ic, dback, sb, sd, sq, td, ntr):
-    # First we define the COB on the X-direction and on the Y-direction
-    c_x = np.sum(w * COBx * It)/np.sum(f_tot * w)
+def centroid_shift(w, Ic, I, sprk, dback, sb, sd, sq, td, ntr):
+    """"
+    Computes the COB and COB shift for the full image (Target + Contaminants) as well as the COB shift error
+    and COB shift significance.d
+    """
+    # First we define the abscissa of each pixel in the array with the target and all contaminants
+    x = np.arange(0, I.shape[1]) + 0.5
+    # Second we define the ordinate of each pixel in the array with the target and all contaminants
+    y = np.arange(0, I.shape[0]) + 0.5
+    # Now we define the total flux
+    f_tot = np.sum(I * w)
+    # Now we define the COB on the X-direction
+    c_x = np.sum(w * x * I) / f_tot
     # Now we define the COB on the Y-direction
-    c_y = np.sum(w * COBy * It)/np.sum(f_tot * w)
+    c_y = np.sum(w * y * I) / f_tot
     # Now we define the Gamma factor along the X-direction
-    gamma_x = (np.sum(w * COBx * Ic) / np.sum(f_tot * w) - c_x * sprk)
+    gamma_x = ((np.sum(w * x * Ic) / f_tot) - c_x * sprk)
     # Now we define the Gamma factor along the Y-direction
-    gamma_y = (np.sum(w * COBx * Ic) / np.sum(f_tot * w) - c_y * sprk)
+    gamma_y = ((np.sum(w * y * Ic) / f_tot) - c_y * sprk)
 
     # Now we define the centroid shift along the X-direction
     delta_c_x = (dback / (1 - dback * sprk)) * gamma_x
@@ -119,14 +132,14 @@ def centroid_shift(w, COBx, COBy, It, f_tot, sprk, Ic, dback, sb, sd, sq, td, nt
     abs_cob = (dback / (1 - dback * sprk)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
 
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-    var_delta = np.mean(It) + sb + sd ** 2 * sq ** 2
+    var_delta = np.mean(I) + sb + sd ** 2 * sq ** 2
 
     # Now we compute the centroid error along the X-direction
-    sigma_x = np.sum(COBx ** 2 * w * var_delta) / (np.sum(f_tot * w) ** 2) + (c_x ** 2) * (
-            np.sum(w * var_delta) / (np.sum(f_tot * w) ** 2))
+    sigma_x = np.sum(x ** 2 * w * var_delta) / (f_tot ** 2) + (c_x ** 2) * (
+            np.sum(w * var_delta) / (f_tot ** 2))
     # Now we compute the centroid error along the Y-direction
-    sigma_y = np.sum(COBy ** 2 * w * var_delta) / (np.sum(f_tot * w) ** 2) + (c_y ** 2) * (
-            np.sum(w * var_delta) / (np.sum(f_tot * w) ** 2))
+    sigma_y = np.sum(y ** 2 * w * var_delta) / (f_tot ** 2) + (c_y ** 2) * (
+            np.sum(w * var_delta) / (f_tot ** 2))
 
     # Now we compute the error associated with the absolute centroid shift
     sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
@@ -137,6 +150,7 @@ def centroid_shift(w, COBx, COBy, It, f_tot, sprk, Ic, dback, sb, sd, sq, td, nt
     # Now we compute the statistical significance of the centroid shift
     eta_cob = abs_cob * np.sqrt(td * ntr) / sigma_1_24
     return eta_cob, sigma_1_24, abs_cob
+
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

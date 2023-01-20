@@ -196,15 +196,13 @@ for i in range(7, 14):
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc,
-                                                      sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq,
-                                                      td=td, ntr=ntr)
+        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
+                                                      sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, COBx=COBx, COBy=COBy, It=It, f_tot=It + Ic_acc,
-                                                            sprk=sprk_max, Ic=Ic_max, dback=dback, sb=sb, sd=sd, sq=sq,
-                                                            td=td, ntr=ntr)
+        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
+                                                            sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
 
 ########################################################################################################################
@@ -237,8 +235,7 @@ for i in range(7, 14):
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, COBx=COBx, COBy=COBy, It=It,
-                                                                  f_tot=It + Ic_acc, sprk=sprk_max, Ic=Ic_max,
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ic=Ic_max, I=It + Ic_acc, sprk=sprk_max,
                                                                   dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
@@ -282,6 +279,12 @@ for i in range(7, 14):
         print('eta_c is:', eta_c)
         print('spr_t is:', sprk_max)
         print('spr_tot_c is:', spr_tot_c)
+        print('Delta_COB:', abs_cob)
+        print('Delta_COB_c:', abs_cob_c)
+        print('Delta_COB_ext:', abs_cob_ext)
+        print('eta_COB:', eta_cob)
+        print('eta_COB_c:', eta_cob_c)
+        print('eta_COB_ext:', eta_cob_ext)
 
         # Now we need to compute the efficiency of the extended mask, this is done by computing the ratio of the number
         # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
