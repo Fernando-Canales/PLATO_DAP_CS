@@ -27,8 +27,8 @@ n_bad_p5 = n_bad[mask_p5]
 bins = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]
 plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8)
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-plt.title('N_bad')
-plt.xlabel('N')
+plt.xlabel('Number of potential N_bad')
+plt.ylabel('Fraction of targets [%] ')
 plt.show()
 
 """
@@ -105,10 +105,11 @@ print("The efficiency of Extended mask's method is:", "%.4f" % (false_positives_
 # of the magnitude of the target
 extended = []
 secondary = []
-magnitude = [10.5, 11, 11.5, 12, 12.5, 13]
-for i in range(7, 13):
-    mask_mag = (mag >= i + 0.5)
-    mag_plot = mag[mask_mag]
+#magnitude = [10.5, 11, 11.5, 12, 12.5, 13]
+magnitude = []
+for i in range(9, 14):
+    mask_mag = (mag > i - 0.25) & (mag < i + 0.25)
+    magnitude_eff = np.median(mag[mask_mag])
     fp_marchiori = ((eta_t[mask_mag] > 7.1) & (delta_obs_c[mask_mag] > delta_obs_t[mask_mag]) & (
                 eta_c[mask_mag] > 7.1)).sum()
     fp_extended = ((eta_t[mask_mag] > 7.1) & (delta_obs_ext[mask_mag] > delta_obs_t[mask_mag]) & (
@@ -118,8 +119,7 @@ for i in range(7, 13):
     e_extended = np.median(fp_extended / fp)
     secondary.append(e_marchiori)
     extended.append(e_extended)
-    # magnitude.append(min(mag_plot))
-    # magnitude.append(np.mean(mag_plot))
+    magnitude.append(magnitude_eff)
 
 extended = np.array(extended)
 secondary = np.array(secondary)
@@ -134,6 +134,89 @@ plt.show()
 # Now bray's assumption
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
+"""
+Now we will obtain a plot showing the amount of false positives detected by Bray et al 2 x 2 mask in comparison with the
+amount of false positives detected by our Nominal mask
+"""
 
 n_bad_bray_p5 = n_bad_bray[mask_p5]
-nsr1h_bray_p5 = nsr1h_bray[mask_p5]
+
+# Now we plot a percentage histogram like the one presented by Marchiori
+plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8,
+         label='Nominal Mask', alpha=0.5)
+plt.hist(n_bad_bray_p5, bins=bins, weights=[1 / len(n_bad_bray_p5)] * len(n_bad_bray_p5), edgecolor='black', rwidth=0.8,
+         label='Bray 2 x 2 Mask', alpha=0.5)
+plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.xlabel('Number of potential N_bad')
+plt.ylabel('Fraction of targets [%]')
+plt.legend()
+plt.show()
+
+#nsr1h_bray_p5 = nsr1h_bray[mask_p5]
+
+"""
+Now we obtain the NSR for both Bray et al 2 x 2 and our nominal masks as a function of the Target magnitude
+"""
+
+bray = []
+nominal = []
+magnitude_Bray = []
+for i in range(9, 14):
+    mask_mag = (mag >= i - 0.25) & (mag <= i + 0.25)
+    magnitude_bray = np.median(mag[mask_mag])
+    nsr_nominal = np.median(nsr1h[mask_mag])
+    nsr_bray = np.median(nsr1h_bray[mask_mag])
+    nominal.append(nsr_nominal)
+    bray.append(nsr_bray)
+    magnitude_Bray.append(magnitude_bray)
+
+bray = np.array(bray)
+nominal = np.array(nominal)
+magnitude_Bray = np.array(magnitude_Bray)
+
+
+#plt.bar(magnitude, nominal, label='Nominal Mask', width=0.1)
+#plt.bar(magnitude, bray, label='2 x 2 Mask', alpha=0.5, width=0.1)
+plt.plot(magnitude_Bray, nominal, 'o-', color="blue", label="Nominal Mask")
+plt.plot(magnitude_Bray, bray, 'o-', color="orange", label="Bray 2 x 2 Mask")
+plt.xlabel('P Magnitude')
+plt.ylabel(r"NSR [$ppm \cdot hr^{\frac{1}{2}}$]")
+plt.legend()
+plt.show()
+
+"""
+Now we obtain several plots for showing the degeneracy of the Nominal, Secondary and Extended Masks
+"""
+
+# Now we obtain the mask size of every mask
+size_nom = data[:, 6]
+size_sec = data_sec[:, 3]
+size_e = data_ext[:, 3]
+
+Nominal = []
+Secondary = []
+Extended = []
+Magnitude = []
+for i in range(9, 14):
+    mask_mag = (mag >= i - 0.25) & (mag <= i + 0.25)
+    magnitude_size = np.median(mag[mask_mag])
+    size_nominal = np.mean(size_nom[mask_mag])
+    size_secondary = np.mean(size_sec[mask_mag])
+    size_ext = np.mean(size_e[mask_mag])
+    Nominal.append(size_nominal)
+    Secondary.append(size_secondary)
+    Extended.append(size_ext)
+    Magnitude.append(magnitude_size)
+
+Nominal = np.array(Nominal)
+Secondary = np.array(Secondary)
+Extended = np.array(Extended)
+Magnitude = np.array(Magnitude)
+
+plt.plot(Magnitude, Nominal, 'o-', color="blue", label="Nominal Mask")
+#plt.plot(Magnitude, Secondary, 'o-', color="orange", label="Secondary Mask")
+plt.plot(Magnitude, Extended, 'o-', color="green", label="Extended Mask")
+plt.xlabel('P Magnitude')
+plt.ylabel(r"Average number of pixels per mask")
+plt.legend()
+plt.show()

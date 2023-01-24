@@ -125,6 +125,9 @@ def centroid_shift(w, Ik, I, sprk, dback, sb, sd, sq, td, ntr):
     # Now we define the Gamma factor along the Y-direction
     gamma_y = ((np.sum(Ik * y * w) / f_tot) - c_y * sprk)
 
+    # Now we define the total gamma factor
+    gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
+
     # Now we make sure to deal with the correct units (no ppm)
     Dback = dback * 10 ** -6
 
@@ -148,13 +151,13 @@ def centroid_shift(w, Ik, I, sprk, dback, sb, sd, sq, td, ntr):
 
     # Now we compute the error associated with the absolute centroid shift
     sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
-
+    sigma_cs_last = (np.sqrt(2) / gamma) * (np.sqrt((gamma_x ** 2 * sigma_x ** 2) + (gamma_y * sigma_y ** 2)))
     # Now we average the error over 1 hour and 24 cameras
     sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
-
+    sigma_1_24_last = sigma_cs_last / (12 * np.sqrt(24))
     # Now we compute the statistical significance of the centroid shift
     eta_cob = abs_cob * np.sqrt(td * ntr) / sigma_1_24
-    return eta_cob, sigma_1_24, abs_cob
+    return eta_cob, sigma_1_24, abs_cob, sigma_1_24_last
 
 
 # This function plots the imagette and the PSF

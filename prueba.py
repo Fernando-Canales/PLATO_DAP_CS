@@ -8,14 +8,14 @@ from pylab import *
 data = catalogue('SFP_DR3_20220831.npy')
 
 # Parameters for the imagette and PSF
-sizex2 = 6  # size of the imagette (x-direction)
-sizey2 = 6  # size of the imagette (y-direction)
+size_im_x = 6  # size of the imagette (x-direction)
+size_im_y = 6  # size of the imagette (y-direction)
 subres = 128  # resolution of the PSF
 bsres = 20  # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
-sb = (45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
-sd = 50.2  # Overall detector noise (including readout at beginning of life, smearing and dark current) in units of e- rms/px
+sb = (45. * 21)  # Background noise from zodiacal light in units of e-/px(poisson noise)times integration time (21 sec.)
+sd = 50.2  # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2  # Quantization noise in units of e-rms/px
 
 # Parameters for the eclipsing binaries
@@ -53,8 +53,8 @@ np.random.seed(300)
 # We define a counter to store our data
 counter = 0
 # Now we can create the mask for getting only stars from P5 sample magnitude range
-for i in range(7, 14):
-    mask = (data[:, 2] >= i - 0.5) & (data[:, 2] < i)
+for i in range(9, 14):
+    mask = (data[:, 2] >= i - 0.25) & (data[:, 2] <= i + 0.25)
     targets_P5 = data[mask, :]
     ID_target = ID[mask]
 
@@ -89,13 +89,15 @@ for i in range(7, 14):
         offx = x_t_im - pxc[psf_idx]
         offy = y_t_im - pyc[psf_idx]
         # Then we finally compute the imagette for the target by integrating the b-spline decomposition of the PSF
-        imagette = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, sizex2, sizey2, offx=offx, offy=offy)
+        imagette = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx, offy=offy)
         # ploting_initial(2, 1, psf, imagette, i='PSF', j='Target')
         # Then we can print the coordinates of the C.O.B.
         COBx, COBy = barycenter(imagette, subres=1)
+        # Now we define a variable for the magnitude of every target we are going to analyze
+        m_t = targets_P5[:, 2][k]
         # Let's obtain the value of the reference flux after the integration time for the target star with vignetting
-        f_ref_t = reference_flux_target(targets_P5[:, 2][k]) * (np.cos(alpha) ** 2)
-        # Let's obtain the flux per pixel of the target
+        f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2)
+        # Let's obtain the flux per pixel of the target:;
         It = f_ref_t * imagette
         # Now it is time to find all the contaminants surrounding each target. We put the distance condition (10 pixels)
         dist = np.sqrt((x_star - x_tar[k]) ** 2 + (y_star - y_tar[k]) ** 2)
@@ -122,10 +124,11 @@ for i in range(7, 14):
             # Now we make sure to deal only with stars with positive magnitudes
             if m_c[o] > 0:
                 # Then we compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
-                Ic[o, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, sizex2, sizey2, offx=offx_c[o], offy=offy_c[o])
+                Ic[o, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx_c[o],
+                                                           offy=offy_c[o])
                 COBx_c, COBy_c = barycenter(Ic[o], subres=1)
                 # Let's obtain the value of the reference flux for every contaminant star
-                f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o], targets_P5[:, 2][k])
+                f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o], m_t)
                 # Let's calculate the Intensity per pixel of the imagette of every contaminant star
                 Ic[o, :, :] = f_ref_c * Ic[o]
 
@@ -265,12 +268,7 @@ for i in range(7, 14):
 #                                          END OF TESTING Bray et al.'s ASSUMPTION                                     #
 ########################################################################################################################
 
-########################################################################################################################
-#                        NOW IT'S TIME TO IMPLEMENT THE CENTER OF BRIGHTNESS METHOD                                    #
-########################################################################################################################
-
-
-        print('Delta P is:', m_c[ind_sprk] - targets_P5[:, 2][k])
+        print('Delta P is:', m_c[ind_sprk] - m_t)
         print('Distance between the target and contaminant with the highest value of SPRk',
               (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
         print('NSR_T is:', NSR1h)
@@ -294,14 +292,17 @@ for i in range(7, 14):
         n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk > SPR_crit) & (sprk_ext > sprk))[0])
 
 
-        save_info[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h,
-                                 n_bad, SPR_crit, sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
-        save_info_contaminant[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_c_key, w_c_size, NSR1h_c, spr_tot_c,
-                                             eta_c, delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
-        save_info_ext[counter, :] = [ID_target[k], targets_P5[:, 2][k], w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
+        save_info[counter, :] = [ID_target[k], m_t, n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit,
+                                 sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
+
+        save_info_contaminant[counter, :] = [ID_target[k], m_t, w_c_key, w_c_size, NSR1h_c, spr_tot_c, eta_c,
+                                             delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
+
+        save_info_ext[counter, :] = [ID_target[k], m_t, w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
                                      SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext]
-        save_info_bray[counter, :] = [ID_target[k], targets_P5[:, 2][k], n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray,
-                                      sprk_max_bray, SPR_tot_bray]
+
+        save_info_bray[counter, :] = [ID_target[k], m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_max_bray,
+                                      SPR_tot_bray]
         counter = counter + 1
 
 save_info = save_info[0:counter]
