@@ -2,6 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 
+# Parameters for the plots
+Pmin = 8
+Pmax = 14
+binsize = 0.5
+ntr = 3
+
 # We load the npy files with all the metrics of the nominal and secondary and extended masks
 data = np.load('targets_P5.npy')
 data_sec = np.load('targets_P5_contaminant.npy')
@@ -31,42 +37,6 @@ plt.xlabel('Number of potential N_bad')
 plt.ylabel('Fraction of targets [%] ')
 plt.show()
 
-"""
-
-The next thing to do is to compute the efficiency of both Marchiori (Secondary Mask) and Samadi (Extended mask) methods. 
-For doing that is enough to compute the ratio between the number of false positives detected by each mask over the total
-number of false positives detected by the Nominal mask. We summarize all this in the following two paragraphs:
-
-We will call N_sec to the number of false positives detected by the Secondary Mask.
-We will call N_ext to the number of false positives detected by the Extended mask.
-We will call N_bad to the number of false positives detected by the Nominal mask (the TOTAL number of false positives).
-
-The efficiency of the Secondary mask is therefore N_c / N_bad.
-The efficiency of the Extended mask is therefore N_ext / N_bad.
-
-We need to write the correct expressions to obtain these three quantities.
-
-So far in our code, we've been assuming (and that is quite a strong assumption!) all contaminant stars for every target 
-to be eclipsing binaries, every single one of them with the same transit depth. Furthermore, all the signals in our code
-come from the contaminant stars. In such a case, the total number of detectable false positives for the Nominal mask 
-(i.e N_bad) is just the number of contaminant stars that could generate a detectable signal on the Nominal mask 
-(i.e eta_t > 7.1).
-
-The number of detectable false positives by the Secondary mask is given by the number of stars that fulfils the 
-following three requirements simultaneously (in no particular order):
- 
-1.- the signal of the transit is detectable on the Secondary mask (i.e. eta_c > 7.1) 
- 
-2.- the transit depth of the signal on the contaminant's photometry is greater than the produced transit depth on the 
-target photometry (i.e. delta_obs_c > delta_obs_t). It is important to recall here that the transit depth of the 
-target's photometry is produced by the signal coming from the contaminant star.
- 
-3.- the signal of the transit is detectable on the Nominal mask (i.e. eta_t > 7.1)
- 
-The number of detectable false positives by the Extended mask is computed in a complete analogous way to what was just
-described for the Secondary mask. It is enough to change the subscripts "c" for "ext". 
-
-"""
 
 # Now we get all the etas and delta_obs
 eta_t = data[:, 12]
@@ -103,12 +73,53 @@ print("The efficiency of Extended mask's method is:", "%.4f" % (false_positives_
 
 # Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
 # of the magnitude of the target
+
+"""
+extended = []
+secondary = []
+magnitude = [10.5, 11, 11.5, 12, 12.5, 13]
+#magnitude = []
+pi = []
+a = np.arange(5, 11)
+for i in range(a):
+    # First we define a mask
+    Pi = Pmin + i*binsize
+    print(i)
+    print(Pi)
+    pi.append(Pi)
+    #m = (mag >= Pi - binsize/2.) & (mag < Pi + binsize/2.)
+    m = (mag >= 10.5 - binsize/2.) & (mag < 10.5 + binsize/2.)
+    #mag_eff = np.median(mag[m])
+    fp_marchiori = ((eta_t[m] > 7.1) & (delta_obs_c[m] > delta_obs_t[m]) & (
+                eta_c[m] > 7.1)).sum()
+    fp_extended = ((eta_t[m] > 7.1) & (delta_obs_ext[m] > delta_obs_t[m]) & (
+                eta_ext[m] > 7.1)).sum()
+    fp = (eta_t[m] > 7.1).sum()
+    e_marchiori = np.median(fp_marchiori / fp)
+    e_extended = np.median(fp_extended / fp)
+    secondary.append(e_marchiori)
+    extended.append(e_extended)
+    #magnitude.append(mag_eff)
+
+extended = np.array(extended)
+secondary = np.array(secondary)
+magnitude = np.array(magnitude)
+pi = np.array(pi)
+plt.plot(magnitude, secondary * 100, 'o-', label='Secondary Mask')
+plt.plot(magnitude, extended * 100, 'o-', label='Extended Mask')
+plt.xlabel('P Magnitude')
+plt.ylabel('Efficiency [%]')
+plt.legend()
+plt.show()
+"""
+
+"""
 extended = []
 secondary = []
 #magnitude = [10.5, 11, 11.5, 12, 12.5, 13]
 magnitude = []
-for i in range(9, 14):
-    mask_mag = (mag > i - 0.25) & (mag < i + 0.25)
+for i in range(5, 11):
+    mask_mag = (mag > (8 + i*binsize) - 0.25) & (mag < (8 + i*binsize) + 0.25)
     magnitude_eff = np.median(mag[mask_mag])
     fp_marchiori = ((eta_t[mask_mag] > 7.1) & (delta_obs_c[mask_mag] > delta_obs_t[mask_mag]) & (
                 eta_c[mask_mag] > 7.1)).sum()
@@ -125,12 +136,15 @@ extended = np.array(extended)
 secondary = np.array(secondary)
 magnitude = np.array(magnitude)
 
-plt.plot(magnitude, secondary * 100, 'o', label='Secondary Mask')
-plt.plot(magnitude, extended * 100, 'o', label='Extended Mask')
+plt.plot(magnitude, secondary * 100, 'o-', label='Secondary Mask')
+plt.plot(magnitude, extended * 100, 'o-', label='Extended Mask')
 plt.xlabel('P Magnitude')
 plt.ylabel('Efficiency [%]')
 plt.legend()
 plt.show()
+"""
+
+
 # Now bray's assumption
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
@@ -158,65 +172,52 @@ plt.show()
 Now we obtain the NSR for both Bray et al 2 x 2 and our nominal masks as a function of the Target magnitude
 """
 
-bray = []
-nominal = []
-magnitude_Bray = []
-for i in range(9, 14):
+for i in range(8, 14):
     mask_mag = (mag >= i - 0.25) & (mag <= i + 0.25)
     magnitude_bray = np.median(mag[mask_mag])
     nsr_nominal = np.median(nsr1h[mask_mag])
     nsr_bray = np.median(nsr1h_bray[mask_mag])
-    nominal.append(nsr_nominal)
-    bray.append(nsr_bray)
-    magnitude_Bray.append(magnitude_bray)
+    plt.scatter([magnitude_bray], [nsr_nominal], color='b')
+    plt.scatter([magnitude_bray], [nsr_bray], color='orange')
 
-bray = np.array(bray)
-nominal = np.array(nominal)
-magnitude_Bray = np.array(magnitude_Bray)
-
-
-#plt.bar(magnitude, nominal, label='Nominal Mask', width=0.1)
-#plt.bar(magnitude, bray, label='2 x 2 Mask', alpha=0.5, width=0.1)
-plt.plot(magnitude_Bray, nominal, 'o-', color="blue", label="Nominal Mask")
-plt.plot(magnitude_Bray, bray, 'o-', color="orange", label="Bray 2 x 2 Mask")
-plt.xlabel('P Magnitude')
-plt.ylabel(r"NSR [$ppm \cdot hr^{\frac{1}{2}}$]")
-plt.legend()
 plt.show()
 
 """
 Now we obtain several plots for showing the degeneracy of the Nominal, Secondary and Extended Masks
 """
 
-# Now we obtain the mask size of every mask
+# First we obtain the mask size of every mask
+key_nom = data[:, 5]
+key_sec = data[:, 2]
+key_ext = data[:, 2]
 size_nom = data[:, 6]
 size_sec = data_sec[:, 3]
 size_e = data_ext[:, 3]
 
-Nominal = []
-Secondary = []
-Extended = []
-Magnitude = []
-for i in range(9, 14):
+
+for i in range(8, 14):
     mask_mag = (mag >= i - 0.25) & (mag <= i + 0.25)
     magnitude_size = np.median(mag[mask_mag])
     size_nominal = np.mean(size_nom[mask_mag])
     size_secondary = np.mean(size_sec[mask_mag])
     size_ext = np.mean(size_e[mask_mag])
-    Nominal.append(size_nominal)
-    Secondary.append(size_secondary)
-    Extended.append(size_ext)
-    Magnitude.append(magnitude_size)
+    plt.scatter([magnitude_size], [size_nominal], color='b')
+    plt.scatter([magnitude_size], [size_ext], color='orange')
 
-Nominal = np.array(Nominal)
-Secondary = np.array(Secondary)
-Extended = np.array(Extended)
-Magnitude = np.array(Magnitude)
 
-plt.plot(Magnitude, Nominal, 'o-', color="blue", label="Nominal Mask")
-#plt.plot(Magnitude, Secondary, 'o-', color="orange", label="Secondary Mask")
-plt.plot(Magnitude, Extended, 'o-', color="green", label="Extended Mask")
-plt.xlabel('P Magnitude')
-plt.ylabel(r"Average number of pixels per mask")
-plt.legend()
+plt.show()
+
+# Now we obtain the degeneracy of the masks. For doing so we just need to know the number of unique mask keys
+
+for i in range(8, 14):
+    mask_mag = (mag >= i - 0.25) & (mag <= i + 0.25)
+    magnitude_size = np.median(mag[mask_mag])
+    key_nominal = len(np.unique(key_nom[mask_mag]))
+    key_secondary = len(np.unique(key_sec[mask_mag]))
+    key_extended = len(np.unique(key_ext[mask_mag]))
+    plt.scatter([magnitude_size], [key_nominal * 0.333], color='b')
+    plt.scatter([magnitude_size], [key_extended * 0.333], color='orange')
+    plt.xlabel(" P Magnitude")
+    plt.ylabel(r"Fraction of unique mask shapes [%]")
+
 plt.show()
