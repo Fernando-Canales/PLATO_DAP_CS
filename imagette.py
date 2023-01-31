@@ -128,30 +128,30 @@ def centroid_shift(w, Ik, I, sprk, dback, sb, sd, sq, td, ntr):
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
 
-    # Now we make sure to deal with the correct units (no ppm)
+    # Now we make sure to deal with the correct units for the C.O.B shift (no ppm)
     Dback = dback * 10 ** -6
 
+    l = Dback / (1 - Dback * sprk)
+
     # Now we define the centroid shift along the X-direction
-    delta_c_x = (Dback / (1 - Dback * sprk)) * gamma_x
+    cs_x = l * gamma_x
     # Now we define the centroid shift along the Y-direction
-    delta_c_y = (Dback / (1 - Dback * sprk)) * gamma_y
+    cs_y = l * gamma_y
 
     # Then we define the absolute centroid shift
-    abs_cob = (Dback / (1 - Dback * sprk)) * np.sqrt(gamma_x ** 2 + gamma_y ** 2)
+    abs_cob = l * gamma
 
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
     var_delta = np.mean(I) + sb + sd ** 2 * sq ** 2
 
     # Now we compute the centroid error along the X-direction
-    sigma_x = np.sum(x ** 2 * w * var_delta) / (f_tot ** 2) + (c_x ** 2) * (
-            np.sum(w * var_delta) / (f_tot ** 2))
+    sigma_x = np.sum(x ** 2 * w * var_delta) / (f_tot ** 2) + (c_x ** 2) * (np.sum(w * var_delta) / (f_tot ** 2))
     # Now we compute the centroid error along the Y-direction
-    sigma_y = np.sum(y ** 2 * w * var_delta) / (f_tot ** 2) + (c_y ** 2) * (
-            np.sum(w * var_delta) / (f_tot ** 2))
+    sigma_y = np.sum(y ** 2 * w * var_delta) / (f_tot ** 2) + (c_y ** 2) * (np.sum(w * var_delta) / (f_tot ** 2))
 
     # Now we compute the error associated with the absolute centroid shift
-    sigma_cs = (1 / abs_cob) * np.sqrt((delta_c_x ** 2) * (sigma_x ** 2) + (delta_c_y ** 2) + (sigma_y ** 2))
-    sigma_cs_last = (np.sqrt(2) / gamma) * np.sqrt((gamma_x ** 2 * sigma_x ** 2) + (gamma_y * sigma_y ** 2))
+    sigma_cs = (1 / abs_cob) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
+    sigma_cs_last = (np.sqrt(2) / gamma) * np.sqrt((gamma_x ** 2 * sigma_x ** 2) + (gamma_y ** 2 * sigma_y ** 2))
     # Now we average the error over 1 hour and 24 cameras
     sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
     sigma_1_24_last = sigma_cs_last / (12 * np.sqrt(24))
