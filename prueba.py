@@ -39,11 +39,11 @@ xpsf_pix = psfdata['xpsf_pix']
 ypsf_pix = psfdata['ypsf_pix']
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((300 * 8, 17))
+save_info = np.zeros((300 * 8, 18))
 # The same for the secondary/contaminant mask
-save_info_contaminant = np.zeros((300 * 8, 11))
+save_info_contaminant = np.zeros((300 * 8, 12))
 # The same for the extended mask
-save_info_ext = np.zeros((300 * 8, 12))
+save_info_ext = np.zeros((300 * 8, 13))
 # The same for bray's et al. assumption of using 2 x 2 masks
 save_info_bray = np.zeros((300 * 8, 8))
 
@@ -53,7 +53,7 @@ np.random.seed(300)
 # We define a counter to store our data
 counter = 0
 # Now we can create the mask for getting only stars from P5 sample magnitude range
-for i in range(9, 14):
+for i in range(8, 15):
     mask = (data[:, 2] >= i - 0.25) & (data[:, 2] <= i + 0.25)
     targets_P5 = data[mask, :]
     ID_target = ID[mask]
@@ -155,16 +155,19 @@ for i in range(9, 14):
         SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr)
 
         # Now we compute the number of contaminant stars above SPR_crit (i.e. N_bad)
-        n_bad = np.sum(sprk > SPR_crit)
-
-        # Now we find the index of the contaminant star with the highest value of SPRk
-        ind_sprk = np.argmax(sprk)
+        #n_bad = np.sum(sprk > SPR_crit)
+        n_bad = np.sum(sprk_max > SPR_crit)
+        # Now we get the index of the contaminant star with the highest value of SPRk (AND HIGHER THAN SPR_crit AS WELL)
+        #ind_sprk = np.argmax(sprk)
+        spr_mask = (sprk_max > SPR_crit)
+        ind_sprk = np.where(sprk[spr_mask])[0]
         # Now we obtain the magnitude of the contaminant star with the highest value of SPRk
         m_c_bad = m_c[ind_sprk]
         # Now we find the distance between the given target and the contaminant with the highest value of SPRk
         dist_bad = (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2
 
-        # Now we select the (intensity per pixel array) imagette of the contaminant star with the highest value of SPRk
+        # Now we select the (intensity per pixel array) imagette of the contaminant star with the highest value of sprk
+        # given that sprk > SPR_crit
         Ic_max = Ic[ind_sprk]
 
         # Now we define a term that contains the flux of the targets and their respective contaminants except the one
@@ -199,13 +202,14 @@ for i in range(9, 14):
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
-                                                      sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        eta_cob, sigma_1_24, abs_cob, sigma_1_24_last = centroid_shift(w=w_t, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max,
+                                                                       dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max, dback=dback,
-                                                            sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        eta_cob_c, sigma_1_24_c, abs_cob_c, sigma_1_24_last_c = centroid_shift(w=w_c, Ik=Ic_max, I=It + Ic_acc,
+                                                                               sprk=sprk_max, dback=dback, sb=sb, sd=sd,
+                                                                               sq=sq, td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
 
 ########################################################################################################################
@@ -238,8 +242,10 @@ for i in range(9, 14):
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max,
-                                                                  dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext, sigma_1_24_last_ext = centroid_shift(w=w_ext, Ik=Ic_max,
+                                                                                       I=It + Ic_acc, sprk=sprk_max,
+                                                                                       dback=dback, sb=sb, sd=sd, sq=sq,
+                                                                                       td=td, ntr=ntr)
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
 ########################################################################################################################
@@ -293,13 +299,14 @@ for i in range(9, 14):
 
 
         save_info[counter, :] = [ID_target[k], m_t, n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit,
-                                 sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
+                                 sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24, sigma_1_24_last]
 
         save_info_contaminant[counter, :] = [ID_target[k], m_t, w_c_key, w_c_size, NSR1h_c, spr_tot_c, eta_c,
-                                             delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c]
+                                             delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c, sigma_1_24_last_c]
 
         save_info_ext[counter, :] = [ID_target[k], m_t, w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
-                                     SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext]
+                                     SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext,
+                                     sigma_1_24_last_ext]
 
         save_info_bray[counter, :] = [ID_target[k], m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_max_bray,
                                       SPR_tot_bray]
