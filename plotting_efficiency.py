@@ -3,20 +3,21 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 
 # Parameters for the plots
-Pmin = 8.5
-Pmax = 17.5
+Pmin = 8
+Pmax = 20
 nP = int(Pmax - Pmin)
 binsize = 0.5
-ntr = 3
 fsize = 14
 
 # We load the npy files with all the metrics of the nominal and secondary and extended masks
+#data_mag = np.load('SFP_DR3_20220831.npy')
 data = np.load('targets_P5.npy')
 data_sec = np.load('targets_P5_contaminant.npy')
 data_ext = np.load('targets_P5_extended.npy')
 data_bray = np.load('targets_P5_bray.npy')
 
-# We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants
+# We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
+#mag_gaia = data_mag[:, 2]
 mag = data[:, 1]
 mag_bad = data[:, 3]
 
@@ -40,7 +41,6 @@ plt.xlabel('Number of potential N_bad', fontsize=fsize)
 plt.ylabel('Fraction of targets [%] ', fontsize=fsize)
 plt.show()
 
-
 # Now we get all the etas and delta_obs
 eta_t = data[:, 12]
 delta_obs_t = data[:, 13]
@@ -60,19 +60,11 @@ size_nom = data[:, 6]
 size_sec = data_sec[:, 3]
 size_e = data_ext[:, 3]
 
-# We also obtain the COB values for every target
-
-eff_s = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[mask_p5].sum() / (eta_t > 7.1)[mask_p5].sum()
-eff_ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[mask_p5].sum() / (eta_t > 7.1)[mask_p5].sum()
-print(f'The efficiency of the Secondary Mask is:\n' "%.4f" % eff_s)
-print(f'The efficiency of the Extended Mask is:\n' "%.4f" % eff_ext)
-
 # Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
 # of the magnitude of the target
-
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag >= Pi - binsize/2.) & (mag < Pi + binsize/2.)
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     sec = np.median(((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
     ext = np.median(((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
     plt.scatter(Pi, sec, color='b')
@@ -103,10 +95,9 @@ plt.show()
 """
 Now we obtain the NSR for both Bray et al 2 x 2 and our nominal masks as a function of the Target magnitude
 """
-
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag >= Pi - binsize/2.) & (mag < Pi + binsize/2.)
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     nsr_nominal = np.median(nsr1h[m])
     nsr_bray = np.median(nsr1h_bray[m])
     plt.scatter(Pi, nsr_nominal, color='b')
@@ -117,15 +108,16 @@ for i in range(nP):
 plt.show()
 
 """
-Now we obtain several plots for showing the degeneracy of the Nominal, Secondary and Extended Masks
+Now we obtain several plots for showing the average size of the Nominal, Secondary and Extended Masks as a function of 
+the target magnitude
 """
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag >= Pi - binsize/2) & (mag < Pi + binsize/2)
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     size_nominal = np.mean(size_nom[m])
     size_ext = np.mean(size_e[m])
     plt.scatter(Pi, size_nominal, color='b')
-    plt.scatter(Pi, size_ext, color='orange')
+    plt.scatter(Pi, size_ext, color='green')
     plt.xlabel(" P Magnitude", fontsize=fsize)
     plt.ylabel(r"Average mask size", fontsize=fsize)
 
@@ -133,9 +125,9 @@ plt.show()
 
 for i in range(5, 30):
     Pi = 5 + i * binsize
-    m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad < Pi + binsize/2.)
+    m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad <= Pi + binsize/2.)
     size_secondary = np.mean(size_sec[m_bad])
-    plt.scatter(Pi, size_secondary, color='b')
+    plt.scatter(Pi, size_secondary, color='orange')
     plt.xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
     plt.ylabel(r"Average mask size", fontsize=fsize)
 
@@ -149,9 +141,9 @@ problematic contaminant stars
 
 for i in range(5, 30):
     Pi = 5 + i * binsize
-    m_bad = (mag_bad < Pi + binsize/2.)
+    m_bad = (mag_bad <= Pi + binsize/2.)
     key_secondary = len(np.unique(key_sec[m_bad]))
-    plt.scatter(Pi, key_secondary, color='b')
+    plt.scatter(Pi, key_secondary, color='orange')
     plt.xlabel(" P Magnitude of the Contaminant", fontsize=fsize)
     plt.ylabel("Cum. count of mask shapes", fontsize=fsize)
 
@@ -163,7 +155,7 @@ Now we plot the cumulative or total number of nominal mask shapes to address the
 
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag < Pi + binsize/2.)
+    m = (mag <= Pi + binsize/2.)
     pix_nominal = len(np.unique(key_nom[m]))
     pix_ext = len(np.unique(key_ext[m]))
     plt.scatter(Pi, pix_nominal, color='b')
@@ -177,16 +169,18 @@ plt.show()
 Now let's plot the efficiency of the C.O.B. shift measurements
 """
 eta_cob = data[:, 15]
-#eta_cob_sec = data_sec[:, 9]
+eta_cob_sec = data_sec[:, 9]
 eta_cob_ext = data_ext[:, 7]
 
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag_bad >= Pi - binsize/2.) & (mag_bad < Pi + binsize/2.)
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     eff_cob = np.median((eta_cob > 3)[m].sum() / (eta_t > 7.1)[m].sum())
+    eff_cob_sec = np.median((eta_cob_sec > 3)[m].sum() / (eta_t > 7.1)[m].sum())
     eff_cob_ext = np.median((eta_cob_ext > 3)[m].sum() / (eta_t > 7.1)[m].sum())
     plt.scatter(Pi, eff_cob, color='b')
-    plt.scatter(Pi, eff_cob_ext, cobadlor='green')
+    plt.scatter(Pi, eff_cob_sec, color='orange')
+    plt.scatter(Pi, eff_cob_ext, color='green')
     plt.xlabel('P Magnitude', fontsize=fsize)
     plt.ylabel('Efficiency', fontsize=fsize)
 
