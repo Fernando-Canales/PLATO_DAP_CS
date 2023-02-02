@@ -25,6 +25,8 @@ ntr = 3  # number of transits in one hour
 
 # Define an ID for every target
 ID = np.arange(0, data.shape[0])
+# Define the number of targets
+n_tar = 300
 
 # Now we save the x and y coordinates on the focal plane of all the stars in the catalogue
 x_star = data[:, 3]
@@ -38,27 +40,37 @@ pyc = psfdata['pyc']
 xpsf_pix = psfdata['xpsf_pix']
 ypsf_pix = psfdata['ypsf_pix']
 
-# Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((300 * 8, 18))
-# The same for the secondary/contaminant mask
-save_info_contaminant = np.zeros((300 * 8, 12))
-# The same for the extended mask
-save_info_ext = np.zeros((300 * 8, 13))
-# The same for bray's et al. assumption of using 2 x 2 masks
-save_info_bray = np.zeros((300 * 8, 8))
-
 # Now we choose the random targets using Réza's function
-np.random.seed(300)
+np.random.seed(n_tar)
 
 # We define a counter to store our data
 counter = 0
+# We set the minimum value of magnitude
+Pmin = 8
+# We set the maximum value of magnitude
+Pmax = 15
+# We se the binsize value
+binsize = 0.5
+# We set the number of intervals
+nP = int((Pmax - Pmin) / binsize)
+
+# Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
+save_info = np.zeros((n_tar * nP, 18))
+# The same for the secondary/contaminant mask
+save_info_contaminant = np.zeros((n_tar * nP, 12))
+# The same for the extended mask
+save_info_ext = np.zeros((n_tar * nP, 13))
+# The same for bray's et al. assumption of using 2 x 2 masks
+save_info_bray = np.zeros((n_tar * nP, 8))
+
 # Now we can create the mask for getting only stars from P5 sample magnitude range
-for i in range(8, 15):
-    mask = (data[:, 2] >= i - 0.25) & (data[:, 2] <= i + 0.25)
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    mask = (data[:, 2] >= Pi - binsize/2.) & (data[:, 2] <= Pi + binsize/2.)
     targets_P5 = data[mask, :]
     ID_target = ID[mask]
 
-    j = ran_unique_int(n=300, interval=[0, targets_P5.shape[0] - 1])
+    j = ran_unique_int(n=n_tar, interval=[0, targets_P5.shape[0] - 1])
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
     # Now we obtain the x and y coordinates of the targets on the focal plane
@@ -67,7 +79,7 @@ for i in range(8, 15):
 
     # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting afterwards
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
-
+    print('Beginning all the calculations...')
     # Now we start the loop over all the randomly chosen targets
     for k in range(0, len(x_tar)):
         # Define target ID
@@ -148,30 +160,27 @@ for i in range(8, 15):
 
         # Now we present the calculation for the sprk of every contaminant as well as the one from SPR_crit.
 
-        #sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
+        # sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
         sprk, sprk_max, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_t)
 
         # We compute the critical SPR now
         SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr)
 
         # Now we compute the number of contaminant stars above SPR_crit (i.e. N_bad)
-        #n_bad = np.sum(sprk > SPR_crit)
-        n_bad = np.sum(sprk_max > SPR_crit)
+        n_bad = np.sum(sprk > SPR_crit)
+        #n_bad = np.sum(sprk_max > SPR_crit)
         # Now we get the index of the contaminant star with the highest value of SPRk (AND HIGHER THAN SPR_crit AS WELL)
-        #ind_sprk = np.argmax(sprk)
-        spr_mask = (sprk_max > SPR_crit)
-        ind_sprk = np.where(sprk[spr_mask])[0]
-        # Now we obtain the magnitude of the contaminant star with the highest value of SPRk
-        m_c_bad = m_c[ind_sprk]
-        # Now we find the distance between the given target and the contaminant with the highest value of SPRk
-        dist_bad = (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2
-
-        # Now we select the (intensity per pixel array) imagette of the contaminant star with the highest value of sprk
-        # given that sprk > SPR_crit
+        ind_sprk = np.argmax(sprk)
+        #ind_sprk = np.where(sprk_max > SPR_crit)[0]
+        # Now we select the (intensity per pixel array) imagette of the contaminant star with the highest value of
+        # sprk given that sprk > SPR_crit
         Ic_max = Ic[ind_sprk]
-
-        # Now we define a term that contains the flux of the targets and their respective contaminants except the one
-        # with the highest value of SPRk (i.e. the contaminant of interest)
+        # Now we obtain the aperture only for the contaminants with the highest value of sprk given that sprk > SPR_crit
+        m_c_bad = m_c[ind_sprk]
+        # Now we find the distance between the given target and the contaminant with the highest value of sprk
+        dist_bad = (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2
+        # Now we define a term that contains the flux of the targets and their respective contaminants except the
+        # one with the highest value of SPRk (i.e. the contaminant of interest)
         Itc_acc = It + Ic_acc - Ic_max
 
         # Then we proceed to compute the secondary aperture
@@ -180,7 +189,7 @@ for i in range(8, 15):
         # Now we store each secondary mask in a mask key
         w_c_key = mask_to_bitmask(w_c)
 
-        # Now we store the size of each secondary mask
+        #Now we store the size of each secondary mask
         w_c_size = np.count_nonzero(w_c)
 
         # We compute the flux over the secondary mask
@@ -201,17 +210,16 @@ for i in range(8, 15):
         eta_t = sprk_max * np.sqrt(td * ntr) * dback / (NSR1h * (1 - SPR_tot))
         eta_c = np.sqrt(td * ntr) * dback / NSR1h_c
 
-        # -------------------------------------------NOMINAL COB-------------------------------------------------------#
+        #-------------------------------------------NOMINAL COB-------------------------------------------------------#
         eta_cob, sigma_1_24, abs_cob, sigma_1_24_last = centroid_shift(w=w_t, Ik=Ic_max, I=It + Ic_acc, sprk=sprk_max,
                                                                        dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
-        # -------------------------------------------NOMINAL COB-------------------------------------------------------#
+        #-------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
         eta_cob_c, sigma_1_24_c, abs_cob_c, sigma_1_24_last_c = centroid_shift(w=w_c, Ik=Ic_max, I=It + Ic_acc,
                                                                                sprk=sprk_max, dback=dback, sb=sb, sd=sd,
                                                                                sq=sq, td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-
 ########################################################################################################################
 #                                   NOW THE EXTENDED MASK METHOD                                                       #
 ########################################################################################################################
@@ -244,14 +252,13 @@ for i in range(8, 15):
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
         eta_cob_ext, sigma_1_24_ext, abs_cob_ext, sigma_1_24_last_ext = centroid_shift(w=w_ext, Ik=Ic_max,
                                                                                        I=It + Ic_acc, sprk=sprk_max,
-                                                                                       dback=dback, sb=sb, sd=sd, sq=sq,
-                                                                                       td=td, ntr=ntr)
+                                                                                       dback=dback, sb=sb, sd=sd,
+                                                                                       sq=sq, td=td, ntr=ntr)
         #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
 ########################################################################################################################
 #                                     END OF THE EXTENDED MASK METHOD                                                  #
 ########################################################################################################################
-
 ########################################################################################################################
 #                                   TESTING  J.C. Bray et al.'s ASSUMPTION OF A 2 x 2 MASK                             #
 ########################################################################################################################
@@ -273,30 +280,20 @@ for i in range(8, 15):
 ########################################################################################################################
 #                                          END OF TESTING Bray et al.'s ASSUMPTION                                     #
 ########################################################################################################################
-
-        print('Delta P is:', m_c[ind_sprk] - m_t)
-        print('Distance between the target and contaminant with the highest value of SPRk',
-              (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
-        print('NSR_T is:', NSR1h)
-        print('NSR_c is:', NSR1h_c)
-        print('eta_t is:', eta_t)
-        print('eta_c is:', eta_c)
-        print('spr_t is:', sprk_max)
-        print('spr_tot_c is:', spr_tot_c)
-        print('Delta_COB:', abs_cob)
-        print('Delta_COB_c:', abs_cob_c)
-        print('Delta_COB_ext:', abs_cob_ext)
-        print('eta_COB:', eta_cob)
-        print('eta_COB_c:', eta_cob_c)
-        print('eta_COB_ext:', eta_cob_ext)
-
-        # Now we need to compute the efficiency of the extended mask, this is done by computing the ratio of the number
-        # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
-        # given by the nominal mask.
+        print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+              '++++++')
+        print('Target ID:', ID_target[k])
+        print('Total number of contaminant stars:', n_c)
+        print('Number of contaminant stars with sprk values above SPR_crit:', n_bad)
+        print('Magnitude difference between the target and the contaminant with the highest value of SPRK:',
+              m_c[ind_sprk] - m_t)
+        print('The distance between the target and the contaminant with the highest value of SPRk is:',
+            (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+        print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+              '++++++\n')
 
         # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
-        n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk > SPR_crit) & (sprk_ext > sprk))[0])
-
+        n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk_max > SPR_crit) & (sprk_ext > sprk_max))[0])
 
         save_info[counter, :] = [ID_target[k], m_t, n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit,
                                  sprk_max, SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24, sigma_1_24_last]
