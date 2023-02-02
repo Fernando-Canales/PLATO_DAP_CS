@@ -83,22 +83,23 @@ def aperture(ft, fc, sb, sd, sq):
 # return sprk, sprk_max, SPR_tot, n_bad
 
 def SPR(n_c, f_contaminant, f_tot, w):
-    # First we compute the sprk over the extended mask for all the contaminants for a given target
+    # First we create a numpy array to store the sprk of all contaminants for a given target
     sprk = np.zeros(n_c)
+    # Then we start a for loop over all the contaminants for a given target
     for i in range(0, n_c):
-        # Then we compute the sprk of every contaminant
+        # Then we compute the sprk of every contaminant for a given target
         sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
 
-    # Then we compute SPR_tot
+    # Then we compute the total contribution of all the contaminants (SPR_tot) for a given target
     SPR_tot = np.sum(sprk)
 
-    # And finally we store the value of the highest sprk
+    # Then we store the highest sprk value
     sprk_max = max(sprk)
 
     return sprk, sprk_max, SPR_tot
 
 
-# We define now a function for creating a mask_key
+# We define now a function for creating a mask_key as performed by Emmanuel
 def mask_to_bitmask(mask):
     # As we save data within a bit array of 64 cells, we are able to save a mask of maximum size 8*8
     if mask.shape[0] * mask.shape[1] > 64:
