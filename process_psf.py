@@ -5,9 +5,11 @@ from fitting_psf import from_mm_2_pix
 from imagette import list_psf, barycenter, gauss
 import math
 import scipy.signal
-
+#import os
+#docs_dir = os.path.expanduser('/home/fercho/Double_Aperture_Tests')
+#PSFDIR = '/home/fercho/Double_Aperture_Tests/PSFs'
 PSFDIR = './'
-# PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
+#PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
 
 # Let's define the PSF parameters
 sizex = 8  # physical size of the PSF (x-direction)
@@ -15,14 +17,14 @@ sizey = 8  # physical size of the PSF (y-direction)
 subres = 128  # resolution of the PSF
 bsres = 20  # resolution of the b-spline decomposition of the PSF
 
-# The second thing to do is to open the .hdf5 file that containg all the PSFs from biruni3
+# The second thing to do is to open the .hdf5 file that contains all the PSFs from biruni3
 file_hdf5 = h5py.File(PSFDIR+'PSF.hdf5', 'r')
 
 # The third thing to do is to define the parameters for the Diffusion Kernel to covolve the PSFs
 DifKerSize = 3  # Size [pixel]
 DifKerWidth = 0.2  # width [pixel] 0.1 -> 99.99% in the central pixel ; 0.2 -> 97.5% ; 0.3 -> 81.8%% ; 0.5 -> 46.8%
 
-# Now we build the diffusion kernel, a Gaussian function of size DifKerSize x DifKerSize centered on the middle of the central pixel
+# Now we build the diffusion kernel, a Gaussian function of size DifKerSize x DifKerSize centered in the middle of the central pixel
 GaussKernel = gauss(math.floor(DifKerSize / 2.) + 0.5, math.floor(DifKerSize / 2.) + 0.5, DifKerWidth, DifKerSize,
                     subres=subres)
 GaussKernel /= GaussKernel.sum()
@@ -46,7 +48,7 @@ for k in range(npsf):
     psf_id = str(k + 1)
 
     psf = np.array(file_hdf5[psf_id])
-    # Convolving now the optical PSF by the Gaussian kernel defined previously
+    # Covolving now the optical PSF by the Gaussian kernel defined previously
     psf = scipy.signal.fftconvolve(psf, GaussKernel, mode='same')
     # Now we normalize the psf
     psf /= psf.sum()
