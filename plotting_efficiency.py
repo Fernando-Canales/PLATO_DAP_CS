@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 
 # Parameters for the plots
-Pmin = 8
-Pmax = 20
+Pmin = 10.5
+Pmax = 16.5
 nP = int(Pmax - Pmin)
 binsize = 0.5
 fsize = 14
@@ -67,10 +67,10 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     sec = np.median(((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
     ext = np.median(((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
-    plt.scatter(Pi, sec, color='b')
-    plt.scatter(Pi, ext, color='orange')
+    plt.scatter(Pi, sec*100, color='orange')
+    plt.scatter(Pi, ext*100, color='green')
     plt.xlabel("P Magnitude", fontsize=fsize)
-    plt.ylabel("Efficiency", fontsize=fsize)
+    plt.ylabel("Efficiency[%]", fontsize=fsize)
 
 plt.show()
 
@@ -129,7 +129,7 @@ for i in range(5, 30):
     size_secondary = np.mean(size_sec[m_bad])
     plt.scatter(Pi, size_secondary, color='orange')
     plt.xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
-    plt.ylabel(r"Average mask size", fontsize=fsize)
+    plt.ylabel(r"Average sec. mask size", fontsize=fsize)
 
 plt.show()
 
@@ -175,13 +175,13 @@ eta_cob_ext = data_ext[:, 7]
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    eff_cob = np.median((eta_cob > 3)[m].sum() / (eta_t > 7.1)[m].sum())
-    eff_cob_sec = np.median((eta_cob_sec > 3)[m].sum() / (eta_t > 7.1)[m].sum())
-    eff_cob_ext = np.median((eta_cob_ext > 3)[m].sum() / (eta_t > 7.1)[m].sum())
-    plt.scatter(Pi, eff_cob, color='b')
-    plt.scatter(Pi, eff_cob_sec, color='orange')
-    plt.scatter(Pi, eff_cob_ext, color='green')
+    eff_cob = np.median(((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
+    eff_cob_sec = np.median(((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
+    eff_cob_ext = np.median(((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
+    plt.scatter(Pi, eff_cob*100, color='b')
+    plt.scatter(Pi, eff_cob_sec*100, color='orange')
+    plt.scatter(Pi, eff_cob_ext*100, color='green')
     plt.xlabel('P Magnitude', fontsize=fsize)
-    plt.ylabel('Efficiency', fontsize=fsize)
+    plt.ylabel('Efficiency[%]', fontsize=fsize)
 
 plt.show()
