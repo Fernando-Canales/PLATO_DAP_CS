@@ -145,9 +145,9 @@ def centroid_shift(w, Ik, I, sprk, dback, sb, sd, sq, td, ntr):
     var_delta = np.mean(I) + sb + sd ** 2 * sq ** 2
 
     # Now we compute the centroid error along the X-direction
-    sigma_x = np.sum(x ** 2 * w * var_delta) / (f_tot ** 2) + (c_x ** 2) * (np.sum(w * var_delta) / (f_tot ** 2))
+    sigma_x = (np.sum((x ** 2) * w * var_delta) / (f_tot ** 2)) + ((c_x ** 2) * (np.sum(w * var_delta) / (f_tot ** 2)))
     # Now we compute the centroid error along the Y-direction
-    sigma_y = np.sum(y ** 2 * w * var_delta) / (f_tot ** 2) + (c_y ** 2) * (np.sum(w * var_delta) / (f_tot ** 2))
+    sigma_y = (np.sum((y ** 2) * w * var_delta) / (f_tot ** 2)) + ((c_y ** 2) * (np.sum(w * var_delta) / (f_tot ** 2)))
 
     # Now we compute the error associated with the absolute centroid shift
     sigma_cs = (1 / abs_cob) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
