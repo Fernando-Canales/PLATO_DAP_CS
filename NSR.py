@@ -59,8 +59,8 @@ def aperture(ft, fc, sb, sd, sq):
     return min(nsr1h), w
 
 
-# We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of sprk,
-# SPR_tot and the total number of stars for which spr_k is above SPR_crit
+# We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of
+# sprk, SPR_tot and the total number of stars for which spr_k is above SPR_crit
 
 # ---------------------- We introduce now Réza's correction to Marchiori's formulas --------------------
 # def SPR(SPR_crit, n_c, f_contaminant, f_tot, w):
