@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 
 # Parameters for the plots
-Pmin = 10.5
-Pmax = 16.5
+Pmin = 8
+Pmax = 20
 nP = int(Pmax - Pmin)
 binsize = 0.5
 fsize = 14
