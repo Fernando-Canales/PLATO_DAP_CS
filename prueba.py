@@ -225,7 +225,7 @@ for i in range(nP):
         #-------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c, sigma_1_24_last_c = centroid_shift(w=w_c, Ik=Ic_max, I=It + Ic_acc,
+        eta_cob_c, sigma_1_24_c, abs_cob_c, sigma_1_24_last_c = centroid_shift(w=w_c, Ik=It + Ic_acc, I=Ic_max,
                                                                                sprk=sprk_max, dback=dback, sb=sb, sd=sd,
                                                                                sq=sq, td=td, ntr=ntr)
         #------------------------------------------SECONDARY COB-------------------------------------------------------#
