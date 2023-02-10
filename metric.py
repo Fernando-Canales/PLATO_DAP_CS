@@ -85,7 +85,7 @@ nP = int(round ( (Pmax-Pmin)/binsize + 1 ))
 save_info = np.zeros((nStar * nP, 52))
 
 # for the secondary mask
-save_info_2ndmask =  np.zeros((nStar * nP,14))
+save_info_2ndmask =  np.zeros((nStar * nP,64))
 
 # The same for the extended mask
 save_info_ext = np.zeros((nStar * nP,51))
@@ -460,10 +460,26 @@ for i in range(nP):
             print('spr_t', sprk_max)
             print('spr_tot_c', spr_tot_c)
 
-        # Now we need to compute the efficiency of the extended mask, this is donde by computing the ratio of the number
-        # of false positives given by the extended mask such that eta_ext > eta_t over the number of false positives
-        # given by the nominal mask.
+        SPRtot_c_10first = np.zeros(10)
+        Gamma_c_10first = np.zeros(10)
+        delta_COB_sig_c_10first = np.zeros(10)
+        NSR1h_c_10first = np.zeros(10)
+        w_c_key_10first = np.zeros(10)
 
+        for l in range(nsprmax):
+            m = sprk_sorted_index[l]
+            Itc_acc_l = Itot - Ic[m]
+
+            # Then we procedd to compute the secondary aperture
+            NSR1h_c_l, w_c_l = aperture(ft=Ic[m], fc=Itc_acc_l, sb=sb, sd=sd, sq=sq)
+            NSR1h_c_10first[l] = NSR1h_c_l
+            w_c_key_10first[l] = mask_to_bitmask(w_c_l)
+
+            SPRtot_c_10first[l] = np.sum(Itc_acc_l * w_c_l) / np.sum(Itot*w_c_l)
+
+            _, delta_COB_sig_c_l,Gamma_c_l = cob_shift(Itot,Ic[m],w_c_l,dback)
+            Gamma_c_10first[l] = Gamma_c_l
+            delta_COB_sig_c_10first[l] = delta_COB_sig_c_l
 
 
         save_info = np.array([ID_t,P_t,psf_idx,n_c,w_t_key,w_t_size,NSR1h,n_bad,SPR_crit,SPR_tot,ID_c,
@@ -476,7 +492,11 @@ for i in range(nP):
         save_info_2ndmask = np.array([ID_t,P_t,ID_c,m_c,NSR1h_c,w_c_key,
                                          w_c_size,eta_c,delta_obs_c,delta_COB_c,delta_COB_sig_1h_24c_c,eta_cob_c,spr_tot_c
                                          ,Gamma_c])
-
+        save_info_2ndmask = np.append(save_info_2ndmask,SPRtot_c_10first)
+        save_info_2ndmask = np.append(save_info_2ndmask,Gamma_c_10first)
+        save_info_2ndmask = np.append(save_info_2ndmask,delta_COB_sig_c_10first)
+        save_info_2ndmask = np.append(save_info_2ndmask,NSR1h_c_10first)
+        save_info_2ndmask = np.append(save_info_2ndmask,w_c_key_10first)
 
         save_info_ext = np.array([ID_t,P_t,w_ext_key,w_ext_size,NSR_ext_1h,n_bad_ext,SPR_crit_ext,
                                      SPR_tot_ext,ID_c,m_c,eta_ext,delta_obs_ext,delta_COB_ext,
@@ -582,6 +602,14 @@ np.save(DIRout+'targets_P5_2ndmask.npy', save_info_2ndmask)
 # 10: delta_COB_sig_1h_24c_c
 # 11: eta_cob_c
 # 12: spr_tot_c
+# 13: Gamma_c
+# 14-23: 10 first SPRtot_c values
+# 24-33: 10 first Gamma_c values
+# 34-43: 10 first delta_COB_sig_1h_24c
+# 44-53: 10 first NSR1h_c
+# 54-63: 10 first w_c_key
+
+
 
 np.save(DIRout+'targets_P5_extended.npy', save_info_ext)
 # 0: ID_t
