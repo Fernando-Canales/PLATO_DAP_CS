@@ -65,8 +65,8 @@ size_e = data_ext[:, 3]
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    sec = np.median(((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
-    ext = np.median(((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
+    sec = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     plt.scatter(Pi, sec*100, color='orange')
     plt.scatter(Pi, ext*100, color='green')
     plt.xlabel("P Magnitude", fontsize=fsize)
@@ -170,14 +170,14 @@ Now let's plot the efficiency of the C.O.B. shift measurements
 """
 eta_cob = data[:, 15]
 eta_cob_sec = data_sec[:, 9]
-eta_cob_ext = data_ext[:, 7]
+eta_cob_ext = data_ext[:, 10]
 
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    eff_cob = np.median(((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
-    eff_cob_sec = np.median(((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
-    eff_cob_ext = np.median(((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum())
+    eff_cob = ((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    eff_cob_sec = ((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    eff_cob_ext = ((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     plt.scatter(Pi, eff_cob*100, color='b')
     plt.scatter(Pi, eff_cob_sec*100, color='orange')
     plt.scatter(Pi, eff_cob_ext*100, color='green')

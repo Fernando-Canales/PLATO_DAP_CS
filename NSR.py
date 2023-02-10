@@ -93,10 +93,7 @@ def SPR(n_c, f_contaminant, f_tot, w):
     # Then we compute the total contribution of all the contaminants (SPR_tot) for a given target
     SPR_tot = np.sum(sprk)
 
-    # Then we store the highest sprk value
-    sprk_max = max(sprk)
-
-    return sprk, sprk_max, SPR_tot
+    return sprk, SPR_tot
 
 
 # We define now a function for creating a mask_key as performed by Emmanuel
