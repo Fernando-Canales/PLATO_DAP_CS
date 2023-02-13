@@ -55,8 +55,8 @@ nsr1h_bray = data_bray[:, 3]
 
 # We also obtain the mask size of every mask
 key_nom = data[:, 5]
-key_sec = data[:, 2]
-key_ext = data[:, 2]
+key_sec = data_sec[:, 2]
+key_ext = data_sec[:, 2]
 size_nom = data[:, 6]
 size_sec = data_sec[:, 3]
 size_e = data_ext[:, 3]
@@ -90,8 +90,8 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     sec = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
-    scatter(Pi, sec*100, color='orange')
-    scatter(Pi, ext*100, color='green')
+    scatter(Pi, sec*100, color='red')
+    scatter(Pi, ext*100, color='blue')
 
 xlabel("P Magnitude", fontsize=fsize)
 ylabel("Efficiency[%]", fontsize=fsize)
@@ -108,7 +108,7 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     nsr_nominal = np.median(nsr1h[m])
     nsr_bray = np.median(nsr1h_bray[m])
-    scatter(Pi, nsr_nominal, color='b')
+    scatter(Pi, nsr_nominal, color='black')
     scatter(Pi, nsr_bray, color='orange')
 
 xlabel(" P Magnitude", fontsize=fsize)
@@ -127,8 +127,8 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     size_nominal = np.mean(size_nom[m])
     size_ext = np.mean(size_e[m])
-    scatter(Pi, size_nominal, color='b')
-    scatter(Pi, size_ext, color='green')
+    scatter(Pi, size_nominal, color='black')
+    scatter(Pi, size_ext, color='blue')
 
 xlabel(" P Magnitude", fontsize=fsize)
 ylabel(r"Average mask size", fontsize=fsize)
@@ -140,7 +140,7 @@ for i in range(5, 30):
     Pi = 5 + i * binsize
     m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad <= Pi + binsize/2.)
     size_secondary = np.mean(size_sec[m_bad])
-    scatter(Pi, size_secondary, color='orange')
+    scatter(Pi, size_secondary, color='red')
 
 xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
 ylabel(r"Average sec. mask size", fontsize=fsize)
@@ -158,7 +158,7 @@ for i in range(5, 30):
     Pi = 5 + i * binsize
     m_bad = (mag_bad <= Pi + binsize/2.)
     key_secondary = len(np.unique(key_sec[m_bad]))
-    scatter(Pi, key_secondary, color='orange')
+    scatter(Pi, key_secondary, color='red')
 
 xlabel(" P Magnitude of the Contaminant", fontsize=fsize)
 ylabel("Cum. count of mask shapes", fontsize=fsize)
@@ -175,8 +175,8 @@ for i in range(nP):
     m = (mag <= Pi + binsize/2.)
     pix_nominal = len(np.unique(key_nom[m]))
     pix_ext = len(np.unique(key_ext[m]))
-    scatter(Pi, pix_nominal, color='b')
-    scatter(Pi, pix_ext, color='green')
+    scatter(Pi, pix_nominal, color='black')
+    scatter(Pi, pix_ext, color='blue')
 
 xlabel('P Magnitude', fontsize=fsize)
 ylabel('Cum. count of mask shapes', fontsize=fsize)
@@ -198,9 +198,9 @@ for i in range(nP):
     eff_cob = ((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_sec = ((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_ext = ((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
-    scatter(Pi, eff_cob*100, color='b')
-    scatter(Pi, eff_cob_sec*100, color='orange')
-    scatter(Pi, eff_cob_ext*100, color='green')
+    scatter(Pi, eff_cob*100, color='black')
+    scatter(Pi, eff_cob_sec*100, color='red')
+    scatter(Pi, eff_cob_ext*100, color='blue')
 
 xlabel('P Magnitude', fontsize=fsize)
 ylabel('Efficiency[%]', fontsize=fsize)
