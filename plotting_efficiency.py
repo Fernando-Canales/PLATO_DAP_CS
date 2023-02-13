@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
+from pylab import *
 
 # Parameters for the plots
 Pmin = 8
@@ -60,19 +61,6 @@ size_nom = data[:, 6]
 size_sec = data_sec[:, 3]
 size_e = data_ext[:, 3]
 
-# Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
-# of the magnitude of the target
-for i in range(nP):
-    Pi = Pmin + i * binsize
-    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    sec = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
-    ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
-    plt.scatter(Pi, sec*100, color='orange')
-    plt.scatter(Pi, ext*100, color='green')
-    plt.xlabel("P Magnitude", fontsize=fsize)
-    plt.ylabel("Efficiency[%]", fontsize=fsize)
-
-plt.show()
 
 """
 Now we will obtain a plot showing the amount of false positives detected by Bray et al 2 x 2 mask in comparison with the
@@ -92,78 +80,108 @@ plt.ylabel('Fraction of targets [%]', fontsize=fsize)
 plt.legend()
 plt.show()
 
+
+# Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
+# of the magnitude of the target
+figure(0)
+clf()
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    sec = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    scatter(Pi, sec*100, color='orange')
+    scatter(Pi, ext*100, color='green')
+
+xlabel("P Magnitude", fontsize=fsize)
+ylabel("Efficiency[%]", fontsize=fsize)
+
+#plt.show()
+
 """
 Now we obtain the NSR for both Bray et al 2 x 2 and our nominal masks as a function of the Target magnitude
 """
+figure(1)
+clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     nsr_nominal = np.median(nsr1h[m])
     nsr_bray = np.median(nsr1h_bray[m])
-    plt.scatter(Pi, nsr_nominal, color='b')
-    plt.scatter(Pi, nsr_bray, color='orange')
-    plt.xlabel(" P Magnitude", fontsize=fsize)
-    plt.ylabel(r"NSR[ppm $hr^{\frac{1}{2}}$]", fontsize=fsize)
+    scatter(Pi, nsr_nominal, color='b')
+    scatter(Pi, nsr_bray, color='orange')
 
-plt.show()
+xlabel(" P Magnitude", fontsize=fsize)
+ylabel(r"NSR[ppm $hr^{\frac{1}{2}}$]", fontsize=fsize)
+
+#plt.show()
 
 """
 Now we obtain several plots for showing the average size of the Nominal, Secondary and Extended Masks as a function of 
 the target magnitude
 """
+figure(2)
+clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     size_nominal = np.mean(size_nom[m])
     size_ext = np.mean(size_e[m])
-    plt.scatter(Pi, size_nominal, color='b')
-    plt.scatter(Pi, size_ext, color='green')
-    plt.xlabel(" P Magnitude", fontsize=fsize)
-    plt.ylabel(r"Average mask size", fontsize=fsize)
+    scatter(Pi, size_nominal, color='b')
+    scatter(Pi, size_ext, color='green')
 
-plt.show()
+xlabel(" P Magnitude", fontsize=fsize)
+ylabel(r"Average mask size", fontsize=fsize)
 
+#plt.show()
+figure(3)
+clf()
 for i in range(5, 30):
     Pi = 5 + i * binsize
     m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad <= Pi + binsize/2.)
     size_secondary = np.mean(size_sec[m_bad])
-    plt.scatter(Pi, size_secondary, color='orange')
-    plt.xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
-    plt.ylabel(r"Average sec. mask size", fontsize=fsize)
+    scatter(Pi, size_secondary, color='orange')
 
-plt.show()
+xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
+ylabel(r"Average sec. mask size", fontsize=fsize)
+
+#plt.show()
 
 """
 Now we obtain the degeneracy of the masks. For doing so we just need to know the number of unique mask keys. Let's
 begin to plot the cumulative or total number of unique shapes of the secondary mask needed for all the most 
 problematic contaminant stars
 """
-
+figure(4)
+clf()
 for i in range(5, 30):
     Pi = 5 + i * binsize
     m_bad = (mag_bad <= Pi + binsize/2.)
     key_secondary = len(np.unique(key_sec[m_bad]))
-    plt.scatter(Pi, key_secondary, color='orange')
-    plt.xlabel(" P Magnitude of the Contaminant", fontsize=fsize)
-    plt.ylabel("Cum. count of mask shapes", fontsize=fsize)
+    scatter(Pi, key_secondary, color='orange')
 
-plt.show()
+xlabel(" P Magnitude of the Contaminant", fontsize=fsize)
+ylabel("Cum. count of mask shapes", fontsize=fsize)
+
+#plt.show()
 
 """
 Now we plot the cumulative or total number of nominal mask shapes to address the total number of target stars 
 """
-
+figure(5)
+clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag <= Pi + binsize/2.)
     pix_nominal = len(np.unique(key_nom[m]))
     pix_ext = len(np.unique(key_ext[m]))
-    plt.scatter(Pi, pix_nominal, color='b')
-    plt.scatter(Pi, pix_ext, color='green')
-    plt.xlabel('P Magnitude', fontsize=fsize)
-    plt.ylabel('Cum. count of mask shapes', fontsize=fsize)
+    scatter(Pi, pix_nominal, color='b')
+    scatter(Pi, pix_ext, color='green')
 
-plt.show()
+xlabel('P Magnitude', fontsize=fsize)
+ylabel('Cum. count of mask shapes', fontsize=fsize)
+
+#plt.show()
 
 """
 Now let's plot the efficiency of the C.O.B. shift measurements
@@ -172,16 +190,20 @@ eta_cob = data[:, 15]
 eta_cob_sec = data_sec[:, 9]
 eta_cob_ext = data_ext[:, 10]
 
+figure(6)
+clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     eff_cob = ((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_sec = ((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_ext = ((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
-    plt.scatter(Pi, eff_cob*100, color='b')
-    plt.scatter(Pi, eff_cob_sec*100, color='orange')
-    plt.scatter(Pi, eff_cob_ext*100, color='green')
-    plt.xlabel('P Magnitude', fontsize=fsize)
-    plt.ylabel('Efficiency[%]', fontsize=fsize)
+    scatter(Pi, eff_cob*100, color='b')
+    scatter(Pi, eff_cob_sec*100, color='orange')
+    scatter(Pi, eff_cob_ext*100, color='green')
 
-plt.show()
+xlabel('P Magnitude', fontsize=fsize)
+ylabel('Efficiency[%]', fontsize=fsize)
+
+#plt.show()
+show()
