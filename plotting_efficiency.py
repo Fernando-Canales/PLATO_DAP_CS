@@ -56,7 +56,7 @@ nsr1h_bray = data_bray[:, 3]
 # We also obtain the mask size of every mask
 key_nom = data[:, 5]
 key_sec = data_sec[:, 2]
-key_ext = data_sec[:, 2]
+key_ext = data_ext[:, 2]
 size_nom = data[:, 6]
 size_sec = data_sec[:, 3]
 size_e = data_ext[:, 3]
