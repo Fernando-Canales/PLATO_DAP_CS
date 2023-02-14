@@ -24,14 +24,14 @@ sd = 50.2  # Overall detector noise(includ. readout at beginning of life,smearin
 sq = 7.2  # Quantization noise in units of e-rms/px
 
 # Parameters for the eclipsing binaries
-# dback = 85000  # transit depth in ppm
-# td = 4  # transit duration in hours
+#dback = 85000  # transit depth in ppm
+#td = 4  # transit duration in hours
 ntr = 3  # number of transits in one hour
 
 # Define an ID for every target
 ID = np.arange(0, data.shape[0])
 # Define the number of targets
-n_tar = 600
+n_tar = 300
 # Now we save the x and y coordinates on the focal plane for all the stars in the catalogue
 x_star = data[:, 3]
 y_star = data[:, 4]
@@ -65,6 +65,9 @@ save_info_ext = np.zeros((n_tar * nP, 12))
 # The same for bray's et al. assumption of using 2 x 2 masks
 save_info_bray = np.zeros((n_tar * nP, 8))
 
+# We create a numpy array for saving the number of stars per magnitude bin
+n_star_p_bin = np.zeros(nP)
+
 # We define this counter in order to store our data
 counter = 0
 
@@ -72,6 +75,7 @@ counter = 0
 for i in range(nP):
     Pi = Pmin + i * binsize
     mask = (data[:, 2] >= Pi - binsize / 2.) & (data[:, 2] <= Pi + binsize / 2.)
+    n_star_p_bin[i] = mask.sum()
     targets_P5 = data[mask, :]
     ID_target = ID[mask]
 
@@ -174,7 +178,7 @@ for i in range(nP):
         # Now we choose randomly a value for dback and for td
         dback_index = np.random.randint(0, len(delta_back))
         td_index = np.random.randint(0, len(transit_dur))
-        # We obtain the values of dback and td
+        # We obtain the values of dback and td from the catalogue
         dback = delta_back[dback_index]
         td = transit_dur[td_index]
         # We compute the critical SPR now
@@ -264,11 +268,11 @@ for i in range(nP):
         # Now we compute the statistical significance of the signal over the extended mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h
 
-        # ------------------------------------------EXTENDED COB--------------------------------------------------------#
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
         eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc,
                                                                   sprk=sprk_ext[ind_sprk], dback=dback, sb=sb, sd=sd,
                                                                   sq=sq, td=td, ntr=ntr)
-        # ------------------------------------------EXTENDED COB--------------------------------------------------------#
+        #------------------------------------------EXTENDED COB--------------------------------------------------------#
 
         ################################################################################################################
         #                                     END OF THE EXTENDED MASK METHOD                                          #
@@ -311,7 +315,8 @@ for i in range(nP):
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
               '++++++\n')
         # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
-        n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[ind_sprk] > SPR_crit) & (sprk_ext > sprk[ind_sprk]))[0])
+        #n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[ind_sprk] > SPR_crit) & (sprk_ext > sprk[ind_sprk])
+        # )[0])
 
         save_info[counter, :] = [ID_target[k], m_t, n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit,
                                  sprk[ind_sprk], SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
@@ -336,3 +341,9 @@ np.save('targets_P5.npy', save_info)
 np.save('targets_P5_contaminant.npy', save_info_contaminant)
 np.save('targets_P5_extended.npy', save_info_ext)
 np.save('targets_P5_bray.npy', save_info_bray)
+
+fout = open('star_count.txt', 'w')
+for i in range(nP):
+    Pi = Pmin + i*binsize
+    fout.write('%.2f %i\n' % (Pi, n_star_p_bin[i]))
+fout.close()
