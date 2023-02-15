@@ -6,11 +6,17 @@ from imagette import catalogue, barycenter, window, ran_unique_int, centroid_shi
 from NSR import spr_crit, aperture, SPR, mask_to_bitmask, extended_binary_mask
 from pylab import *
 
-# The first thing to do is to load the GAIA catalogue with all the stars
-data = catalogue('SFP_DR3_20220831.npy')
+# First we establish the path to all the relevant resources: star catalogue, PSF data file and storage directory
+cataloguesDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
+PSFfile = 'PSF.npz'
+DIRout = 'test_results/'
 
-# Now we load the catalogue with all the transit depths and transit durations for the eclipsing binaries
-delta_back, transit_dur = np.loadtxt('KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1])
+# Now we call the catalogue, the PSF file and the transit depths and transit durations catalogue for the eclipsing
+# binaries
+data = np.load(cataloguesDIR + 'SFP_DR3_20220831.npy')
+psfdata = np.load(PSFfile)
+delta_back, transit_dur = np.loadtxt(cataloguesDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True,
+                                     usecols=[0, 1])
 
 # Parameters for the imagette and PSF
 size_im_x = 6  # size of the imagette (x-direction)
@@ -37,7 +43,6 @@ x_star = data[:, 3]
 y_star = data[:, 4]
 
 # We load the PSF data after running Réza's script (process_psf.py)
-psfdata = np.load('PSF.npz')
 psfbs = psfdata['psfbs']
 pxc = psfdata['pxc']
 pyc = psfdata['pyc']
@@ -50,11 +55,11 @@ np.random.seed(n_tar)
 # We set the minimum value of magnitude
 Pmin = 8
 # We set the maximum value of magnitude
-Pmax = 15
+Pmax = 13
 # We se the binsize value
 binsize = 0.5
 # We set the number of intervals
-nP = int((Pmax - Pmin) / binsize)
+nP = int((Pmax - Pmin) / binsize + 1)
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.)
 save_info = np.zeros((n_tar * nP, 17))
@@ -337,12 +342,12 @@ save_info_ext = save_info_ext[0:counter]
 save_info_bray = save_info_bray[0:counter]
 
 # Now it is time to save the metrics of interest into a.npy file
-np.save('targets_P5.npy', save_info)
-np.save('targets_P5_contaminant.npy', save_info_contaminant)
-np.save('targets_P5_extended.npy', save_info_ext)
-np.save('targets_P5_bray.npy', save_info_bray)
+np.save(DIRout + 'targets_P5.npy', save_info)
+np.save(DIRout + 'targets_P5_contaminant.npy', save_info_contaminant)
+np.save(DIRout + 'targets_P5_extended.npy', save_info_ext)
+np.save(DIRout + 'targets_P5_bray.npy', save_info_bray)
 
-fout = open('star_count.txt', 'w')
+fout = open(DIRout + 'star_count.txt', 'w')
 for i in range(nP):
     Pi = Pmin + i*binsize
     fout.write('%.2f %i\n' % (Pi, n_star_p_bin[i]))
