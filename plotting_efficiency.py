@@ -3,19 +3,21 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 from pylab import *
 
+dataDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/test_results/'
+
 # Parameters for the plots
 Pmin = 8
-Pmax = 20
+Pmax = 19
 nP = int(Pmax - Pmin)
 binsize = 0.5
 fsize = 14
 
 # We load the npy files with all the metrics of the nominal and secondary and extended masks
 #data_mag = np.load('SFP_DR3_20220831.npy')
-data = np.load('targets_P5.npy')
-data_sec = np.load('targets_P5_contaminant.npy')
-data_ext = np.load('targets_P5_extended.npy')
-data_bray = np.load('targets_P5_bray.npy')
+data = np.load(dataDIR + 'targets_P5.npy')
+data_sec = np.load(dataDIR + 'targets_P5_contaminant.npy')
+data_ext = np.load(dataDIR + 'targets_P5_extended.npy')
+data_bray = np.load(dataDIR + 'targets_P5_bray.npy')
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
 #mag_gaia = data_mag[:, 2]
@@ -50,8 +52,11 @@ delta_obs_c = data_sec[:, 7]
 eta_ext = data_ext[:, 7]
 delta_obs_ext = data_ext[:, 8]
 nsr1h = data[:, 7]
+nsr1h_sec = data_sec[:, 4]
+nsr1h_ext = data_ext[:, 4]
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
+
 
 # We also obtain the mask size of every mask
 key_nom = data[:, 5]
@@ -133,8 +138,17 @@ for i in range(nP):
 xlabel(" P Magnitude", fontsize=fsize)
 ylabel(r"Average mask size", fontsize=fsize)
 
-#plt.show()
 figure(3)
+clf()
+plot(mag, size_nom, 'k+')
+plot(mag, size_sec, 'r+')
+plot(mag, size_e, 'b+')
+xlabel('P')
+ylabel(r'Mask size')
+
+
+#plt.show()
+figure(4)
 clf()
 for i in range(5, 30):
     Pi = 5 + i * binsize
@@ -152,7 +166,7 @@ Now we obtain the degeneracy of the masks. For doing so we just need to know the
 begin to plot the cumulative or total number of unique shapes of the secondary mask needed for all the most 
 problematic contaminant stars
 """
-figure(4)
+figure(5)
 clf()
 for i in range(5, 30):
     Pi = 5 + i * binsize
@@ -160,7 +174,7 @@ for i in range(5, 30):
     key_secondary = len(np.unique(key_sec[m_bad]))
     scatter(Pi, key_secondary, color='red')
 
-xlabel(" P Magnitude of the Contaminant", fontsize=fsize)
+xlabel("P Magnitude of the Contaminant", fontsize=fsize)
 ylabel("Cum. count of mask shapes", fontsize=fsize)
 
 #plt.show()
@@ -168,7 +182,7 @@ ylabel("Cum. count of mask shapes", fontsize=fsize)
 """
 Now we plot the cumulative or total number of nominal mask shapes to address the total number of target stars 
 """
-figure(5)
+figure(6)
 clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
@@ -190,7 +204,7 @@ eta_cob = data[:, 15]
 eta_cob_sec = data_sec[:, 9]
 eta_cob_ext = data_ext[:, 10]
 
-figure(6)
+figure(7)
 clf()
 for i in range(nP):
     Pi = Pmin + i * binsize
@@ -206,4 +220,13 @@ xlabel('P Magnitude', fontsize=fsize)
 ylabel('Efficiency[%]', fontsize=fsize)
 
 #plt.show()
+
+figure(8)
+clf()
+plot(mag, nsr1h, 'k+', label='nominal mask')
+plot(mag, nsr1h_sec, 'r+', label='secondary mask')
+plot(mag, nsr1h_ext, 'b+', label='extended mask')
+semilogy()
+legend()
+
 show()
