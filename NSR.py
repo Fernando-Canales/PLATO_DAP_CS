@@ -86,9 +86,9 @@ def SPR(n_c, f_contaminant, f_tot, w):
     # First we create a numpy array to store the sprk of all contaminants for a given target
     sprk = np.zeros(n_c)
     # Then we start a for loop over all the contaminants for a given target
-    for i in range(0, n_c):
+    for i in range(1, n_c + 1):
         # Then we compute the sprk of every contaminant for a given target
-        sprk[i] = np.sum(f_contaminant[i] * w) / np.sum(f_tot * w)
+        sprk[i - 1] = np.sum(f_contaminant[i - 1] * w) / np.sum(f_tot * w)
 
     # Then we compute the total contribution of all the contaminants (SPR_tot) for a given target
     SPR_tot = np.sum(sprk)
