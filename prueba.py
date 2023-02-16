@@ -150,17 +150,17 @@ for i in range(nP):
         offy_c = y_c_im - pyc[psf_idx]
         # We define an array that will contain the 'imagettes' of every contaminant
         Ic = np.zeros((n_c, 6, 6))
-        for o in range(0, n_c):
+        for o in range(1, n_c + 1):
             # Now we make sure to deal only with stars with positive magnitudes
-            if m_c[o] > 0:
+            if m_c[o - 1] > 0:
                 # Then we compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
-                Ic[o, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx_c[o],
-                                                           offy=offy_c[o])
-                COBx_c, COBy_c = barycenter(Ic[o], subres=1)
+                Ic[o - 1, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y,
+                                                             offx=offx_c[o - 1], offy=offy_c[o - 1])
+                COBx_c, COBy_c = barycenter(Ic[o - 1], subres=1)
                 # Let's obtain the value of the reference flux for every contaminant star
-                f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o], m_t)
+                f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o - 1], m_t)
                 # Let's calculate the Intensity per pixel of the imagette of every contaminant star
-                Ic[o, :, :] = f_ref_c * Ic[o]
+                Ic[o - 1, :, :] = f_ref_c * Ic[o - 1]
 
         # Now we define an array with the contribution from all the stars to each pixel
         Ic_acc = np.sum(Ic, axis=0)
@@ -222,7 +222,7 @@ for i in range(nP):
         # We compute the sprk with respect to the secondary mask
         sprk_sec, SPR_tot_sec = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_c)
 
-        # We compute spr_tot_c, that is, the expression given in Marchiori presentation given in PLATO week #8
+        # We compute spr_tot_c, that is, the expression given in Marchiori presentation for PLATO week #8
         spr_tot_c = np.sum(Itc_acc * w_c) / f_tot_c
 
         # We compute now the delta_obs for the two apertures
