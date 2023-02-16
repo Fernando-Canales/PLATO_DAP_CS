@@ -7,9 +7,9 @@ dataDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/test_results/'
 
 # Parameters for the plots
 Pmin = 8
-Pmax = 19
-nP = int(Pmax - Pmin)
+Pmax = 13
 binsize = 0.5
+nP = int((Pmax - Pmin) / binsize + 1)
 fsize = 14
 
 # We load the npy files with all the metrics of the nominal and secondary and extended masks
@@ -18,6 +18,12 @@ data = np.load(dataDIR + 'targets_P5.npy')
 data_sec = np.load(dataDIR + 'targets_P5_contaminant.npy')
 data_ext = np.load(dataDIR + 'targets_P5_extended.npy')
 data_bray = np.load(dataDIR + 'targets_P5_bray.npy')
+mag_value, star_count = np.loadtxt(dataDIR + 'star_count.txt', unpack=True, usecols=[0, 1])
+
+plt.plot(mag_value, star_count, 'o')
+plt.xlabel('P magnitude', fontsize=fsize)
+plt.ylabel('Numb. of stars', fontsize=fsize)
+plt.show()
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
 #mag_gaia = data_mag[:, 2]
@@ -138,11 +144,15 @@ for i in range(nP):
 xlabel(" P Magnitude", fontsize=fsize)
 ylabel(r"Average mask size", fontsize=fsize)
 
+"""
+Now we plot the size of every mask as a function of the target P magnitude
+"""
 figure(3)
 clf()
-plot(mag, size_nom, 'k+')
-plot(mag, size_sec, 'r+')
-plot(mag, size_e, 'b+')
+plot(mag, size_nom, 'k+', label='nominal mask')
+plot(mag, size_sec, 'r+', label='secondary mask')
+plot(mag, size_e, 'b+', label='extended mask')
+legend()
 xlabel('P')
 ylabel(r'Mask size')
 
@@ -188,8 +198,10 @@ for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag <= Pi + binsize/2.)
     pix_nominal = len(np.unique(key_nom[m]))
+    pix_sec = len(np.unique(key_sec[m]))
     pix_ext = len(np.unique(key_ext[m]))
     scatter(Pi, pix_nominal, color='black')
+    scatter(Pi, pix_sec, color='red')
     scatter(Pi, pix_ext, color='blue')
 
 xlabel('P Magnitude', fontsize=fsize)
@@ -200,9 +212,15 @@ ylabel('Cum. count of mask shapes', fontsize=fsize)
 """
 Now let's plot the efficiency of the C.O.B. shift measurements
 """
+delta_cob = data[:, 14]
 eta_cob = data[:, 15]
+sigma_cob = data[:, 16]
+delta_cob_sec = data_sec[:, 8]
 eta_cob_sec = data_sec[:, 9]
+sigma_cob_sec = data_sec[:, 10]
+delta_cob_ext = data_ext[:, 9]
 eta_cob_ext = data_ext[:, 10]
+sigma_cob_ext = data_ext[:, 11]
 
 figure(7)
 clf()
@@ -221,11 +239,49 @@ ylabel('Efficiency[%]', fontsize=fsize)
 
 #plt.show()
 
+"""
+Now we plot the NSR over 1h  for every mask as a function of the target P magnitude
+"""
 figure(8)
 clf()
 plot(mag, nsr1h, 'k+', label='nominal mask')
 plot(mag, nsr1h_sec, 'r+', label='secondary mask')
 plot(mag, nsr1h_ext, 'b+', label='extended mask')
+semilogy()
+legend()
+xlabel('P magnitude')
+ylabel(r'$NSR_{1hr}$')
+
+"""
+Now we plot the COB shift as a function of the target P magnitude
+"""
+figure(9)
+clf()
+plot(mag, delta_cob, 'k+', label='nominal mask')
+plot(mag, delta_cob_sec, 'r+', label='secondary mask')
+plot(mag, delta_cob_ext, 'b+', label='extended mask')
+xlabel('P magnitude')
+ylabel(r'$\Delta_{COB}$')
+semilogy()
+legend()
+
+figure(10)
+clf()
+plot(mag, sigma_cob, 'k+', label='nominal mask')
+plot(mag, sigma_cob_sec, 'r+', label='secondary mask')
+plot(mag, sigma_cob_ext, 'b+', label='extended mask')
+xlabel('P magnitude')
+ylabel(r'$\sigma_{COB} [pix]$')
+semilogy()
+legend()
+
+figure(11)
+clf()
+plot(mag, sigma_cob, 'k+', label='noise')
+plot(mag, delta_cob, 'b.', label='signal')
+xlabel('P magnitude')
+ylabel(r'$\Delta_{COB}$')
+title('Nominal Mask')
 semilogy()
 legend()
 
