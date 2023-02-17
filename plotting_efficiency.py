@@ -92,8 +92,11 @@ plt.legend()
 plt.show()
 
 
-# Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
-# of the magnitude of the target
+"""
+Now I will make a plot like Réza's to show the efficiency of both Marchiori and Extended masks method as a function
+of the magnitude of the target
+
+"""
 figure(0)
 clf()
 for i in range(nP):
@@ -230,10 +233,11 @@ for i in range(nP):
     eff_cob = ((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_sec = ((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
     eff_cob_ext = ((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    scatter(Pi, eff_cob_sec * 100, color='red')
     scatter(Pi, eff_cob*100, color='black')
-    scatter(Pi, eff_cob_sec*100, color='red')
     scatter(Pi, eff_cob_ext*100, color='blue')
 
+#legend()
 xlabel('P Magnitude', fontsize=fsize)
 ylabel('Efficiency[%]', fontsize=fsize)
 
@@ -284,5 +288,25 @@ ylabel(r'$\Delta_{COB}$')
 title('Nominal Mask')
 semilogy()
 legend()
+
+figure(12)
+clf()
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    eff_cob = ((eta_cob > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    eff_cob_sec = ((eta_cob_sec > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    eff_cob_ext = ((eta_cob_ext > 3) & (eta_t > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    sec = ((eta_t > 7.1) & (delta_obs_c > delta_obs_t) & (eta_c > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    ext = ((eta_t > 7.1) & (delta_obs_ext > delta_obs_t) & (eta_ext > 7.1))[m].sum() / (eta_t > 7.1)[m].sum()
+    plot(Pi, sec*100, 'r+')
+    plot(Pi, ext * 100, 'b+')
+    plot(Pi, eff_cob_sec * 100, 'r^')
+    #plot(Pi, eff_cob*100, 'k')
+    plot(Pi, eff_cob_ext*100, 'b^')
+    legend(['Sec. Mask Flux', 'Ext. Mask Flux', 'Sec. Mask COB shift', 'Ext. Mask COB shift'], loc='best')
+
+xlabel('P Magnitude', fontsize=fsize)
+ylabel('Efficiency[%]', fontsize=fsize)
 
 show()
