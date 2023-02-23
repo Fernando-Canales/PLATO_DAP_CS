@@ -116,15 +116,15 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     # Now we define the COB on the Y-direction
     c_y = np.sum(y * w * I_tot) / f_tot
     # Now we define the Gamma factor along the X-direction
-    gamma_x = (np.sum(x * w * Ik) / f_tot) - c_x * sprk
+    gamma_x = np.sum(x * w * Ik) / f_tot - c_x * sprk
     # Now we define the Gamma factor along the Y-direction
-    gamma_y = (np.sum(y * w * Ik) / f_tot) - c_y * sprk
+    gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
 
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
 
     # Now we make sure to deal with the correct units for the C.O.B shift (no ppm)
-    Dback = dback * 10 ** -6
+    Dback = dback*1e-6
 
     # Now we define the lambda factor
     l = Dback / (1 - Dback * sprk)
@@ -138,16 +138,17 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     abs_cs = l * gamma
 
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-    var_delta = I_tot + sb + sd ** 2 * sq ** 2
-
+    var_delta = I_tot + sb + sd ** 2 + sq ** 2
+    # We compute the product of var_delta times the mask here as well for convenience
+    var_delta_w = var_delta * w
     # Now we compute the centroid shift error along the X-direction
-    var_x = (np.sum((x ** 2) * w * var_delta) / f_tot ** 2) + ((c_x ** 2) * (np.sum(w * var_delta) / f_tot ** 2))
+    var_x = (np.sum(x ** 2 * var_delta_w)) / f_tot ** 2 + (c_x / f_tot) ** 2 * np.sum(var_delta_w)
     # Now we compute the centroid shift error along the Y-direction
-    var_y = (np.sum((y ** 2) * w * var_delta) / f_tot ** 2) + ((c_y ** 2) * (np.sum(w * var_delta) / f_tot ** 2))
+    var_y = (np.sum(y ** 2 * var_delta_w)) / f_tot ** 2 + (c_y / f_tot) ** 2 * np.sum(var_delta_w)
 
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
-    sigma_cs = np.sqrt(2 * ((gamma_x ** 2) * var_x + (gamma_y ** 2) * var_y)) / gamma
+    sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
     # Now we average the error over 1 hour and 24 cameras
     sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
     # Now we compute the statistical significance of the centroid shift
