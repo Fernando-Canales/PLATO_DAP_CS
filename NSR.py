@@ -3,7 +3,9 @@ import numpy as np
 
 # Let's calculate  the critical SPR
 def spr_crit(dback, SPR_tot, nsr, td, ntr):
-    return 7.1 * nsr * (1 - SPR_tot) / (np.sqrt(td * ntr) * dback)
+    flux_trsh = 7.1
+    sprcrit = flux_trsh * nsr * (1 - SPR_tot) / (np.sqrt(td * ntr) * dback)
+    return sprcrit
 
 
 # Let's calculate the NSR of the target
@@ -53,7 +55,7 @@ def aperture(ft, fc, sb, sd, sq):
     # Then we create our mask, we show the index where the mask vector has a value of 1
     w[mask] = 1
 
-    # Then we reshape that mask
+    # Then we reshape the mask
     w = w.reshape((6, 6))
 
     return min(nsr1h), w
@@ -90,10 +92,13 @@ def SPR(n_c, f_contaminant, f_tot, w):
         # Then we compute the sprk of every contaminant for a given target
         sprk[i - 1] = np.sum(f_contaminant[i - 1] * w) / np.sum(f_tot * w)
 
-    # Then we compute the total contribution of all the contaminants (SPR_tot) for a given target
+    # Then we compute the total contribution of all the contaminants for a given target (SPR_tot)
     SPR_tot = np.sum(sprk)
 
-    return sprk, SPR_tot
+    # Then we get the highest value of sprk
+    sprk_max = max(sprk)
+
+    return sprk, sprk_max, SPR_tot
 
 
 # We define now a function for creating a mask_key as performed by Emmanuel
