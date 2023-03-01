@@ -13,6 +13,8 @@ nP = int((Pmax - Pmin) / binsize + 1)
 fsize = 14
 flux_trsh = 7.1
 cob_trsh = 3
+ntr = 3  # number of observed transit events
+td = 4  # transit event duration in hours
 
 # We load the npy files with all the metrics of the nominal and secondary and extended masks
 #data_mag = np.load('SFP_DR3_20220831.npy')
@@ -151,11 +153,11 @@ for i in range(nP):
     ext = (edr_flux[m].sum() / fp[m].sum()) * 100
     ext_2 = (e_2dr_flux[m].sum() / fp[m].sum()) * 100
     ext_3 = (e_3dr_flux[m].sum() / fp[m].sum()) * 100
-    scatter(Pi, sec, color='red')
+    #scatter(Pi, sec, color='red')
     scatter(Pi, sec_2, color='green')
-    scatter(Pi, ext, color='blue')
+    #scatter(Pi, ext, color='blue')
     scatter(Pi, ext_2, color='cyan')
-    scatter(Pi, ext_3, color='magenta')
+    #scatter(Pi, ext_3, color='magenta')
 
 xlabel("P Magnitude", fontsize=fsize)
 ylabel("Efficiency[%]", fontsize=fsize)
@@ -176,7 +178,7 @@ for i in range(nP):
     scatter(Pi, nsr_bray, color='orange')
 
 xlabel(" P Magnitude", fontsize=fsize)
-ylabel(r"NSR[ppm $hr^{\frac{1}{2}}$]", fontsize=fsize)
+ylabel(r"$NSR_{1hr}[ppm \sqrt{hr}]$", fontsize=fsize)
 
 #plt.show()
 
@@ -196,7 +198,7 @@ for i in range(nP):
     scatter(Pi, size_nominal, color='black')
     scatter(Pi, size_ext, color='blue')
     scatter(Pi, size_ext_2, color='cyan')
-    scatter(Pi, size_ext_2, color='magenta')
+    scatter(Pi, size_ext_3, color='magenta')
 
 xlabel(" P Magnitude", fontsize=fsize)
 ylabel(r"Average mask size", fontsize=fsize)
@@ -206,15 +208,15 @@ Now we plot the size of every mask as a function of the target P magnitude
 """
 figure(3)
 clf()
-plot(mag, size_nom, 'k+', label='nominal mask')
-plot(mag, size_sec, 'r+', label='secondary mask')
-plot(mag, size_sec_2, 'g+', label='secondary mask(2)')
-plot(mag, size_e, 'b+', label='extended mask')
-plot(mag, size_e_2, 'c+', label='extended mask (2)')
-plot(mag, size_e_3, 'm+', label='extended mask (3)')
+#plot(mag, size_nom, 'k+', label='Nominal Mask')
+plot(mag, size_sec, 'r+', label='Secondary Mask')
+plot(mag, size_sec_2, 'g+', label='Secondary Mask (1 pixel ring)')
+#plot(mag, size_e, 'b+', label='Extended mask')
+#plot(mag, size_e_2, 'c+', label='Extended Mask (2 pixels ring)')
+#plot(mag, size_e_3, 'm+', label='extended mask (3)')
 legend()
-xlabel('P')
-ylabel(r'Mask size')
+xlabel('P Magnitude', fontsize=fsize)
+ylabel(r'Mask size', fontsize=fsize)
 
 
 #plt.show()
@@ -301,12 +303,12 @@ for i in range(nP):
     eff_cob_ext = (edr_cob[m].sum() / fp[m].sum()) * 100
     eff_cob_ext_2 = (e_2dr_cob[m].sum() / fp[m].sum()) * 100
     eff_cob_ext_3 = (e_3dr_cob[m].sum() / fp[m].sum()) * 100
-    scatter(Pi, eff_cob_sec, color='red')
+    #scatter(Pi, eff_cob_sec, color='red')
     scatter(Pi, eff_cob_sec_2, color='green')
-    scatter(Pi, eff_cob, color='black')
-    scatter(Pi, eff_cob_ext, color='blue')
+    #scatter(Pi, eff_cob, color='black')
+    #scatter(Pi, eff_cob_ext, color='blue')
     scatter(Pi, eff_cob_ext_2, color='cyan')
-    scatter(Pi, eff_cob_ext_2, color='magenta')
+    #scatter(Pi, eff_cob_ext_2, color='magenta')
 
 #legend()
 xlabel('P Magnitude', fontsize=fsize)
@@ -317,47 +319,50 @@ Now we plot the NSR over 1h  for every mask as a function of the target P magnit
 """
 figure(8)
 clf()
-plot(mag, nsr1h, 'k+', label='nominal mask')
-plot(mag, nsr1h_sec, 'r+', label='secondary mask')
-plot(mag, nsr1h_sec_2, 'g+', label='secondary mask(2)')
-plot(mag, nsr1h_ext, 'b+', label='extended mask')
-plot(mag, nsr1h_ext_2, 'c+', label='extended mask (2)')
-plot(mag, nsr1h_ext_3, 'm+', label='extended mask (3)')
+#plot(mag, nsr1h, 'k+', label='Nominal mask')
+#plot(mag, nsr1h_sec, 'r+', label='Secondary Mask')
+plot(mag, nsr1h_sec_2, 'g+', label='Secondary Mask (1 pixel ring)')
+plot(mag, nsr1h_ext, 'b+', label='Extended Mask')
+plot(mag, nsr1h_ext_2, 'c+', label='Extended Mask (2 pixels ring)')
+#plot(mag, nsr1h_ext_3, 'm+', label='extended mask (3)')
 semilogy()
 legend()
-xlabel('P magnitude')
-ylabel(r'$NSR_{1hr}$')
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$NSR_{1hr} [ppm \sqrt{hr}]$', fontsize=fsize)
 
 """
 Now we plot the statistical significance for every mask as a function of the target P magnitude
 """
 figure(9)
 clf()
-plot(mag, eta_t, 'k+', label='nominal mask')
-plot(mag, eta_c, 'r+', label='secondary mask')
-plot(mag, eta_c_2, 'g+', label='secondary mask(2)')
-plot(mag, eta_ext, 'b+', label='extended mask')
-plot(mag, eta_ext_2, 'c+', label='extended mask (2)')
-plot(mag, eta_ext_3, 'm+', label='extended mask (3)')
-semilogy()
-legend()
-xlabel('P magnitude')
-ylabel(r'$\eta$')
-
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    plot(Pi, np.median(eta_t[m]), 'ko')
+    plot(Pi, np.median(eta_c[m]), 'ro')
+    # plot(mag, eta_c_2, 'g+', label='Secondary Mask (1 pixel ring)')
+    plot(Pi, np.median(eta_ext[m]), 'bo')
+    # plot(mag, eta_ext_2, 'c+', label='Extended Mask (2 pixels ring)')
+    # plot(mag, eta_ext_3, 'm+', label='extended mask (3)')
+    legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'], loc='best')
+#semilogy()
+#legend()
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\eta$', fontsize=fsize)
 
 """
 Now we plot the COB shift as a function of the target P magnitude
 """
 figure(10)
 clf()
-plot(mag, delta_cob, 'k+', label='nominal mask')
-plot(mag, delta_cob_sec, 'r+', label='secondary mask')
-plot(mag, delta_cob_sec_2, 'g+', label='secondary mask(2)')
-plot(mag, delta_cob_ext, 'b+', label='extended mask')
-plot(mag, delta_cob_ext_2, 'c+', label='extended mask(2)')
-plot(mag, delta_cob_ext_3, 'm+', label='extended mask(3)')
-xlabel('P magnitude')
-ylabel(r'$\Delta_{COB}$')
+#plot(mag, delta_cob, 'k+', label='nominal mask')
+#plot(mag, delta_cob_sec, 'r+', label='secondary mask')
+plot(mag, delta_cob_sec_2, 'g+', label='Secondary Mask (2 pixels ring)')
+#plot(mag, delta_cob_ext, 'b+', label='extended mask')
+plot(mag, delta_cob_ext_2, 'c+', label='Extended Mask (2 pixels ring)')
+#plot(mag, delta_cob_ext_3, 'm+', label='extended mask(3)')
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\Delta_{COB}$', fontsize=fsize)
 semilogy()
 legend()
 
@@ -368,16 +373,18 @@ figure(11)
 clf()
 plot(mag, sigma_cob, 'k+', label='nominal mask')
 plot(mag, sigma_cob_sec, 'r+', label='secondary mask')
-plot(mag, sigma_cob_sec_2, 'g+', label='secondary mask(2)')
+#plot(mag, sigma_cob_sec_2, 'g+', label='secondary mask(2)')
 plot(mag, sigma_cob_ext, 'b+', label='extended mask')
-plot(mag, sigma_cob_ext_2, 'c+', label='extended mask(2)')
-plot(mag, sigma_cob_ext_3, 'm+', label='extended mask(3)')
-xlabel('P magnitude')
-ylabel(r'$\sigma_{COB} [pix]$')
+#plot(mag, sigma_cob_ext_2, 'c+', label='extended mask(2)')
+#plot(mag, sigma_cob_ext_3, 'm+', label='extended mask(3)')
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\sigma_{COB} [pix]$', fontsize=fsize)
 semilogy()
 legend()
 
-
+"""
+Now we plot the compqrison between the flux and COB shift methods as a function of the target P magnitude
+"""
 figure(12)
 clf()
 for i in range(nP):
@@ -390,25 +397,97 @@ for i in range(nP):
     eff_cob_ext_2 = (e_2dr_cob[m].sum() / fp[m].sum()) * 100
     eff_cob_ext_3 = (e_3dr_cob[m].sum() / fp[m].sum()) * 100
     sec = (sdr_flux[m].sum() / fp[m].sum()) * 100
+    sec_2 = (s_2dr_flux[m].sum() / fp[m].sum()) * 100
     ext = (edr_flux[m].sum() / fp[m].sum()) * 100
     ext_2 = (e_2dr_flux[m].sum() / fp[m].sum()) * 100
     ext_3 = (e_3dr_flux[m].sum() / fp[m].sum()) * 100
     plot(Pi, sec, 'r+')
-    plot(Pi, sec_2, 'g+')
+    #plot(Pi, sec_2, 'g+')
     plot(Pi, ext, 'b+')
-    plot(Pi, ext_2, 'c+')
-    plot(Pi, ext_3, 'm+')
+    #plot(Pi, ext_2, 'c+')
+    #plot(Pi, ext_3, 'm+')
     plot(Pi, eff_cob_sec, 'r^')
-    plot(Pi, eff_cob_sec_2, 'g^')
+    #plot(Pi, eff_cob_sec_2, 'g^')
     #plot(Pi, eff_cob*100, 'k')
     plot(Pi, eff_cob_ext, 'b^')
-    plot(Pi, eff_cob_ext_2, 'c^')
-    plot(Pi, eff_cob_ext_3, 'm^')
-    legend(['Sec. Mask Flux', 'Sec. Mask Flux(2)', 'Ext. Mask Flux', 'Ext. Mask Flux (2)', 'Ext. Mask Flux (3)',
-            'Sec. Mask COB shift', 'Sec. Mask COB shift(2)', 'Ext. Mask COB shift', 'Ext. Mask COB shift (2)',
-            'Ext. Mask COB shift (3)'], loc='best')
+    #plot(Pi, eff_cob_ext_2, 'c^')
+    #plot(Pi, eff_cob_ext_3, 'm^')
+    legend(['Sec. Mask Flux', 'Ext. Mask Flux',
+            'Sec. Mask COB shift', 'Ext. Mask COB shift'], loc='best')
 
 xlabel('P Magnitude', fontsize=fsize)
 ylabel('Efficiency[%]', fontsize=fsize)
+
+
+"""
+Now we plot the delta obs
+"""
+figure(13)
+clf()
+ratio_delta_obs = delta_obs_c / delta_obs_c_2
+plot(mag, delta_obs_c, 'r+', label='Secondary Mask')
+plot(mag, delta_obs_c_2, 'g+', label='Secondary Mask (1 pixel ring)')
+plot(mag, ratio_delta_obs, 'y+', label='$\delta_{obs_{sec}} / \delta_{obs_{sec_{1}}}$')
+#plot(mag, delta_obs_ext, 'b+', label='Extended Mask')
+#plot(mag, delta_obs_ext_2, 'c+', label='Extended Mask (2 pixels ring)')
+#plot(mag, eta_ext_3, 'm+', label='extended mask (3)')
+semilogy()
+legend()
+xlabel('P magnitude', fontsize=fsize)
+#ylabel(r'$\delta_{obs_{sec}} / \delta_{obs_{sec_{1}}}$', fontsize=fsize)
+ylabel(r'$\delta_{obs}[ppm]$', fontsize=fsize)
+
+"""
+Now we plot the eta ratios
+"""
+nom_eta = (eta_t / eta_cob)
+sec_eta = (eta_c / eta_cob_sec)
+ext_eta = (eta_ext / eta_cob_ext)
+
+figure(14)
+clf()
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    plot(Pi, np.median(nom_eta[m]), 'ko')
+    plot(Pi, np.median(sec_eta[m]), 'ro')
+    plot(Pi, np.median(ext_eta[m]), 'bo')
+    legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'],
+           loc='best')
+    #semilogy()
+    #legend()
+
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\eta_{flux} / \eta_{cob}$', fontsize=fsize)
+
+figure(15)
+clf()
+plot(mag, eta_t/eta_cob, 'ko')
+plot(mag, eta_c/eta_cob_sec, 'ro')
+plot(mag, eta_ext/eta_cob_ext, 'bo')
+legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'],
+       loc='best')
+semilogy()
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\eta_{flux} / \eta_{cob}$', fontsize=fsize)
+
+
+"""
+Now we plot the delta_obs_ratio wit the median values
+"""
+figure(16)
+clf()
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    plot(Pi, np.median(delta_obs_c_2[m]), 'yo')
+    #plot(Pi, np.median(sec_eta[m]), 'ro')
+    #plot(Pi, np.median(ext_eta[m]), 'bo')
+    #legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'], loc='best')
+    #semilogy()
+    #legend()
+
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\delta_{obs_{sec}} / \delta_{obs_{sec_{1 pixel ring}}}$', fontsize=fsize)
 
 show()
