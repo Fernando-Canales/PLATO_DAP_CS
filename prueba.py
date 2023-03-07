@@ -13,9 +13,9 @@ DIRout = 'test_results/'
 
 # Now we call the catalogue, the PSF file and the transit depths and transit durations catalogue for the eclipsing
 # binaries
-data = np.load(cataloguesDIR + 'SFP_DR3_20220831.npy')
+data = np.load(cataloguesDIR + 'SFP_DR3_20230101.npy')
 psfdata = np.load(PSFfile)
-#delta_back, transit_dur = np.loadtxt(cataloguesDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True,
+# delta_back, transit_dur = np.loadtxt(cataloguesDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True,
 #                                     usecols=[0, 1])
 
 # Parameters for the imagette and PSF
@@ -37,7 +37,7 @@ ntr = 3  # number of transits in one hour
 # Define an ID for every target
 ID = np.arange(0, data.shape[0])
 # Define the number of targets
-n_tar = 600
+n_tar = 300
 # Now we save the x and y coordinates on the focal plane for all the stars in the catalogue
 x_star = data[:, 3]
 y_star = data[:, 4]
@@ -62,11 +62,11 @@ binsize = 0.5
 nP = int((Pmax - Pmin) / binsize + 1)
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.)
-save_info = np.zeros((n_tar * nP, 17))
+save_info = np.zeros((n_tar * nP, 19))
 # The same for the secondary/contaminant mask
-save_info_contaminant = np.zeros((n_tar * nP, 20))
+save_info_contaminant = np.zeros((n_tar * nP, 24))
 # The same for the extended mask
-save_info_ext = np.zeros((n_tar * nP, 31))
+save_info_ext = np.zeros((n_tar * nP, 37))
 # The same for bray's et al. assumption of using 2 x 2 masks
 save_info_bray = np.zeros((n_tar * nP, 8))
 
@@ -256,19 +256,20 @@ for i in range(nP):
         eta_c_2 = np.sqrt(td * ntr) * dback / NSR1h_c_2
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=w_t, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc,
-                                                      sprk=sprk[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td,
-                                                      ntr=ntr)
+        eta_cob, sigma_1_24, abs_cob, eta_cob_wrong, sigma_1_24_wrong = centroid_shift(w=w_t, Ik=Ic_max, I_t=It,
+                                                                                       I_contaminants=Ic_acc,
+                                                                                       sprk=sprk[ind_sprk], dback=dback,
+                                                                                       sb=sb, sd=sd, sq=sq, td=td,
+                                                                                       ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=w_c, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc,
-                                                            sprk=sprk_sec[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq,
-                                                            td=td, ntr=ntr)
+        eta_cob_c, sigma_1_24_c, abs_cob_c, eta_cob_c_wrong, sigma_1_24_c_wrong = centroid_shift(w=w_c, Ik=Ic_max,
+        I_t=It, I_contaminants=Ic_acc, sprk=sprk_sec[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
 
-        eta_cob_c_2, sigma_1_24_c_2, abs_cob_c_2 = centroid_shift(w=w_c_2, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc,
-                                                                  sprk=sprk_sec_2[ind_sprk], dback=dback, sb=sb, sd=sd,
-                                                                  sq=sq, td=td, ntr=ntr)
+        eta_cob_c_2, sigma_1_24_c_2, abs_cob_c_2, eta_cob_c_2_wrong, sigma_1_24_c_2_wrong = centroid_shift(w=w_c_2,
+        Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_sec_2[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td,
+                                                                                                           ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         ################################################################################################################
         #                                   NOW THE EXTENDED MASK METHOD                                               #
@@ -327,23 +328,19 @@ for i in range(nP):
         eta_ext_2 = sprk_ext_2[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h_2
         eta_ext_3 = sprk_ext_3[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h_3
 
-        #------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=w_ext, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc,
-                                                                  sprk=sprk_ext[ind_sprk], dback=dback, sb=sb, sd=sd,
-                                                                  sq=sq, td=td, ntr=ntr)
+        # ------------------------------------------EXTENDED COB--------------------------------------------------------#
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext, eta_cob_ext_wrong, sigma_1_24_ext_wrong = centroid_shift(
+            w=w_ext, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[ind_sprk], dback=dback, sb=sb, sd=sd,
+            sq=sq, td=td, ntr=ntr)
 
-        eta_cob_ext_2, sigma_1_24_ext_2, abs_cob_ext_2 = centroid_shift(w=w_ext_2, Ik=Ic_max, I_t=It,
-                                                                        I_contaminants=Ic_acc,
-                                                                        sprk=sprk_ext_2[ind_sprk],
-                                                                        dback=dback, sb=sb, sd=sd, sq=sq, td=td,
-                                                                        ntr=ntr)
+        eta_cob_ext_2, sigma_1_24_ext_2, abs_cob_ext_2, eta_cob_ext_2_wrong, sigma_1_24_ext_2_wrong = centroid_shift(
+            w=w_ext_2, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext_2[ind_sprk], dback=dback, sb=sb, sd=sd,
+            sq=sq, td=td, ntr=ntr)
 
-        eta_cob_ext_3, sigma_1_24_ext_3, abs_cob_ext_3 = centroid_shift(w=w_ext_3, Ik=Ic_max, I_t=It,
-                                                                        I_contaminants=Ic_acc,
-                                                                        sprk=sprk_ext_3[ind_sprk],
-                                                                        dback=dback, sb=sb, sd=sd, sq=sq, td=td,
-                                                                        ntr=ntr)
-        #------------------------------------------EXTENDED COB--------------------------------------------------------#
+        eta_cob_ext_3, sigma_1_24_ext_3, abs_cob_ext_3, eta_cob_ext_3_wrong, sigma_1_24_ext_3_wrong = centroid_shift(
+            w=w_ext_3, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext_3[ind_sprk], dback=dback, sb=sb, sd=sd,
+            sq=sq, td=td, ntr=ntr)
+        # ------------------------------------------EXTENDED COB--------------------------------------------------------#
         ################################################################################################################
         #                                     END OF THE EXTENDED MASK METHOD                                          #
         ################################################################################################################
@@ -371,18 +368,15 @@ for i in range(nP):
         ################################################################################################################
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
               '++++++')
-        print('Target ID:', ID_target[k])
-        print('Total number of contaminant stars:', n_c)
-        print('Number of contaminant stars with sprk values above SPR_crit:', n_bad)
-        print('Magnitude difference between the target and the contaminant with the highest value of sprK:',
+        print('Target ID = ', ID_target[k])
+        print('Total number of contaminant stars for this target = ', n_c)
+        print('Number of contaminant stars with sprk values above SPR_crit = ', n_bad)
+        print('Magnitude difference between the target and the contaminant with the highest sprk = ',
               m_c[ind_sprk] - m_t)
-        print('The distance between the target and the contaminant with the highest value of sprk is:',
+        print('Distance between the target and the contaminant with the highest sprk = ',
               (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
-        print('Transit depth of the eclipsing binary with the highest value of sprk:', dback, 'ppm')
-        print('Transit duration of the eclipsing binary with the highest value of sprk:', td, 'hours')
-        print('Nominal COB shift significance:', abs_cob)
-        print('Secondary COB shift significance:', abs_cob_c)
-        print('Extended COB shift significance:', abs_cob_ext)
+        print('Transit depth of the eclipsing binary with the highest sprk = ', dback, 'ppm')
+        print('Transit duration of the eclipsing binary with the highest sprk = ', td, 'hours')
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
               '++++++\n')
         # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
@@ -390,23 +384,29 @@ for i in range(nP):
         # )[0])
 
         save_info[counter, :] = [ID_target[k], m_t, n_c, m_c_bad, dist_bad, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit,
-                                 sprk[ind_sprk], SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24]
+                                 sprk[ind_sprk], SPR_tot, eta_t, delta_obs_t, abs_cob, eta_cob, sigma_1_24,
+                                 eta_cob_wrong, sigma_1_24_wrong]
 
         save_info_contaminant[counter, :] = [ID_target[k], m_t, w_c_key, w_c_size, NSR1h_c, spr_tot_c, eta_c,
                                              delta_obs_c, abs_cob_c, eta_cob_c, sigma_1_24_c, w_c_key_2, w_c_size_2,
                                              NSR1h_c_2, spr_tot_c_2, eta_c_2, delta_obs_c_2, abs_cob_c_2, eta_cob_c_2,
-                                             sigma_1_24_c_2]
+                                             sigma_1_24_c_2, eta_cob_c_wrong, sigma_1_24_c_wrong, eta_cob_c_2_wrong,
+                                             sigma_1_24_c_2_wrong]
 
         save_info_ext[counter, :] = [ID_target[k], m_t, w_ext_key, w_ext_size, NSR_ext_1h, sprk_ext[ind_sprk],
                                      SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, sigma_1_24_ext,
                                      w_ext_key_2, w_ext_size_2, NSR_ext_1h_2, eta_ext_2, delta_obs_ext_2, abs_cob_ext_2,
                                      eta_cob_ext_2, sigma_1_24_ext_2, w_ext_key_3, w_ext_size_3, NSR_ext_1h_3,
                                      eta_ext_3, delta_obs_ext_3, abs_cob_ext_3, eta_cob_ext_3, sigma_1_24_ext_3,
-                                     n_bad_ext, n_bad_ext_2, n_bad_ext_3]
+                                     n_bad_ext, n_bad_ext_2, n_bad_ext_3, eta_cob_ext_wrong, sigma_1_24_ext_wrong,
+                                     eta_cob_ext_2_wrong, sigma_1_24_ext_2_wrong, eta_cob_ext_3_wrong,
+                                     sigma_1_24_ext_3_wrong]
 
         save_info_bray[counter, :] = [ID_target[k], m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray,
                                       sprk_bray[ind_sprk], SPR_tot_bray]
         counter = counter + 1
+
+    print("NUMBER OF PROCESSED TARGETS: %i" % counter)
 
 save_info = save_info[0:counter]
 save_info_contaminant = save_info_contaminant[0:counter]
