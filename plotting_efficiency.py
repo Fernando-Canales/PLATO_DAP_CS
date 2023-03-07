@@ -96,21 +96,33 @@ size_e_3 = data_ext[:, 21]
 delta_cob = data[:, 14]
 eta_cob = data[:, 15]
 sigma_cob = data[:, 16]
+eta_cob_wrong = data[:, 17]
+sigma_cob_wrong = data[:, 18]
 delta_cob_sec = data_sec[:, 8]
 eta_cob_sec = data_sec[:, 9]
 sigma_cob_sec = data_sec[:, 10]
+eta_cob_sec_wrong = data_sec[:, 20]
+sigma_cob_sec_wrong = data_sec[:, 21]
 delta_cob_sec_2 = data_sec[:, 17]
 eta_cob_sec_2 = data_sec[:, 18]
 sigma_cob_sec_2 = data_sec[:, 19]
+eta_cob_sec_2_wrong = data_sec[:, 22]
+sigma_cob_sec_2_wrong = data_sec[:, 23]
 delta_cob_ext = data_ext[:, 9]
 eta_cob_ext = data_ext[:, 10]
 sigma_cob_ext = data_ext[:, 11]
+eta_cob_ext_wrong = data_ext[:, 31]
+sigma_cob_ext_wrong = data_ext[:, 32]
 delta_cob_ext_2 = data_ext[:, 16]
 eta_cob_ext_2 = data_ext[:, 18]
 sigma_cob_ext_2 = data_ext[:, 19]
+eta_cob_ext_2_wrong = data_ext[:, 33]
+sigma_cob_ext_2_wrong = data_ext[:, 34]
 delta_cob_ext_3 = data_ext[:, 25]
 eta_cob_ext_3 = data_ext[:, 26]
 sigma_cob_ext_3 = data_ext[:, 27]
+eta_cob_ext_3_wrong = data_ext[:, 35]
+sigma_cob_ext_3_wrong = data_ext[:, 36]
 
 """
 Now we will obtain a plot showing the amount of false positives detected by Bray et al 2 x 2 mask in comparison with the
@@ -489,5 +501,32 @@ for i in range(nP):
 
 xlabel('P magnitude', fontsize=fsize)
 ylabel(r'$\delta_{obs_{sec}} / \delta_{obs_{sec_{1 pixel ring}}}$', fontsize=fsize)
+
+
+"""
+Now we plot the two expressions for the error of the COB (the ones )
+"""
+figure(17)
+clf()
+plot(mag, sigma_cob, 'ko')
+semilogy()
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\sigma_{\Delta C} [pixel]$', fontsize=fsize)
+title(r'COB error expression that does not dependend on $\delta_{back}$')
+
+figure(18)
+clf()
+plot(mag, sigma_cob_wrong, 'bo')
+semilogy()
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$\sigma_{\Delta C} [pixel] $', fontsize=fsize)
+title(r'COB error expression that does depend on $\delta_{back}$')
+
+figure(19)
+clf()
+plot(mag, sigma_cob / sigma_cob_wrong, 'ro')
+xlabel('P magnitude', fontsize=fsize)
+ylabel(r'$ \sigma_{\Delta C} / \sigma_{\Delta C} [\delta_{back}] $', fontsize=fsize)
+
 
 show()
