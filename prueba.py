@@ -76,22 +76,26 @@ n_star_p_bin = np.zeros(nP)
 # We define this counter in order to store our data
 counter = 0
 
-# Now we can create the mask for getting only stars from P5 sample magnitude range
+# Now we start the main loop. It will run over every interval of the magnitude range we previously set.
 for i in range(nP):
     Pi = Pmin + i * binsize
+    # Now we can create the mask for getting only stars from the manitude range we previously set.
     mask = (data[:, 2] >= Pi - binsize / 2.) & (data[:, 2] <= Pi + binsize / 2.)
+    # Now we store the number of ctalogue stars within every interval
     n_star_p_bin[i] = mask.sum()
+    # We apply the mask to the star catalogue
     targets_P5 = data[mask, :]
+    # We apply the mask to have a unique ID for every star
     ID_target = ID[mask]
-
+    # Now we randomly choose 'n_tar' stars from the total number of catalogue stars within every interval
     j = ran_unique_int(n=n_tar, interval=[0, targets_P5.shape[0] - 1])
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
-    # Now we obtain the x and y coordinates of the targets on the focal plane
+    # Now we obtain the x and y focal plane coordinates for the just chosen 'n_t' targets
     x_tar = targets_P5[:, 3]
     y_tar = targets_P5[:, 4]
 
-    # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting afterwards
+    # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
     print(
         '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
@@ -257,10 +261,7 @@ for i in range(nP):
 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
         eta_cob, sigma_1_24, abs_cob, eta_cob_wrong, sigma_1_24_wrong = centroid_shift(w=w_t, Ik=Ic_max, I_t=It,
-                                                                                       I_contaminants=Ic_acc,
-                                                                                       sprk=sprk[ind_sprk], dback=dback,
-                                                                                       sb=sb, sd=sd, sq=sq, td=td,
-                                                                                       ntr=ntr)
+        I_contaminants=Ic_acc, sprk=sprk[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
