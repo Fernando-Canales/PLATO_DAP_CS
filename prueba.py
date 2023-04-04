@@ -1,42 +1,45 @@
-# noinspection PyUnresolvedReferences
 import numpy as np
 import spline2dbase
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
-from imagette import catalogue, barycenter, window, ran_unique_int, centroid_shift
+from imagette import barycenter, window, ran_unique_int, centroid_shift
 from NSR import spr_crit, aperture, SPR, mask_to_bitmask, extended_binary_mask
 from pylab import *
 
-# First we establish all relevant paths: star catalogue, PSF data file and storage directory
+# -----------------------------------------------
+# CONFIGURATION PARAMETERS
+
+# First we establish the paths to all the relevant resources: star catalogue, PSF data file and storage directory
 cataloguesDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
 PSFfile = 'PSF.npz'
 DIRout = 'test_results/'
 
-# Now we call the catalogue, the PSF file and the transit depths and transit durations catalogue for the eclipsing
-# binaries
+# Parameters for the imagette and PSF
+size_im_x = 6  # size of the imagette (x-direction)
+size_im_y = 6  # size of the imagette (y-direction)
+subres = 128   # resolution of the PSF
+bsres = 20     # resolution of the b-spline decomposition of the PSF
+
+# Parameters for the NSR
+sb = (45. * 21)  # Background noise from zodiacal light in e-/px(poisson noise)times integration time (21 sec.)
+sd = 50.2        # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
+sq = 7.2         # Quantization noise in units of e-rms/px
+
+# Parameters for the eclipsing binaries
+dback = 85000  # transit depth in ppm
+td = 4         # transit duration in hours
+ntr = 3        # number of transits in one hour
+
+# -----------------------------------------------
+
+# Now we call the catalogue, the PSF file and the transit depths and transit durations catalogue for the eclipsing binaries
 data = np.load(cataloguesDIR + 'SFP_DR3_20230101.npy')
 psfdata = np.load(PSFfile)
 # delta_back, transit_dur = np.loadtxt(cataloguesDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True,
 #                                     usecols=[0, 1])
 
-# Parameters for the imagette and PSF
-size_im_x = 6  # size of the imagette (x-direction)
-size_im_y = 6  # size of the imagette (y-direction)
-subres = 128  # resolution of the PSF
-bsres = 20  # resolution of the b-spline decomposition of the PSF
-
-# Parameters for the NSR
-sb = (45. * 21)  # Background noise from zodiacal light in units of e-/px(poisson noise)times integration time (21 sec.)
-sd = 50.2  # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
-sq = 7.2  # Quantization noise in units of e-rms/px
-
-# Parameters for the eclipsing binaries
-dback = 85000  # transit depth in ppm
-td = 4  # transit duration in hours
-ntr = 3  # number of transits in one hour
-
 # Define an ID for every target
 ID = np.arange(0, data.shape[0])
-# Define the number of targets
+# Define the number of targets we are taking from every magnitude
 n_tar = 300
 # Now we save the x and y coordinates on the focal plane for all the stars in the catalogue
 x_star = data[:, 3]
@@ -52,14 +55,10 @@ ypsf_pix = psfdata['ypsf_pix']
 # Now we use a seed for obtaining the same number of targets and dback and td values
 np.random.seed(n_tar)
 
-# We set the minimum value of magnitude
-Pmin = 8
-# We set the maximum value of magnitude
-Pmax = 13
-# We se the binsize value
-binsize = 0.5
-# We set the number of intervals
-nP = int((Pmax - Pmin) / binsize + 1)
+Pmin = 8                                # Minimum magnitude
+Pmax = 13                               # Maximum magnitude
+binsize = 0.5                           # binsize around every magnitude value
+nP = int((Pmax - Pmin) / binsize + 1)   # Number of intervals
 
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.)
 save_info = np.zeros((n_tar * nP, 19))
@@ -76,32 +75,34 @@ n_star_p_bin = np.zeros(nP)
 # We define this counter in order to store our data
 counter = 0
 
-# Now we start the main loop. It will run over every interval of the magnitude range we previously set.
+# Now we start the main loop. It will run over every magnitude interval we previously set.
 for i in range(nP):
     Pi = Pmin + i * binsize
-    # Now we can create the mask for getting only stars from the manitude range we previously set.
+    # Now we deifne a mask to get only the stars whithin the first interval of magnitude range.
     mask = (data[:, 2] >= Pi - binsize / 2.) & (data[:, 2] <= Pi + binsize / 2.)
-    # Now we store the number of ctalogue stars within every interval
+    # Now we store the number of stars within every interval
     n_star_p_bin[i] = mask.sum()
     # We apply the mask to the star catalogue
     targets_P5 = data[mask, :]
     # We apply the mask to have a unique ID for every star
     ID_target = ID[mask]
-    # Now we randomly choose 'n_tar' stars from the total number of catalogue stars within every interval
+    # Now we randomly choose 'n_tar' stars from every magnitude interval.
     j = ran_unique_int(n=n_tar, interval=[0, targets_P5.shape[0] - 1])
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
-    # Now we obtain the x and y focal plane coordinates for the just chosen 'n_t' targets
+    n_t = len(j) 
+    # Now we obtain the 'x' and 'y' focal plane coordinates for the chosen 'n_t' targets
     x_tar = targets_P5[:, 3]
     y_tar = targets_P5[:, 4]
-
-    # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting
+    # We convert the coordinates of the randomly chosen targets to mm to obtain the vignetting
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
+    
     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
     print('Beginning the calculations for the targets of magnitude', Pi, '\n')
     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
+    
     # Now we start this second loop. This loop will compute all the metrics for every target.
-    for k in range(0, len(x_tar)):
+    for k in range(0, n_t):
         # Define target ID
         ID_target[k]
         # First we compute the angle for obtaining the vignetting
@@ -267,8 +268,7 @@ for i in range(nP):
         I_t=It, I_contaminants=Ic_acc, sprk=sprk_sec[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
 
         eta_cob_c_2, sigma_1_24_c_2, abs_cob_c_2, eta_cob_c_2_wrong, sigma_1_24_c_2_wrong = centroid_shift(w=w_c_2,
-        Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_sec_2[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td,
-                                                                                                           ntr=ntr)
+        Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_sec_2[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         ################################################################################################################
         #                                   NOW THE EXTENDED MASK METHOD                                               #
@@ -328,9 +328,8 @@ for i in range(nP):
         eta_ext_3 = sprk_ext_3[ind_sprk] * np.sqrt(td * ntr) * dback / NSR_ext_1h_3
 
         # ------------------------------------------EXTENDED COB--------------------------------------------------------#
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext, eta_cob_ext_wrong, sigma_1_24_ext_wrong = centroid_shift(
-            w=w_ext, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[ind_sprk], dback=dback, sb=sb, sd=sd,
-            sq=sq, td=td, ntr=ntr)
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext, eta_cob_ext_wrong, sigma_1_24_ext_wrong = centroid_shift(w=w_ext, Ik=Ic_max, 
+        I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[ind_sprk], dback=dback, sb=sb, sd=sd, sq=sq, td=td, ntr=ntr)
 
         eta_cob_ext_2, sigma_1_24_ext_2, abs_cob_ext_2, eta_cob_ext_2_wrong, sigma_1_24_ext_2_wrong = centroid_shift(
             w=w_ext_2, Ik=Ic_max, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext_2[ind_sprk], dback=dback, sb=sb, sd=sd,
