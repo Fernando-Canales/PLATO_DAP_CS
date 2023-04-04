@@ -97,12 +97,10 @@ for i in range(nP):
 
     # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
-    print(
-        '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
+    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
     print('Beginning the calculations for the targets of magnitude', Pi, '\n')
-    print(
-        '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
-    # Now we start the loop over all the randomly chosen targets
+    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
+    # Now we start this second loop. This loop will compute all the metrics for every target.
     for k in range(0, len(x_tar)):
         # Define target ID
         ID_target[k]
