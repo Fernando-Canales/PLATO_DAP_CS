@@ -1,11 +1,13 @@
 from pylab import *
+from pylab import *
 from imagette import ran_unique_int
 
-Dir = '10000/'
+# Dir = '10000/'
+Dir = 'PSF_Focus_0mu_0.2pxdif/'
 Pmin = 8. # 10.5
 Pmax = 13
 binsize = 0.5
-cob_thr= 3.
+cob_thr= 7.1 # 3.
 ntr = 3  # number of transits
 flx_trh = 7.1
 
@@ -98,7 +100,7 @@ P = P[m]
 
 fp = (data_nommask[:,13] > flx_trh) # eta_t>7: false positive (not yet identified as such)
 sfd = fp & (data_2ndmask[:,7] > flx_trh)  &  (data_2ndmask[:,8] > data_nommask[:,14])  # eta_c>7.1 and delta_obt_c > delta_obs_t : secondary mask detection
-efd = fp & (data_extmask[:,10] > flx_trh)  & (data_extmask[:,15] > data_nommask[:,14])  # eta_ext>7.1 and delta_obt_ext > delta_obs_t : extended flux detection
+efd = fp & (data_extmask[:,10] > flx_trh)   & (data_extmask[:,15] > data_nommask[:,14])  # eta_ext>7.1 and delta_obt_ext > delta_obs_t : extended flux detection
 
 cd = fp & (data_nommask[:,17] > cob_thr) # eta_cob>3: COB detection
 scd = fp & (data_2ndmask[:,11] > cob_thr)  # eta_cob_c>3: s-COB detection
@@ -122,6 +124,7 @@ nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
 nbad6c = np.zeros(n)
 
 delta_obs = np.zeros((n,10))
+delta_obs_ext = np.zeros((n,10))
 eta_bt = np.zeros((n,10))
 eta_cob_bt = np.zeros((n,10))
 eta_cob_ext_bt = np.zeros((n,10))
@@ -132,28 +135,30 @@ nbad_ext_cob = np.zeros(n)
 
 # compute n_bad  for a real distribution in delta_back: nb of contaminant stars eta>eta_min=7.1
 for i in range(n):
-    j = ran_unique_int(10,interval=[0,dback_n-1])
-    dback = dback_set[j,0]
-    td = dback_set[j,1]
-##    dback = np.ones(10)*337540
-    eta_bt[i,:] = (SPRk[i,:]/data_nommask[i,8])*flx_trh *(dback/85000)*sqrt(td/4.)
-    eta_ext_bt[i,:] = dback*data_extmask[i,21:31]*np.sqrt(td*ntr)/(1-data_extmask[i,7])/data_extmask[i,4]
-    nbad[i] = np.sum(eta_bt[i,:]>flx_trh)
-    nbad_ext[i] = np.sum(eta_ext_bt[i,:]>flx_trh)
-    delta_obs[i,:] = dback*SPRk[i,:]
+    j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
+    dback = dback_set[j,0] # transit depth
+    td = dback_set[j,1] # transit duration
+    ## dback = np.ones(10)*85000
+    ## td = np.ones(10)*4.
+    eta_bt[i,:] = (SPRk[i,:]/data_nommask[i,8])*flx_trh *(dback/85000)*sqrt(td/4.) # significance of the BT in the nominal flux
+    eta_ext_bt[i,:] = dback*data_extmask[i,21:31]*np.sqrt(td*ntr)/(1-data_extmask[i,7])/data_extmask[i,4] # significance in the extended mask
+    nbad[i] = np.sum(eta_bt[i,:]>flx_trh) # number of false detection in the nominal mask
+    nbad_ext[i] = np.sum(eta_ext_bt[i,:]>flx_trh)  # number of false detection in the extended mask
+    delta_obs[i,:] = dback*SPRk[i,:] # observed transit depth
     delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
+    delta_obs_ext[i,:] = dback*data_extmask[i,21:31] # observed transit depth
     nbad_sp[i] =     np.sum( (eta_bt[i,:]>flx_trh) & (delta_int<4*84. ))
-    eta6c = eta_bt[i,:]*sqrt(6./24)
-    nbad6c[i] = np.sum(eta6c>flx_trh)
+    eta6c = eta_bt[i,:]*sqrt(6./24) #  significance for 6 cameras
+    nbad6c[i] = np.sum(eta6c>flx_trh) # number of BT detected with 6 cameras
 ##    dback[:] = 85000
     Lambda =  dback*1e-6/(1.-dback*1e-6*data_nommask[i,22:32])
 ##    td[:] = 4.
-    eta_cob_bt[i,:] = Lambda*data_nommask[i,32:42]*sqrt(td*ntr)/data_nommask[i,42:52]
+    eta_cob_bt[i,:] = Lambda*data_nommask[i,32:42]*sqrt(td*ntr)/data_nommask[i,42:52] # significance of centroid shift in the nominal mask
     nbad_cob[i] = np.sum(eta_cob_bt[i,:]>cob_thr)
     Lambda =  dback*1e-6/(1.-dback*1e-6*data_extmask[i,21:31])
-    eta_cob_ext_bt[i,:] = Lambda*data_extmask[i,31:41]*sqrt(td*ntr)/data_extmask[i,41:51]
+    eta_cob_ext_bt[i,:] = Lambda*data_extmask[i,31:41]*sqrt(td*ntr)/data_extmask[i,41:51] # significance of centroid shift in the extended mask
     nbad_ext_cob[i] = np.sum(eta_cob_ext_bt[i,:]>cob_thr)
-
+#STOP
 # shapes number
 figure(0)
 clf()
@@ -181,6 +186,7 @@ for i in range(nP):
 # plot(P,nunique_extmask,'b+')
 xlabel('P')
 ylabel(r'Cumul. number of Mask shapes')
+title(Dir)
 
 
 # Mask size
@@ -191,6 +197,7 @@ plot(P,data_2ndmask[:,6],'r+')
 plot(P,data_extmask[:,3],'b+')
 xlabel('P')
 ylabel(r'Mask size')
+title(Dir)
 
 # efficiency: flux
 figure(2)
@@ -205,6 +212,7 @@ for i in range(nP):
     scatter([Pi],[eff_s],color='r')
 xlabel('P')
 ylabel(r'Efficieny [%%]')
+title(Dir)
 
 
 # efficiency: COB
@@ -223,6 +231,7 @@ for i in range(nP):
 
 xlabel('P')
 ylabel(r'Efficieny [%%]')
+title(Dir)
 
 
 # n_bad
@@ -239,6 +248,7 @@ for i in range(nP):
 
 xlabel('P')
 ylabel(r'$n_{bad}$')
+title(Dir)
 
 # SPR_crit
 figure(5)
@@ -249,6 +259,7 @@ plot(P[fp],data_extmask[fp,15],'b+')
 xlabel('P')
 ylabel(r'SPR$_{crit}$')
 semilogy()
+title(Dir)
 
 # eta ratio
 figure(6)
@@ -262,6 +273,7 @@ for i in range(nP):
 # plot(P[fp],data_extmask[fp,10] / data_nommask[fp,13],'b+')
 xlabel('P')
 ylabel(r'$\eta/\eta_{T}$')
+title(Dir)
 
 # NSR ratio
 figure(7)
@@ -275,6 +287,7 @@ for i in range(nP):
 # plot(P[fp],data_extmask[fp,4] / data_nommask[fp,6],'b+')
 xlabel('P')
 ylabel(r'NSR$_{1h}$/NSR$_{1h,T}$')
+title(Dir)
 
 # NSR values
 figure(8)
@@ -285,6 +298,7 @@ plot(P[fp],data_extmask[fp,4],'b+')
 xlabel('P')
 ylabel(r'NSR$_{1h}$')
 semilogy()
+title(Dir)
 
 # eta: wrong formula
 figure(9)
@@ -296,6 +310,7 @@ xlabel('P')
 ylabel(r'$\eta$')
 semilogy()
 title(r'$\eta$: wrong formula')
+title(Dir)
 
 
 
@@ -310,6 +325,7 @@ xlabel('P')
 ylabel(r'$\eta$')
 title(r'$\eta$: correct formula')
 semilogy()
+title(Dir)
 
 # delta_obs
 figure(11)
@@ -320,6 +336,7 @@ plot(P[fp],data_extmask[fp,11],'b+')
 xlabel('P')
 ylabel(r'$\delta_{obs}$')
 semilogy()
+title(Dir)
 
 # delta_COB
 figure(12)
@@ -330,6 +347,7 @@ plot(P[fp],data_extmask[fp,12],'b+')
 xlabel('P')
 ylabel(r'$\delta_{COB}$')
 semilogy()
+title(Dir)
 
 # eta_COB
 figure(13)
@@ -340,6 +358,7 @@ plot(P[fp],data_extmask[fp,14],'b+')
 xlabel('P')
 ylabel(r'$\eta_{COB}$')
 semilogy()
+title(Dir)
 
 # data_nommask[:,7]: histogram of n_bad : nb of contaminant stars > SPR_crit (fixed delta_back value)
 figure(14)
@@ -349,12 +368,14 @@ hist((data_nommask[:,7],nbad,nbad6c),range=[0,10],color=('m','k','g'),density=Tr
 # histogram of n_bad : nb of contaminant stars eta>eta_min (for a real distribution in delta_back)
 
 xlabel(r'$n_{bad}$')
+title(Dir)
 
 
 # histogram of n_bad_ext : nb of contaminant stars eta>eta_min (for a real distribution in delta_back)
 figure(17)
 clf()
 hist(nbad_ext,range=[0,10],color='k',density=True)
+title(Dir)
 
 xlabel(r'$n_{bad}$')
 
@@ -366,6 +387,7 @@ hist((nbad_cob,nbad_ext_cob),range=[0,10],color=('k','b'),density=True,histtype=
 # histogram of n_bad : nb of contaminant stars eta>eta_min (for a real distribution in delta_back)
 
 xlabel(r'$n_{bad,COB}$')
+title(Dir)
 
 
 
@@ -375,15 +397,14 @@ clf()
 for i in range(nP):
     Pi = Pmin + i*binsize
     m = (P >= Pi -binsize/2.) & (P < Pi + binsize/2.)
-    scatter([Pi],[np.median(data_nommask[m,16]) *sqrt(24.)*12. ],color='b') # 25s cadence
-    scatter([Pi],[np.median(data_nommask[m,16]) *sqrt(24.)*12./sqrt(2.) ],color='k') # 50s cadence
-    scatter([Pi],[np.median(data_nommask[m,16]) *sqrt(24.)*12./sqrt(24.) ],color='r') # 50s cadence
+    scatter([Pi],[np.median(data_nommask[m,16])],color='k')
+
 
 xlabel('P')
 ylabel('COB error [pixel]')
+title(Dir)
 
 semilogy()
-show()
 
 
 # efficiency: flux (all contaminants)
@@ -393,9 +414,17 @@ for i in range(nP):
     Pi = Pmin + i*binsize
     m = (P >= Pi -binsize/2.) & (P < Pi + binsize/2.)
     s =(eta_bt>flx_trh)[m,:].sum()
-    eff_ext =  ( (eta_ext_bt>flx_trh) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
+    eff_ext =  ( (eta_ext_bt>flx_trh) & (delta_obs_ext>delta_obs) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
+    scatter([Pi],[eff_ext],color='g',marker='s')
+
+    s = fp[m].sum()
+    eff_s = sfd[m].sum()/s * 100.
+    eff_ext = efd[m].sum()/s * 100.
     scatter([Pi],[eff_ext],color='b')
+    scatter([Pi],[eff_s],color='r')
+
 ylabel(r'Efficieny [%%]')
+title(Dir)
 
 
 
@@ -408,10 +437,12 @@ for i in range(nP):
     s =(eta_bt>flx_trh)[m,:].sum()
     eff_s = ( (eta_cob_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
     eff_ext =  ( (eta_cob_ext_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
-    scatter([Pi],[eff_s],color='k')
-    scatter([Pi],[eff_ext],color='b')
-ylabel(r'Efficieny [%%]')
+    scatter([Pi],[eff_s],color='k',marker='s')
+    scatter([Pi],[eff_ext],color='b',marker='s')
 
+
+ylabel(r'Efficieny [%%]')
+title(Dir)
 show()
 
 
