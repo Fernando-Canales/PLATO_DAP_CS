@@ -5,10 +5,9 @@ from fitting_psf import from_mm_2_pix
 from imagette import list_psf, barycenter, gauss
 import math
 import scipy.signal
-#import os
-#docs_dir = os.path.expanduser('/home/fercho/Double_Aperture_Tests')
-#PSFDIR = '/home/fercho/Double_Aperture_Tests/PSFs'
-PSFDIR = './'
+
+PSFDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/psfs_fits/'
+#PSFDIR = './'
 #PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
 
 # Let's define the PSF parameters
@@ -43,7 +42,7 @@ npsf = len(xpsf)
 psfbs = np.zeros((npsf, lx, ly))
 pxc = np.zeros(npsf)
 pyc = np.zeros(npsf)
-print('Processing the PSF')
+print('Processing the PSF...')
 for k in range(npsf):
     psf_id = str(k + 1)
 

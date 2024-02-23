@@ -28,18 +28,15 @@ def psf_gauss_int(xc, yc, width_x, width_y, sizex, sizey):
     masky = np.repeat(masky, sizex, axis=1)
     return masky * maskx
 
-
 # Let's load the data that we need from the catalogue
 def catalogue(path):
     data_gaia = np.load(path)
     return data_gaia
 
-
-# Let's load the data that we need from the list of the PSFs
+# Let's load the data we need from the list of the PSFs
 def list_psf(path):
     Xpsf, Ypsf = np.loadtxt(path, unpack=True, usecols=[4, 5])
     return Xpsf, Ypsf
-
 
 # Defining the barycenter
 def barycenter(array, mask=None, x=None, y=None, subres=1):
@@ -61,7 +58,6 @@ def barycenter(array, mask=None, x=None, y=None, subres=1):
         by = np.sum(array * y) / tmp
     return bx, by
 
-
 # Defining the function that produces a Gaussian kernel
 def gauss(xc, yc, width, size, subres=1):
     # 2D Gaussian function centered on (xc,yc)
@@ -73,7 +69,6 @@ def gauss(xc, yc, width, size, subres=1):
 
     return np.exp(-D2 / (2 * width * width))
 
-
 # Let's define the imagette window
 def window(xt, yt, sx, sy):
     i0 = np.round(xt - sx / 2)
@@ -81,7 +76,6 @@ def window(xt, yt, sx, sy):
     x = xt - i0
     y = yt - j0
     return x, y, i0, j0
-
 
 # Let's create a function that draws a randomly  targets from my interval
 def ran_unique_int(n, interval):
@@ -101,7 +95,6 @@ def ran_unique_int(n, interval):
             r[p:] = np.random.randint(interval[0], interval[1], size=n - p)
     return r
 
-
 # Let's define a function that computes the COB as well as its significance and its associated error
 def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr):
     """"
@@ -117,21 +110,21 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     # Now we make a grid out of them
     x, y = np.meshgrid(x, y)
     # Now we define the total flux
-    f_tot = np.sum(I_tot * w)
+    f_tot = np.sum(w * I_tot)
     # Now we define the COB on the X-direction
-    c_x = np.sum(I_tot * x * w) / f_tot
+    c_x = np.sum(x * w * I_tot) / f_tot
     # Now we define the COB on the Y-direction
-    c_y = np.sum(I_tot * y * w) / f_tot
+    c_y = np.sum(y * w * I_tot) / f_tot
     # Now we define the Gamma factor along the X-direction
-    gamma_x = (np.sum(Ik * x * w) / f_tot) - c_x * sprk
+    gamma_x = np.sum(x * w * Ik) / f_tot - c_x * sprk
     # Now we define the Gamma factor along the Y-direction
-    gamma_y = (np.sum(Ik * y * w) / f_tot) - c_y * sprk
+    gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
 
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
 
     # Now we make sure to deal with the correct units for the C.O.B shift (no ppm)
-    Dback = dback * 10 ** -6
+    Dback = dback*1e-6
 
     # Now we define the lambda factor
     l = Dback / (1 - Dback * sprk)
@@ -145,22 +138,22 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     abs_cs = l * gamma
 
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-    var_delta = np.mean(I_tot) + sb + sd ** 2 * sq ** 2
-
+    var_delta = I_tot + sb + sd ** 2 + sq ** 2
+    # We compute the product of var_delta times the mask here as well for convenience
+    var_delta_w = var_delta * w
     # Now we compute the centroid shift error along the X-direction
-    sigma_x = (np.sum((x ** 2) * w * var_delta) / f_tot ** 2) + ((c_x ** 2) * (np.sum(w * var_delta) / f_tot ** 2))
+    var_x = (np.sum(x ** 2 * var_delta_w)) / f_tot ** 2 + (c_x / f_tot) ** 2 * np.sum(var_delta_w)
     # Now we compute the centroid shift error along the Y-direction
-    sigma_y = (np.sum((y ** 2) * w * var_delta) / f_tot ** 2) + ((c_y ** 2) * (np.sum(w * var_delta) / f_tot ** 2))
+    var_y = (np.sum(y ** 2 * var_delta_w)) / f_tot ** 2 + (c_y / f_tot) ** 2 * np.sum(var_delta_w)
 
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
-    sigma_cs = (np.sqrt(2) / gamma) * np.sqrt((gamma_x ** 2) * (sigma_x ** 2) + (gamma_y ** 2) * (sigma_y ** 2))
+    sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
     # Now we average the error over 1 hour and 24 cameras
     sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = l * gamma * np.sqrt(td * ntr) / sigma_1_24
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_24
     return eta_cob, sigma_1_24, abs_cs
-
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):
@@ -173,7 +166,6 @@ def ploting_initial(rows, cols, psf, imagette, i, j):
     axs[1].set_xticklabels([0, 1, 2, 3, 4, 5])
     fig.tight_layout()
     plt.show()
-
 
 # This function plots the imagettes for both target and contaminant
 def ploting_imagettes(rows, cols, ft, fc):
@@ -189,13 +181,11 @@ def ploting_imagettes(rows, cols, ft, fc):
     fig.tight_layout()
     plt.show()
 
-
 # This function plots the unsorted nsr imagette
 def ploting_nsr(n, i):
     plt.imshow(n, origin='lower', cmap='viridis')
     plt.title(i)
     plt.show()
-
 
 # This function plots the sorted nsr imagette
 def ploting_nsr_s(n, i):
