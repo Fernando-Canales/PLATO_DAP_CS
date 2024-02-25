@@ -1,0 +1,8 @@
+/*.txt
+/PSF.npz
+/psf_fits
+/test_results
+/test_results_multiprocessing
+/catalogue_stars
+/__pycache__/
+/catalogues_stars
