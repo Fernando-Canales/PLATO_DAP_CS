@@ -293,10 +293,10 @@ for i in range(n):
     eta_ext_bt_6_cameras[i, :] = dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
-    delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
+    delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth in the extended mask
      ##dback[:] = 85000
      ##td[:] = 4.
-    delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
+    delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth in the extended mask with 6 cameras
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
     nbad_sp[i] = np.sum( (eta_bt[i,:]>7.1) & (delta_int<4*84. ))
 
@@ -1017,7 +1017,6 @@ plt.grid(True)
 
 
 plt.figure(32)
-
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
 eta_nom_24_cameras = eta_bt[mag_mask]
 eta_nom_6_cameras = eta_bt_6_cameras[mag_mask]
@@ -1158,6 +1157,75 @@ plt.xlabel(r'$\eta_{ext}$')
 plt.ylabel('Counts')
 #plt.ylim(0, 200)
 plt.legend()
+
+
+
+plt.figure(38)
+mag_mask = (mag >= 12.25) & (mag <= 12.75)
+eta_ext = eta_ext_bt[mag_mask]
+eta_ext_cob = eta_cob_ext_10first_24_cameras[mag_mask]
+eta_ext_flat = eta_ext.flatten()
+eta_ext_cob_flat = eta_ext_cob.flatten()
+eta_ext_ratio = eta_ext_flat / eta_ext_cob_flat
+
+eta_ratio_above = len(np.where(eta_ext_ratio > 1)[0])
+eta_ratio_below = len(np.where(eta_ext_ratio < 1)[0])
+
+plt.hist(eta_ext_flat/eta_ext_cob_flat, bins=51, range=(0, 10), alpha=0.5)
+plt.vlines(1, ymin=0, ymax=2500, linestyles='dashdot', colors='orange')
+plt.text(0.1, 2000, eta_ratio_below, color='blue', weight='bold')
+plt.text(6, 2000, eta_ratio_above, color='blue', weight='bold')
+plt.xlabel(r'$ \eta_{k}^{ext} / \eta^{COB, ext}_{k}$')
+plt.ylabel('Counts')
+
+plt.figure(39)
+mag_mask_10 = (mag >= 9.75) & (mag <= 10.25)
+mag_mask_13 = (mag >= 12.75) & (mag <= 13.25)
+eta_ext_mag_10 = eta_ext_bt[mag_mask_10]
+eta_ext_mag_13 = eta_ext_bt[mag_mask_13]
+delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
+
+eta_ext_mag_10_flat = eta_ext_mag_10.flatten()
+delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
+eta_ext_mag_13_flat = eta_ext_mag_13.flatten()
+
+number_below_mag_10 = len(np.where(eta_ext_mag_10_flat < 7.1)[0])
+number_above_mag_10 = len(np.where(eta_ext_mag_10_flat > 7.1)[0])
+
+number_below_mag_13 = len(np.where(eta_ext_mag_13_flat < 7.1)[0])
+number_above_mag_13 = len(np.where(eta_ext_mag_13_flat > 7.1)[0])
+
+plt.hist(eta_ext_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{ext}$ (P = 10)')
+plt.hist(eta_ext_mag_13_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{ext}$ (P = 13)')
+plt.vlines(7.1, ymin=0, ymax=12000, linestyles='dashdot', colors='red', label=r'$\eta_{min} = 7.1$')
+plt.text(4, 8700, number_below_mag_10, color='blue', weight='bold')
+plt.text(9, 8700, number_above_mag_10, color='blue', weight='bold')
+plt.text(4, 5600, number_below_mag_13, color='orange', weight='bold')
+plt.text(9, 5600, number_above_mag_13, color='orange', weight='bold')
+plt.xlabel(r'$\eta_{ext}$')
+plt.ylabel('Counts')
+plt.legend()
+#plt.hist(delta_ext_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\delta_{ext}$')
+
+
+plt.figure(40)
+mag_mask_10 = (mag >= 9.75) & (mag <= 10.25)
+mag_mask_13 = (mag >= 12.75) & (mag <= 13.25)
+
+delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
+delta_ext_mag_13 = delta_obs_ext_6_cameras[mag_mask_13]
+
+
+delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
+delta_ext_mag_13_flat = delta_ext_mag_13.flatten()
+
+plt.hist(eta_ext_mag_13_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\delta_{ext}$ (P = 10)')
+plt.hist(delta_ext_mag_13_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\delta_{ext}$ (P = 13)')
+plt.xlabel(r'$\delta_{ext}$')
+plt.legend()
+
+
+
 
 
 l1 = (delta_obs_ext >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= 2*flux_trsh) & (eta_bt[mag_mask] >= 2 *flux_trsh)
