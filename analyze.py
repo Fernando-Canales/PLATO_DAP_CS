@@ -7,7 +7,7 @@ Dir = 'PSF_Focus_0mu_0.2pxdif/'
 Pmin = 8. # 10.5
 Pmax = 13
 binsize = 0.5
-cob_thr= 7.1 # 3.
+cob_thr= 3.
 ntr = 3  # number of transits
 flx_trh = 7.1
 
