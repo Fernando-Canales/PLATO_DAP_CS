@@ -96,7 +96,7 @@ def ran_unique_int(n, interval):
     return r
 
 # Let's define a function that computes the COB as well as its significance and its associated error
-def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr):
+def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr):
     """"
     Computes the COB and COB shift for the full image (Target + Contaminants) as well as the COB shift error
     and COB shift significance.d
@@ -149,11 +149,11 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
     sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
-    # Now we average the error over 1 hour and 24 cameras
-    sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
+    # Now we average the error over 1 hour and (24 or 6 cameras)
+    sigma_1_n_cam = sigma_cs / (12 * np.sqrt(n_cam))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_24
-    return eta_cob, sigma_1_24, abs_cs
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_n_cam
+    return eta_cob, sigma_1_n_cam, abs_cs
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

@@ -23,7 +23,8 @@ import traceback
 verbose = True
 # CatalogueDIR = '/home/reza/plato/share/catalogues/'
 # CatalogueDIR = '/volumes/astro/sismo/general/plato/web/grids/catalogues/'
-CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
+# CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
+CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
 DIRout = 'test_results_multiprocessing/'
 PSFFileName = 'PSF.npz'
 #CatalogueFileName = 'SFP_DR3_20220831.npy'
@@ -38,10 +39,10 @@ bsres = 20  # resolution adopted for the b-spline decomposition
 mp = True  # multiprocessing mode
 nproc_max = 4  # number of processors
 
-Pmin = 8
+Pmin = 10
 Pmax = 13
 binsize = 0.5
-nStar = 300
+nStar = 1
 Delta_P_max = 15.
 distance_max = 7
 n_c_max = 300
@@ -81,6 +82,8 @@ y_star = data[:, 4]
 
 nP = int(round((Pmax - Pmin) / binsize + 1))
 
+
+file_out = open(DIRout + 'metrics_reza.txt', 'w')
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
 save_info = np.zeros((nStar * nP, 72))
 
@@ -167,6 +170,7 @@ for i in range(nP):
     ID_target = ID[mask]
 
     j = ran_unique_int(n=nStar, interval=[0, targets_P5.shape[0] - 1])
+    print(j)
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
     # Now we obtain the x and y coordinates of the targets on the focal plane
@@ -176,8 +180,8 @@ for i in range(nP):
     # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting afterwards
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
 
-    n_t = len(j)  # number of targets in the current range of magnitude
-
+    #n_t = len(j)  # number of targets in the current range of magnitude
+    n_t = 1
 
     def process_target(k):  # main processing routine (work on a given target)
 
@@ -466,6 +470,7 @@ for i in range(nP):
             print('eta_c is:', eta_c)
             print('spr_t', sprk[ind_sprk])
             print('spr_tot_c', spr_tot_c)
+            print('Sprk_10_first', SPRk_ext_10first)
 
         SPRtot_c_10first = np.zeros(10)
         Gamma_c_10first = np.zeros(10)
@@ -519,6 +524,8 @@ for i in range(nP):
         save_info_ext = np.append(save_info_ext, eta_ext_10first)
 
         save_info_bray = np.array([ID_t, P_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray])
+        
+        file_out.write('%.2f %.2f %i %.2f\n'% (ID_t, P_t, n_bad, sprk[ind_sprk]))
 
         return save_info, save_info_2ndmask, save_info_ext, save_info_bray
 
@@ -546,6 +553,7 @@ for i in range(nP):
                 save_info_ext[counter] = results[k][2]
                 save_info_bray[counter] = results[k][3]
                 counter += 1
+        #file_out.close()
     else:  # sequential mode
         for k in range(n_t):
             result = process_target_wrapper(k)
@@ -566,7 +574,7 @@ for i in range(nP):
     # np.save(DIRout+'targets_P5_extended.npy', save_info_ext)
     print("%i targets processed so far" % counter)
     sys.stdout.flush()
-
+file_out.close()
 # ftrack.close()
 save_info = save_info[0:counter]
 save_info_ext = save_info_ext[0:counter]

@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+/*.txt
+/PSF.npz
+/psf_fits
+/test_results
+/test_results_multiprocessing
+/catalogue_stars
+/__pycache__/
+/catalogues_stars
+=======
 /KeplerEclipsinBinaryCatalog_DR3_2019.csv
 /KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt
 /SFP_DR3_20230101.txt
@@ -459,3 +469,4 @@
 targets_P5_extended.npy
 targets_P5_bray.npy
 targets_P5_contaminant.npy
+>>>>>>> 01deec032acc351347319b580109a200fb266d5e

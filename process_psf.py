@@ -6,7 +6,7 @@ from imagette import list_psf, barycenter, gauss
 import math
 import scipy.signal
 
-PSFDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/psfs_fits/'
+PSFDIR = '/home/fercho/double-aperture-photometry/psf_fits/'
 #PSFDIR = './'
 #PSFDIR = '/home/reza/plato/share/psf/Sep17_real_MC_T1413/'
 
@@ -32,7 +32,7 @@ GaussKernel /= GaussKernel.sum()
 # Second, we load the PSF coordinates from the list file
 xpsf, ypsf = list_psf(PSFDIR+'list')
 
-# Third, we convert the PSF coordinates on the Focal Planet from mm to pixel
+# Third, we convert the PSF coordinates on the Focal Plane from mm to pixel
 xpsf_pix, ypsf_pix = from_mm_2_pix(xpsf, ypsf)
 
 # We compute the following parameters
