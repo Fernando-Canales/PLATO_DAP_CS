@@ -96,10 +96,10 @@ def ran_unique_int(n, interval):
     return r
 
 # Let's define a function that computes the COB as well as its significance and its associated error
-def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr):
+def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr):
     """"
     Computes the COB and COB shift for the full image (Target + Contaminants) as well as the COB shift error
-    and COB shift significance.d
+    and COB shift significance
     """
     # First we define our intensity variable as I_tot
     I_tot = I_t + I_contaminants
@@ -119,24 +119,18 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     gamma_x = np.sum(x * w * Ik) / f_tot - c_x * sprk
     # Now we define the Gamma factor along the Y-direction
     gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
-
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
-
     # Now we make sure to deal with the correct units for the C.O.B shift (no ppm)
     Dback = dback*1e-6
-
     # Now we define the lambda factor
-    l = Dback / (1 - Dback * sprk)
-
+    Lambda = Dback / (1 - Dback * sprk)
     # Now we define the centroid shift along the X-direction
     #cs_x = l * gamma_x
     # Now we define the centroid shift along the Y-direction
     #cs_y = l * gamma_y
-
     # Then we define the absolute centroid shift
-    abs_cs = l * gamma
-
+    abs_cs = Lambda * gamma
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
     var_delta = I_tot + sb + sd ** 2 + sq ** 2
     # We compute the product of var_delta times the mask here as well for convenience
@@ -145,15 +139,14 @@ def centroid_shift(w, Ik, I_t, I_contaminants, sprk, dback, sb, sd, sq, td, ntr)
     var_x = (np.sum(x ** 2 * var_delta_w)) / f_tot ** 2 + (c_x / f_tot) ** 2 * np.sum(var_delta_w)
     # Now we compute the centroid shift error along the Y-direction
     var_y = (np.sum(y ** 2 * var_delta_w)) / f_tot ** 2 + (c_y / f_tot) ** 2 * np.sum(var_delta_w)
-
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
     sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
-    # Now we average the error over 1 hour and 24 cameras
-    sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
+    # Now we average the error over 1 hour and (24 or 6 cameras)
+    sigma_1h_n_cam = sigma_cs / (12 * np.sqrt(n_cam))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_24
-    return eta_cob, sigma_1_24, abs_cs
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1h_n_cam
+    return eta_cob, sigma_1h_n_cam, abs_cs
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

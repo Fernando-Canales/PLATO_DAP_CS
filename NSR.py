@@ -23,6 +23,52 @@ def nsr_AGG(x, y, sb, sd, sq):
     return n
 
 
+def aperture_computation(ft, fc, sb, sd, sq):
+    """ We are following the procedure described
+    in subsection 4.6.3. of Marchiori paper
+    (Binary mask)
+
+    Args:
+        ft (_float_): target flux
+        fc (_float_): contaminant flux
+        sb (_float_): background noise
+        sd (_float_): detector noise
+        sq (_float_): quantization noise
+    """
+    # First we compute the NSR of the system. Eq. (36) of Marchiori's paper
+    nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
+    
+    # Then we flatten the nsr and also the fluxes
+    nsr_1d = nsr.flatten()
+    ft_1d = ft.flatten()
+    fc_1d = fc.flatten()
+    
+    # Then we sort the 1-D nsr in increasing order and obtain the index of the elements of the array before sorting them
+    nsr_1d_index = np.argsort(nsr_1d)
+    
+    # Then we obtain the target and contaminant flux for such indexes
+    ft_1d = ft_1d[nsr_1d_index]
+    fc_1d = fc_1d[nsr_1d_index]
+    
+    # Then we compute the aggregat noise-to-signal ratio. Eq. (37) in Marchiori's paper
+    nsr_agg = np.zeros(len(ft_1d))
+    for i in range(1, len(ft_1d) + 1):
+        nsr_agg[i - 1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
+    
+    # We create now a vector full with zeros
+    aperture = np.zeros(36)
+    
+    # Then we create a boolean mask
+    boolean_mask_for_the_aperture = nsr_1d_index[:np.argmin(nsr_agg) + 1]
+    
+    # Then we obtain the nominal mask
+    aperture[boolean_mask_for_the_aperture] = 1
+    
+    # Then we reshape the aperture
+    aperture = aperture.reshape((6,6))
+    
+    return aperture
+
 def aperture(ft, fc, sb, sd, sq):
     # First we compute the NSR of the system
     nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
@@ -45,21 +91,27 @@ def aperture(ft, fc, sb, sd, sq):
         n[i - 1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
 
     # We compute the aggregate noise-to-signal ratio over 1h and 24 cameras
-    nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
-
+    nsr1h_24 = ((10 ** 6) / (12 * np.sqrt(24))) * n
+    # We compute the aggregate noise-to-signal ratio over 1h and 6 cameras
+    nsr1h_6 = ((10 ** 6) / (12 * np.sqrt(6))) * n
+    
     # First we create a vector with only zeroes
-    w = np.zeros(36)
+    w_24_cameras = np.zeros(36)
+    #w_6_cameras = np.zeros(36)
 
     # Then we create a vector with just the amount of indexes of the mask
-    mask = nsr_1d_index[:np.argmin(nsr1h) + 1]
+    mask_24_cameras = nsr_1d_index[:np.argmin(nsr1h_24) + 1]
+    #mask_6_cameras = nsr_1d_index[: np.argmin(nsr1h_6) + 1]
 
     # Then we create our mask, we show the index where the mask vector has a value of 1
-    w[mask] = 1
+    w_24_cameras[mask_24_cameras] = 1
+    #w_6_cameras[mask_6_cameras] = 1
 
     # Then we reshape the mask
-    w = w.reshape((6, 6))
+    w_24_cameras = w_24_cameras.reshape((6, 6))
+    #w_6_cameras = w_6_cameras.reshape((6,6))
 
-    return min(nsr1h), w
+    return min(nsr1h_24), w_24_cameras
 
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of
@@ -96,10 +148,7 @@ def SPR(n_c, f_contaminant, f_tot, w):
     # Then we compute the total contribution of all the contaminants for a given target (SPR_tot)
     SPR_tot = np.sum(sprk)
 
-    # Then we get the highest value of sprk
-    sprk_max = max(sprk)
-
-    return sprk, sprk_max, SPR_tot
+    return sprk, SPR_tot
 
 
 # We define now a function for creating a mask_key as performed by Emmanuel

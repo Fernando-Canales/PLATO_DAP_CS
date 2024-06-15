@@ -42,7 +42,7 @@ nproc_max = 4  # number of processors
 Pmin = 10
 Pmax = 13
 binsize = 0.5
-nStar = 1
+nStar = 10
 Delta_P_max = 15.
 distance_max = 7
 n_c_max = 300
@@ -103,7 +103,6 @@ n_star_p_bin = np.zeros((nP))
 
 def cob_shift(Itot, Ic, w, dback):
     # compute the COB shift and the associated uncertainty
-
     db = dback * 1e-6
     x = (np.arange(0, Ic.shape[1]) + 0.5)
     y = (np.arange(0, Ic.shape[0]) + 0.5)
@@ -131,7 +130,6 @@ def cob_shift(Itot, Ic, w, dback):
     # uncertainty calculation
     delta_Cx_var = (np.sum(x ** 2 * VarItotw)) / Ftot ** 2 + (Cx / Ftot) ** 2 * np.sum(VarItotw)
     delta_Cy_var = (np.sum(y ** 2 * VarItotw)) / Ftot ** 2 + (Cy / Ftot) ** 2 * np.sum(VarItotw)
-
     # Lambdax = np.sum(x**2*Icw)/Ftot**2 + (Cx**2/Ftot)*SPRk - 2*SPRk*(Cx/Ftot)**2*np.sum(VarItotw)
     # # Lambday = np.sum(y**2*Icw)/Ftot**2 + (Cy**2/Ftot)*SPRk - 2*SPRk*(Cy/Ftot)**2*np.sum(VarItotw)
     # # Lambda = Lambdax + Lambday
@@ -140,17 +138,12 @@ def cob_shift(Itot, Ic, w, dback):
     # Itot_in = Itot - db*Ic
     # delta_Cx_var_in2,delta_Cy_var_in2 =  barycenter_var(Itot_in,sb,sd,sq,mask=w)
     # print( (delta_Cx_var_in-delta_Cx_var_in2)/(delta_Cx_var_in+delta_Cx_var_in2)*0.5)
-    # print( (delta_Cx_var-delta_Cx_var_in2)/(delta_Cx_var+delta_Cx_var_in2)*0.5,SPRk)
-    #
-
+    # print( (delta_Cx_var-delta_Cx_var_in2)/(delta_Cx_var+delta_Cx_var_in2)*0.5,SPRk)    #
     # we assume that the transit does not significantly change the uncertainty
     # delta_Cx_var_in = delta_Cx_var
     # delta_Cy_var_in = delta_Cy_var
-
     delta_C_sig = np.sqrt(2 * (Gammax ** 2 * delta_Cx_var + Gammay ** 2 * delta_Cy_var)) / Gamma
-
     delta_C_sig_1h_24c = delta_C_sig / (12 * np.sqrt(24))  # random error re-scaled to 1h and 24 cameras
-
     ## print('delta_COB = ',delta_C)
     ## print('delta_COB_sig =',delta_C_sig_1h_24c)
     return delta_C, delta_C_sig_1h_24c, Gamma
@@ -180,8 +173,8 @@ for i in range(nP):
     # We convert the coordinates of the randomly chosen targets to mm for obtaining the vignetting afterwards
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
 
-    #n_t = len(j)  # number of targets in the current range of magnitude
-    n_t = 1
+    n_t = len(j)  # number of targets in the current range of magnitude
+    #n_t = 1
 
     def process_target(k):  # main processing routine (work on a given target)
 
@@ -274,7 +267,6 @@ for i in range(nP):
 
         # Let's compute the aperture of the target
         NSR1h, w_t = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
-
         # Now we store the nominal mask into a mask_key
         w_t_key = mask_to_bitmask(w_t)
         w_t_size = w_t.sum()  # mask size
@@ -464,13 +456,19 @@ for i in range(nP):
             print('Distance between the target and contaminant', d_c)
 
             # if eta_t > eta_c:
+            print('Nbad for this target =', n_bad)
             print('NSR_T is:', NSR1h)
             print('NSR_c is:', NSR1h_c)
             print('eta_t is:', eta_t)
             print('eta_c is:', eta_c)
-            print('spr_t', sprk[ind_sprk])
-            print('spr_tot_c', spr_tot_c)
-            print('Sprk_10_first', SPRk_ext_10first)
+            print('spr_t is:', sprk[ind_sprk])
+            print('spr_tot_c is:', spr_tot_c)
+            print('abs_cob', delta_COB)
+            print('abs_cob_ext:', delta_COB_ext)
+            print('Sprk_10_first_ext are:', SPRk_ext_10first)
+            print('eta_10_first_ext are:', eta_ext_10first)
+            print('eta_10_first are:', eta_10first)
+            print('++++++++++++++++++++++++++++++++++++++++++++++++')
 
         SPRtot_c_10first = np.zeros(10)
         Gamma_c_10first = np.zeros(10)
