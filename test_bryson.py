@@ -8,7 +8,7 @@
 #
 # Aaron Birch, June 15, 2024
 
-import numpy as np
+import numpy as np # type: ignore
 
 def make_2d_grid():
     M = 6
@@ -76,7 +76,6 @@ var_c_x_aaron = compute_aaron_variance_in_c_x(average_I)
 print('Monte-Carlo std c_x = %.4f' % MC_std_c_x)
 print('Bryson std c_v = %.4f' % np.sqrt(var_c_x_bryson))
 print('Aaron std c_v = %.4f ' % np.sqrt(var_c_x_aaron))
-
 
 
 

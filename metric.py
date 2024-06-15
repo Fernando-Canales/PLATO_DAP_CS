@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
-import spline2dbase
-import scipy.signal
-import h5py as h5py
-import numpy as np
+import matplotlib.pyplot as plt # type: ignore
+import spline2dbase # type: ignore
+import scipy.signal # type: ignore
+import h5py as h5py # type: ignore
+import numpy as np # type: ignore
 import sys
 from fitting_psf import from_mm_2_pix, from_pix_2_mm, closest_psf, contaminants, reference_flux_target, \
     reference_flux_contaminant
@@ -10,8 +10,8 @@ from imagette import catalogue, list_psf, barycenter, gauss, window, ran_unique_
     ploting_nsr_s, \
     ploting_initial, psf_gauss_int
 from NSR import spr_crit, aperture, NSRn, nsr_AGG, SPR, mask_to_bitmask, bitmask_to_mask, extended_binary_mask
-from pylab import *
-from tqdm import tqdm  # only used for convenience, to monitor progress in our  a calculation
+from pylab import * # type: ignore
+from tqdm import tqdm  # type: ignore # only used for convenience, to monitor progress in our  a calculation
 import multiprocessing
 import math
 import time
@@ -218,7 +218,7 @@ for i in range(nP):
         if n_c > n_c_max:
             # too many contaminant stars, we keep only those for which Delta_P is smaller than
             # Delta_P_sorted[n_c_max], i.e.  Delta_P of the n_c_max-th contaminant star
-            Delta_P_sorted = sort(Delta_P[m])
+            Delta_P_sorted = sort(Delta_P[m]) # type: ignore
             m = m & (Delta_P < Delta_P_sorted[n_c_max])
         ID_contaminants = ID[m]  # IDs of the contaminant stars
         # We get the the index of all the contaminants now with the following line

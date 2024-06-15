@@ -1,10 +1,10 @@
 # This module will generate the imagette of a target and a contaminant for a given PSF
-import numpy as np
-import matplotlib.pyplot as plt
-from astropy.io import fits as pyfits
-import spline2dbase
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from astropy.io import fits as pyfits # type: ignore
+#import spline2dbase
 import math
-import scipy.special
+import scipy.special # type: ignore
 
 
 def psf_gauss_int(xc, yc, width_x, width_y, sizex, sizey):

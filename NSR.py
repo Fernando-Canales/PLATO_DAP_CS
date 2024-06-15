@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np # type: ignore
 import sys
 
 
@@ -21,6 +21,53 @@ def nsr_AGG(x, y, sb, sd, sq):
     for i in range(1, len(x) + 1):
         n.append(np.sqrt(np.sum(x[:i] + y[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(x[:i]))
     return n
+
+
+def aperture_computation(ft, fc, sb, sd, sq):
+    """ We are following the procedure described
+    in subsection 4.6.3. of Marchiori paper
+    (Binary mask)
+
+    Args:
+        ft (_float_): target flux
+        fc (_float_): contaminant flux
+        sb (_float_): background noise
+        sd (_float_): detector noise
+        sq (_float_): quantization noise
+    """
+    # First we compute the NSR of the system. Eq. (36) of Marchiori's paper
+    nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
+    
+    # Then we flatten the nsr and also the fluxes
+    nsr_1d = nsr.flatten()
+    ft_1d = ft.flatten()
+    fc_1d = fc.flatten()
+    
+    # Then we sort the 1-D nsr in increasing order and obtain the index of the elements of the array before sorting them
+    nsr_1d_index = np.argsort(nsr_1d)
+    
+    # Then we obtain the target and contaminant flux for such indexes
+    ft_1d = ft_1d[nsr_1d_index]
+    fc_1d = fc_1d[nsr_1d_index]
+    
+    # Then we compute the aggregat noise-to-signal ratio. Eq. (37) in Marchiori's paper
+    nsr_agg = np.zeros(len(ft_1d))
+    for i in range(1, len(ft_1d) + 1):
+        nsr_agg[i - 1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
+    
+    # We create now a vector full with zeros
+    aperture = np.zeros(36)
+    
+    # Then we create a boolean mask
+    boolean_mask_for_the_aperture = nsr_1d_index[:np.argmin(nsr_agg) + 1]
+    
+    # Then we obtain the nominal mask
+    aperture[boolean_mask_for_the_aperture] = 1
+    
+    # Then we reshape the aperture
+    aperture = aperture.reshape((6,6))
+    
+    return aperture
 
 
 def aperture(ft, fc, sb, sd, sq):
