@@ -142,11 +142,11 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
     sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
-    # Now we average the error over 1 hour and (24 or 6 cameras)
-    sigma_1h_n_cam = sigma_cs / (12 * np.sqrt(n_cam))
+    # Now we average the error over 1 hour and 24 cameras
+    sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1h_n_cam
-    return eta_cob, sigma_1h_n_cam, abs_cs
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_24
+    return eta_cob, sigma_1_24, abs_cs
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

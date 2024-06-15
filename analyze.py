@@ -9,7 +9,7 @@ CatalogueDIR='/home/fercho/double-aperture-photometry/catalogues_stars/'
 Pmin = 8. # 10.5
 Pmax = 13
 binsize = 0.5
-cob_thr= 3
+cob_thr= 7.1 # 3.
 ntr = 3  # number of transits
 flx_trh = 7.1
 
