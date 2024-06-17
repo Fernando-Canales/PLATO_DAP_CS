@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np # type: ignore
 import sys
 
 
@@ -21,7 +21,6 @@ def nsr_AGG(x, y, sb, sd, sq):
     for i in range(1, len(x) + 1):
         n.append(np.sqrt(np.sum(x[:i] + y[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(x[:i]))
     return n
-
 
 
 def aperture_computation(ft, fc, sb, sd, sq):
@@ -70,6 +69,7 @@ def aperture_computation(ft, fc, sb, sd, sq):
     
     return aperture
 
+
 def aperture(ft, fc, sb, sd, sq):
     # First we compute the NSR of the system
     nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
@@ -92,28 +92,21 @@ def aperture(ft, fc, sb, sd, sq):
         n[i - 1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
 
     # We compute the aggregate noise-to-signal ratio over 1h and 24 cameras
-    nsr1h_24 = ((10 ** 6) / (12 * np.sqrt(24))) * n
-    # We compute the aggregate noise-to-signal ratio over 1h and 6 cameras
-    nsr1h_6 = ((10 ** 6) / (12 * np.sqrt(6))) * n
-    
+    nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
 
     # First we create a vector with only zeroes
-    w_24_cameras = np.zeros(36)
-    w_6_cameras = np.zeros(36)
+    w = np.zeros(36)
 
     # Then we create a vector with just the amount of indexes of the mask
-    mask_24_cameras = nsr_1d_index[:np.argmin(nsr1h_24) + 1]
-    mask_6_cameras = nsr_1d_index[: np.argmin(nsr1h_6) + 1]
+    mask = nsr_1d_index[:np.argmin(nsr1h) + 1]
 
     # Then we create our mask, we show the index where the mask vector has a value of 1
-    w_24_cameras[mask_24_cameras] = 1
-    w_6_cameras[mask_6_cameras] = 1
+    w[mask] = 1
 
     # Then we reshape the mask
-    w_24_cameras = w_24_cameras.reshape((6, 6))
-    w_6_cameras = w_6_cameras.reshape((6,6))
+    w = w.reshape((6, 6))
 
-    return min(nsr1h_24), min(nsr1h_6), w_24_cameras, w_6_cameras
+    return min(nsr1h), w
 
 
 # We define now a function that computes the value of the spr_k for every contaminant as well as the maximum value of

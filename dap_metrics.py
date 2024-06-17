@@ -1,11 +1,11 @@
 # ------------------------------------------------
 # First we import the main libraries and modules
-import numpy as np
-import spline2dbase
+import numpy as np # type: ignore
+import spline2dbase # type: ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 from imagette import barycenter, window, ran_unique_int, centroid_shift
-from NSR import aperture_computation, spr_crit, aperture, SPR, mask_to_bitmask, extended_binary_mask
-from pylab import *
+from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
+from pylab import * # type: ignore
 import sys
 import os
 # ------------------------------------------------
@@ -40,7 +40,7 @@ sq = 7.2       # Quantization noise in units of e-rms/px
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 3000                     # number of targets per magnitude interval
+n_tar = 10                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -165,14 +165,10 @@ for i in range(nP):
         nominal_mask = aperture_computation(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
         nominal_mask_key = mask_to_bitmask(nominal_mask)
         nominal_mask_size = np.count_nonzero(nominal_mask)
-        
         nsr_nominal_mask = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * (nominal_mask**2))) / np.sum(It * nominal_mask) # E1. 11 in Marchiori paper
         nsr_1h_24_cameras = ((10 ** 6) / (12 * np.sqrt(24))) * nsr_nominal_mask
         nsr_1h_6_cameras = ((10 ** 6) / (12 * np.sqrt(6))) * nsr_nominal_mask
-        #NSR1h, NSR1h_6, w_t, w_t_6 = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)  # nominal mask for a given TARGET                                          # mask size for the nominal mask
-       # if nsr_1h_24_cameras != nsr_agg_1h_24_cameras_min and nsr_1h_6_cameras != nsr_agg_1h_6_cameras_min:
-            #breakpoint
-        #w_t_size_6 = np.count_nonzero(w_t_6)
+
         # sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
         sprk, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=nominal_mask) # sprk for every contaminant (as well as sprkmax and spr-tot)
         sprk_6_cameras,  SPR_tot_6_cameras = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=nominal_mask)
@@ -343,6 +339,7 @@ for i in range(nP):
         abs_cob_shift_ext_10first_6_cameras = np.zeros(10)
         dback_ext_10first = np.zeros(10)
         td_ext_10first = np.zeros(10)
+
         
         SPRK_ext_10first[0:nsprmax] = sprk_ext[sprk_sorted_index[0:nsprmax]]
         dback_ext_10first[0:nsprmax] = dback[sprk_sorted_index[0:nsprmax]]
@@ -355,6 +352,7 @@ for i in range(nP):
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
             eta_cob_ext_10first_6_cameras[l], sigma_cob_ext_10first_6_cameras[l], abs_cob_shift_ext_10first_6_cameras[l] = centroid_shift(w=extended_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
+       
         ################################################################################################################
         #                                               EXTENDED MASK                                                  #
         ################################################################################################################
@@ -400,7 +398,6 @@ for i in range(nP):
         print('NSR_ext', NSR_ext)
         print('NSR_c is:',  nsr_1h_24_cameras_secondary_mask)
         print('eta_t is:', eta_t)
-        print('eta_c is:', eta_c)
         print('eta_c_6_cameras is:', eta_c_6_cameras)
         print('NSR1H_6_C',  nsr_1h_6_cameras_secondary_mask)
         print('spr_tot_c', spr_tot_secondary_mask)
@@ -409,8 +406,6 @@ for i in range(nP):
         print('SPRk_10_first_ext are:', SPRK_ext_10first)
         print('eta_10first_ext are:', eta_ext_10first)
         print('eta_10first are:', eta_10first)
-        #if w_c.all() != w_c_6.all():
-        #    breakpoint()
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
         # Now we save the important metrics for every target w.r.t the nominal mask
@@ -434,10 +429,8 @@ for i in range(nP):
         save_info = np.append(save_info, eta_cob_10first_6_cameras)
         save_info = np.append(save_info, sigma_cob_10first_6_cameras)
         save_info = np.append(save_info, abs_cob_shift_10first_6_cameras)
-        
 
-        
-        # Now we save the important metrics for the secondary mask
+        # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
         save_info_contaminant = np.append(save_info_contaminant, eta_c_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, eta_cob_c_6_cameras)
@@ -459,7 +452,7 @@ for i in range(nP):
         save_info_ext = np.append(save_info_ext, eta_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first_6_cameras)
-        
+
 
         # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
         save_info_bray = np.array([ID_t, m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[ind_sprk], SPR_tot_bray])

@@ -1,9 +1,11 @@
-from pylab import *
-from pylab import *
+from pylab import * # type: ignore
+from pylab import * # type: ignore
 from imagette import ran_unique_int
 
 # Dir = '10000/'
-Dir = 'PSF_Focus_0mu_0.2pxdif/'
+#Dir = 'PSF_Focus_0mu_0.2pxdif/'
+Dir = 'test_results_multiprocessing/'
+CatalogueDIR='/home/fercho/double-aperture-photometry/catalogues_stars/'
 Pmin = 8. # 10.5
 Pmax = 13
 binsize = 0.5
@@ -82,6 +84,7 @@ data_extmask = np.load(Dir+'targets_P5_extended.npy')
 # 21-30: 10 first SPRk values
 # 31-40: 10 first Gamma values
 # 41-50: 10 first delta_COB_sig_1h_24c
+# 51-60: PRUBEA, ETA_EXT_COB
 
 nP = int(round ( (Pmax-Pmin)/binsize + 1 ))
 
@@ -112,7 +115,7 @@ n = data_nommask.shape[0]
 
 SPRk = data_nommask[:,22:32]
 # SPRk = data_extmask[:,22:32]
-dback_set = np.loadtxt('KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt')
+dback_set = np.loadtxt(CatalogueDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt')
 dback_n = dback_set.shape[0]
 seed = 123434434
 np.random.seed(seed)
@@ -123,6 +126,7 @@ nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
 
 nbad6c = np.zeros(n)
 
+eta_ext_cob_prueba = data_extmask[:, 51:61]
 delta_obs = np.zeros((n,10))
 delta_obs_ext = np.zeros((n,10))
 eta_bt = np.zeros((n,10))
@@ -147,7 +151,7 @@ for i in range(n):
     delta_obs[i,:] = dback*SPRk[i,:] # observed transit depth
     delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_extmask[i,21:31] # observed transit depth
-    nbad_sp[i] =     np.sum( (eta_bt[i,:]>flx_trh) & (delta_int<4*84. ))
+    nbad_sp[i] = np.sum( (eta_bt[i,:]>flx_trh) & (delta_int<4*84. ))
     eta6c = eta_bt[i,:]*sqrt(6./24) #  significance for 6 cameras
     nbad6c[i] = np.sum(eta6c>flx_trh) # number of BT detected with 6 cameras
 ##    dback[:] = 85000
@@ -427,7 +431,6 @@ ylabel(r'Efficieny [%%]')
 title(Dir)
 
 
-
 # efficiency: COB (all contaminants)
 figure(18)
 clf()
@@ -435,10 +438,14 @@ for i in range(nP):
     Pi = Pmin + i*binsize
     m = (P >= Pi -binsize/2.) & (P < Pi + binsize/2.)
     s =(eta_bt>flx_trh)[m,:].sum()
-    eff_s = ( (eta_cob_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
+    eff_s = scd[m].sum()/s * 100.
+    eff_nom = ( (eta_cob_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
     eff_ext =  ( (eta_cob_ext_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
-    scatter([Pi],[eff_s],color='k',marker='s')
-    scatter([Pi],[eff_ext],color='b',marker='s')
+    eff_ext_prueba = ((eta_ext_cob_prueba>cob_thr) & (eta_bt > flx_trh))[m,:].sum()/s * 100
+    scatter([Pi], [eff_s], color='r', marker='s')
+    scatter([Pi], [eff_nom], color='k',marker='s')
+    scatter([Pi], [eff_ext], color='b',marker='s')
+    scatter([Pi], [eff_ext_prueba], color='g', marker='s')
 
 
 ylabel(r'Efficieny [%%]')
