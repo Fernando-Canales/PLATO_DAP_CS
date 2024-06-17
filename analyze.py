@@ -138,8 +138,8 @@ for i in range(n):
     j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
     dback = dback_set[j,0] # transit depth
     td = dback_set[j,1] # transit duration
-    ## dback = np.ones(10)*85000
-    ## td = np.ones(10)*4.
+    # dback = np.ones(10)*85000
+    # td = np.ones(10)*4.
     eta_bt[i,:] = (SPRk[i,:]/data_nommask[i,8])*flx_trh *(dback/85000)*sqrt(td/4.) # significance of the BT in the nominal flux
     eta_ext_bt[i,:] = dback*data_extmask[i,21:31]*np.sqrt(td*ntr)/(1-data_extmask[i,7])/data_extmask[i,4] # significance in the extended mask
     nbad[i] = np.sum(eta_bt[i,:]>flx_trh) # number of false detection in the nominal mask
