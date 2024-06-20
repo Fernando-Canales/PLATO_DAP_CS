@@ -121,10 +121,8 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
-    # Now we make sure to deal with the correct units for the C.O.B shift (no ppm)
-    Dback = dback*1e-6
-    # Now we define the lambda factor
-    Lambda = Dback / (1 - Dback * sprk)
+    # Now we make sure to deal with the correct units for the C.O.B shift (no ppm) and define the Lambda factor
+    Lambda = dback*1e-6 / (1 - dback*1e-6*sprk)
     # Now we define the centroid shift along the X-direction
     #cs_x = l * gamma_x
     # Now we define the centroid shift along the Y-direction
@@ -143,10 +141,10 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
     sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
     # Now we average the error over 1 hour and 24 cameras
-    sigma_1_24 = sigma_cs / (12 * np.sqrt(24))
+    sigma_cs_1h_24cameras = sigma_cs / (12 * np.sqrt(24))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_1_24
-    return eta_cob, sigma_1_24, abs_cs
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_cs_1h_24cameras
+    return eta_cob, sigma_cs_1h_24cameras, abs_cs
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

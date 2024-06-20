@@ -217,7 +217,7 @@ size_e = data_ext[:, 3]
 #size_e_3 = data_ext[:, 21]
 
 
-# Now all the metrics related to the COB
+# Now all the metrics related to the COB taking into account only one contaminant
 delta_cob = data[:, 14]
 eta_cob = data[:, 15]
 sigma_cob = data[:, 16]
@@ -238,13 +238,14 @@ sigma_cob_sec_6_cameras = data_sec[:, 14]
 #sigma_cob_ext_3 = data_ext[:, 27]
 #eta_cob_ext_3_wrong = data_ext[:, 35]
 #sigma_cob_ext_3_wrong = data_ext[:, 36]
-SPRK10_first = data_ext[:,14:24]
+SPRK10_first = data_ext[:, 14:24]
 
 # We get now the 10 first values for each param. of the nominal cob shift
-eta_cob_10first = data[:, 46:56]
+SPRK10_first = data[:, 17:27]
+eta_cob_nom_10first_24_cameras = data[:, 46:56]
 sigma_cob_10first = data[:, 56:66]
 abs_cob_shift_10first = data[:, 66:76]
-eta_cob_10first_6_cameras = data[:, 76:86]
+eta_cob_nom_10first_6_cameras = data[:, 76:86]
 sigma_cob_10first_6_cameras = data[:, 86:96]
 abs_cob_shift_10first = data[:, 96:106]
 
@@ -271,15 +272,8 @@ sigma_cob_ext = data_ext[:, 12]
 #eta_cob_ext_3_wrong = data_ext[:, 35]
 #sigma_cob_ext_3_wrong = data_ext[:, 36]
 # We get now the 10 first values for each param. of the nominal cob shift
-eta_cob_nom_10first_24_cameras = data[:, 46:56]
-sigma_cob_10first = data[:, 56:66]
-abs_cob_shift_10first = data[:, 66:76]
-eta_cob_nom_10first_6_cameras = data[:, 76:86]
-sigma_cob_10first_6_cameras = data[:, 86:96]
-abs_cob_shift_10first = data[:, 96:106]
 
 # We get now the 10 first values for each param. of the extended cob shift
-SPRK10_first = data[:,17:27]
 SPRK10_first_ext = data_ext[:,14:24]
 eta_cob_ext_10first_24_cameras = data_ext[:, 45:55]
 sigma_cob_ext_10first_24_cameras = data_ext[:, 55:65]
@@ -299,19 +293,19 @@ delta_obs_ext_6_cameras = np.zeros((n, 10))
 
 for i in range(n):
     j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
-    dback = dback_set[j,0] # transit depth
-    td = dback_set[j,1] # transit duration
-    #dback = np.ones(10)*85000
-    #td = np.ones(10)*4.
-    eta_bt[i, :] = (SPRK10_first[i, :]/data[i, 9])*flux_trsh*(dback/85000)*np.sqrt(td/4)
+    #dback = dback_set[j,0] # transit depth
+    #td = dback_set[j,1] # transit duration
+    dback = np.ones(10)*85000
+    td = np.ones(10)*4.
+    eta_bt[i, :] = (SPRK10_first[i, :]/data[i, 9])*flux_trsh *(dback/85000)*np.sqrt(td/4)
     eta_bt_6_cameras[i, :] = (SPRK10_first[i, :]/data[i, 44])*flux_trsh*(dback/85000)*np.sqrt(td/4)
     eta_ext_bt[i, :] = dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13]))
     eta_ext_bt_6_cameras[i, :] = dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
-     ##dback[:] = 85000
-     ##td[:] = 4.
+    dback[:] = 85000
+    td[:] = 4.
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
     nbad_sp[i] = np.sum( (eta_bt[i,:]>7.1) & (delta_int<4*84. ))
@@ -783,7 +777,7 @@ for i in range(nP):
     #plt.legend(['Ext. Mask (10 contaminants)'], loc='best')
     plt.vlines(11.7, ymin=20, ymax = 100, linestyles='dashed', colors='green')
     plt.vlines(11, ymin=20, ymax=100, linestyles='dashdot', colors='red')
-    plt.ylim(0, 100)
+    plt.ylim(20, 100)
     plt.xlim(9.9, 13.4)
     plt.text(10, 70.1,'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
     plt.text(11, 54, 'On-board light curve processing region', color='red',  weight='bold')
@@ -840,9 +834,9 @@ for i in range(nP):
     error_cob_sec_6_cameras = np.sqrt(n_tar * eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras)) / n_tar
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob, fmt='*', yerr=error_cob, label='Nom. Mask (24 cameras)' if i == 0 else "", color='orange', ecolor='orange', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
     #plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
     #plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
     plt.fill_between([9, 11.7], [20, 20], [100, 100], color='aqua', alpha=0.1)
@@ -852,8 +846,8 @@ for i in range(nP):
     if i > 0:
         plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall, eff_ext_cob_overall], color='blue', linestyle='-')
         plt.plot([prev_Pi, Pi], [prev_eff_cob, eff_cob], color='orange', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-')
+        #plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-')
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-')
         #plt.plot([prev_Pi, Pi], [prev_eff_cob_6_cameras, eff_cob_6_cameras], color='olive', linestyle='-')
         #plt.plot([prev_Pi, Pi], [prev_eff_cob_sec_6_cameras, eff_cob_sec_6_cameras], color='green', linestyle='-')   
     # Update previous values
@@ -863,7 +857,7 @@ for i in range(nP):
     #plt.legend(['Ext. Mask (10 contaminants)'], loc='best')
     plt.vlines(11.7, ymin=20, ymax = 100, linestyles='dashed', colors='green')
     plt.vlines(11, ymin=20, ymax=100, linestyles='dashdot', colors='red')
-    plt.ylim(0, 100)
+    plt.ylim(20, 100)
     plt.xlim(9.9, 13.4)
     plt.text(10, 91.1,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
     plt.text(11, 65, 'On-board light curve processing region', color='red', weight='bold')

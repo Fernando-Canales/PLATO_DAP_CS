@@ -40,7 +40,7 @@ sq = 7.2       # Quantization noise in units of e-rms/px
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 10                            # number of targets per magnitude interval
+n_tar = 2000                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -175,20 +175,21 @@ for i in range(nP):
         # 10 values of transit depth
         dback = np.zeros(n_c)
         td = np.zeros(n_c)
-        # Now we choose randomly a single value for dback and for td
-        #dback_index = np.random.randint(0, len(del_back))
-        #td_index = np.random.randint(0, len(tr_dur))
-        # We obtain then single values of dback and td from the catalogue
-        #dback = del_back[dback_index]
-        #td = tr_dur[td_index]
-        #print(dback)
+        
+        # Define whether to use fixed values or random values from the catalogue
+        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
+        if use_fixed_values:
+            # Case 1: Use fixed values
+            td.fill(4)  # Fill the array with the fixed value
+            dback.fill(85000)  # Fill the array with the fixed value
+        else:
         # We obtain 10 random values for transit depth and transit duration
-        for n in range(n_c):
-            dback_index = np.random.randint(0, len(del_back))
-            td_index = np.random.randint(0, len(tr_dur))
+            for n in range(n_c):
+                dback_index = np.random.randint(0, len(del_back))
+                td_index = np.random.randint(0, len(tr_dur))
             
-            dback[n] = del_back[dback_index]
-            td[n] = tr_dur[td_index]
+                dback[n] = del_back[dback_index]
+                td[n] = tr_dur[td_index]
         
         # We compute the critical SPR now
         #SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr) # spr_crit w.r.t. the nominal mask
@@ -269,12 +270,11 @@ for i in range(nP):
         td_10first[0:nsprmax] = td[sprk_sorted_index[0:nsprmax]]
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
-            eta_10first[l] = sprk[m] * np.sqrt(td_10first[l] * ntr) * dback_10first[l] / nsr_1h_24_cameras / (1. - SPR_tot)
+            eta_10first[l] = sprk[m] * np.sqrt(td[m] * ntr) * dback[m] / nsr_1h_24_cameras / (1. - SPR_tot)
             eta_cob_10first[l], sigma_cob_10first[l], abs_cob_shift_10first[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
             eta_cob_10first_6_cameras[l], sigma_cob_10first_6_cameras[l], abs_cob_shift_10first_6_cameras[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
-
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
         ## 24 cameras
         eta_cob, sigma_1_24, abs_cob = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
