@@ -130,21 +130,23 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     # Then we define the absolute centroid shift
     abs_cs = Lambda * gamma
     # In order to compute the error associated with the shift, we have to compute the variance of Iij as follows
-    var_delta = I_tot + sb + sd ** 2 + sq ** 2
+    var_delta_I_tot = I_tot + sb + sd ** 2 + sq ** 2
     # We compute the product of var_delta times the mask here as well for convenience
-    var_delta_w = var_delta * w
+    var_delta_I_tot_w = var_delta_I_tot * w
     # Now we compute the centroid shift error along the X-direction
-    var_x = (np.sum(x ** 2 * var_delta_w)) / f_tot ** 2 + (c_x / f_tot) ** 2 * np.sum(var_delta_w)
+    #var_x = (np.sum(x ** 2 * var_delta_I_tot_w)) / f_tot ** 2 + (c_x / f_tot) ** 2 * np.sum(var_delta_I_tot_w)
+    var_x_corrected = (np.sum((x - c_x)**2 * var_delta_I_tot_w)) / np.sum(w * I_tot )**2
     # Now we compute the centroid shift error along the Y-direction
-    var_y = (np.sum(y ** 2 * var_delta_w)) / f_tot ** 2 + (c_y / f_tot) ** 2 * np.sum(var_delta_w)
+    #var_y = (np.sum(y ** 2 * var_delta_I_tot_w)) / f_tot ** 2 + (c_y / f_tot) ** 2 * np.sum(var_delta_I_tot_w)
+    var_y_corrected = (np.sum((y - c_y)**2 * var_delta_I_tot_w)) / np.sum(w * I_tot)**2
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
-    sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x + gamma_y ** 2 * var_y)) / gamma
+    sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x_corrected + gamma_y ** 2 * var_y_corrected)) / gamma
     # Now we average the error over 1 hour and 24 cameras
-    sigma_cs_1h_24cameras = sigma_cs / (12 * np.sqrt(24))
+    sigma_cs_1h_ncameras = sigma_cs / (12 * np.sqrt(n_cam))
     # Now we compute the statistical significance of the centroid shift
-    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_cs_1h_24cameras
-    return eta_cob, sigma_cs_1h_24cameras, abs_cs
+    eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_cs_1h_ncameras
+    return eta_cob, sigma_cs_1h_ncameras, abs_cs
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):

@@ -1,6 +1,7 @@
 /*.txt
 /PSF.npz
 /psf_fits
+/simulation_results
 /test_results
 /test_results_multiprocessing
 /catalogue_stars

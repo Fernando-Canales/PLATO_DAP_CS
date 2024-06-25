@@ -40,7 +40,7 @@ sq = 7.2       # Quantization noise in units of e-rms/px
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 2000                            # number of targets per magnitude interval
+n_tar = 7000                           # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -78,7 +78,6 @@ save_info_sec = np.zeros((n_tar * nP, 16)) # numpy arr. to store the metrics for
 save_info_ext = np.zeros((n_tar * nP, 105)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
 n_star_p_bin = np.zeros(nP)                # numpy arr. to store the number of stars per bin
-
 # ------------------------------------------------
 
 # ------------------------------------------------
@@ -97,7 +96,6 @@ for i in range(nP):
     ID_target = ID[mask]         # ID of every target in the current bin
     # Now we choose (randomly) only 'n_tar' targets from every bin. These are our new "TARGETS".
     j = ran_unique_int(n=n_tar, interval=[0, targets_P5.shape[0] - 1])
-    print(j)
     targets_P5 = targets_P5[j]   # magnitude of every TARGET
     ID_target = ID_target[j]     # ID of every new TARGET
     n_t = len(j)                 # number of new TARGET
@@ -177,7 +175,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(4)  # Fill the array with the fixed value
