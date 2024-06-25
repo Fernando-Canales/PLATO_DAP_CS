@@ -20,12 +20,12 @@ import traceback
 # --------------------------------------------------
 # CONFIGURATION PARAMETERS
 
-verbose = True
-# CatalogueDIR = '/home/reza/plato/share/catalogues/'
+verbose = False
+CatalogueDIR = '/home/samadi/plato/share/catalogues/'
 # CatalogueDIR = '/volumes/astro/sismo/general/plato/web/grids/catalogues/'
 # CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
-CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
-DIRout = 'test_results_multiprocessing/'
+# CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
+DIRout = 'test2/'
 PSFFileName = 'PSF.npz'
 #CatalogueFileName = 'SFP_DR3_20220831.npy'
 CatalogueFileName = 'SFP_DR3_20230101.npy'
@@ -37,12 +37,12 @@ gauss_width_y = 0.5
 bsres = 20  # resolution adopted for the b-spline decomposition
 
 mp = True  # multiprocessing mode
-nproc_max = 4  # number of processors
+nproc_max = 10  # number of processors
 
 Pmin = 10
 Pmax = 13
 binsize = 0.5
-nStar = 10
+nStar = 1000
 Delta_P_max = 15.
 distance_max = 7
 n_c_max = 300
@@ -128,8 +128,14 @@ def cob_shift(Itot, Ic, w, dback):
     delta_C = s * Gamma
 
     # uncertainty calculation
-    delta_Cx_var = (np.sum(x ** 2 * VarItotw)) / Ftot ** 2 + (Cx / Ftot) ** 2 * np.sum(VarItotw)
-    delta_Cy_var = (np.sum(y ** 2 * VarItotw)) / Ftot ** 2 + (Cy / Ftot) ** 2 * np.sum(VarItotw)
+    # wrong Bryson 's forumula
+    # delta_Cx_var = (np.sum(x ** 2 * VarItotw)) / Ftot ** 2 + (Cx / Ftot) ** 2 * np.sum(VarItotw)
+    # delta_Cy_var = (np.sum(y ** 2 * VarItotw)) / Ftot ** 2 + (Cy / Ftot) ** 2 * np.sum(VarItotw)
+
+    #
+    delta_Cx_var = np.sum( (x-Cx) ** 2 * VarItotw) / Ftot ** 2
+    delta_Cy_var = np.sum( (y-Cy) ** 2 * VarItotw) / Ftot ** 2
+
     # Lambdax = np.sum(x**2*Icw)/Ftot**2 + (Cx**2/Ftot)*SPRk - 2*SPRk*(Cx/Ftot)**2*np.sum(VarItotw)
     # # Lambday = np.sum(y**2*Icw)/Ftot**2 + (Cy**2/Ftot)*SPRk - 2*SPRk*(Cy/Ftot)**2*np.sum(VarItotw)
     # # Lambda = Lambdax + Lambday
@@ -274,7 +280,7 @@ for i in range(nP):
         # Now in this part of the code we present the calculations for the sprk of every contaminant as well as the
         # calculation of the SPR_crit.
 
-        sprk, sprk_max, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_t)
+        sprk, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_t)
         # sprk, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_t)
 
         # We compute the critical SPR now
@@ -287,6 +293,9 @@ for i in range(nP):
         # Now we get the index of the contaminant star with the highest sprk value with respect to the nominal mask
         ind_sprk = np.argmax(sprk)
         Ic_max = Ic[ind_sprk]
+
+        sprk_max = sprk[ind_sprk]
+
 
         ID_c = ID_contaminants[ind_sprk]
 
@@ -341,7 +350,10 @@ for i in range(nP):
         NSR_ext_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_ext
 
         # Then we compute the sprk over the extended mask for all the contaminants for a this target
-        sprk_ext, sprk_max_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_ext)
+        sprk_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_ext)
+
+        sprk_max_ext = np.max(sprk_ext)
+
         # Then compute the critical SPR
         SPR_crit_ext = spr_crit(dback=dback, SPR_tot=SPR_tot_ext, nsr=NSR_ext_1h, td=td, ntr=ntr)
 
@@ -394,7 +406,9 @@ for i in range(nP):
         NSR_bray = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_bray)) / np.sum(It * w_bray)
         NSR_bray_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_bray
 
-        sprk_bray, sprk_max_bray, SPR_tot_bray = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_bray)
+        sprk_bray,  SPR_tot_bray = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_bray)
+
+        sprk_max_bray = np.max(sprk_bray)
 
         # We compute the critical SPR now
         SPR_crit_bray = spr_crit(dback=dback, SPR_tot=SPR_tot_bray, nsr=NSR_bray_1h, td=td, ntr=ntr)
