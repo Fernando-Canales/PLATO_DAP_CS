@@ -46,7 +46,7 @@ sq = 7.2       # Quantization noise in units of e-rms/px
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 7000                           # number of targets per magnitude interval
+n_tar = 8                          # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -79,7 +79,7 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 np.random.seed(300)
 
 file_out = open(DIRout + 'metrics_fer.txt', 'w')
-save_info = np.zeros((n_tar * nP, 106))     # numpy arr. to store the metrics for the nominal mask
+save_info = np.zeros((n_tar * nP, 126))     # numpy arr. to store the metrics for the nominal mask
 save_info_sec = np.zeros((n_tar * nP, 16)) # numpy arr. to store the metrics for the secondary mask
 save_info_ext = np.zeros((n_tar * nP, 105)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
@@ -175,12 +175,12 @@ for i in range(nP):
         # sprk, sprk_max, SPR_tot, n_bad = SPR(SPR_crit=SPR_crit, n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=w_t)
         sprk, SPR_tot = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=nominal_mask) # sprk for every contaminant (as well as sprkmax and spr-tot)
         sprk_6_cameras,  SPR_tot_6_cameras = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=nominal_mask)
-        # 10 values of transit depth
+        # We give to each contaminant a transit depth and duration
         dback = np.zeros(n_c)
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(4)  # Fill the array with the fixed value
@@ -200,19 +200,20 @@ for i in range(nP):
         SPR_crit_6_cameras = spr_crit(dback=dback[0], SPR_tot=SPR_tot, nsr=nsr_1h_6_cameras, td=td[0], ntr=ntr)
         
         n_bad = np.sum(sprk > SPR_crit_24_cameras) # N_bad
+        print(n_bad)
         n_bad_24_cameras = np.sum(sprk > SPR_crit_24_cameras)
         n_bad_6_cameras = np.sum(sprk > SPR_crit_6_cameras)
-        ind_sprk = np.argmax(sprk)      # index of the contaminant with the highest sprk w.r.t. nominal mask
-        m_c_bad = m_c[ind_sprk]         # magnitude for the contaminant with the highest sprk value w.r.t the nominal mask
+        index_contaminant_highest_sprk = np.argmax(sprk)      # index of the contaminant with the highest sprk w.r.t. nominal mask
+        m_c_bad = m_c[index_contaminant_highest_sprk]         # magnitude for the contaminant with the highest sprk value w.r.t the nominal mask
         # Now we select the (intensity per pixel array) 'imagette' of the contaminant star with the highest sprk value
         # w.r.t. the nominal mask
-        Ic_max = Ic[ind_sprk]
-        dback_contaminant_highest_spr = dback[ind_sprk]
-        td_contaminant_highest_spr = td[ind_sprk]
+        Ic_max = Ic[index_contaminant_highest_sprk]
+        dback_contaminant_highest_spr = dback[index_contaminant_highest_sprk]
+        td_contaminant_highest_spr = td[index_contaminant_highest_sprk]
 
         # Now we find the distance between the target and the contaminant star with the highest value of sprk w.r.t the
         # nominal mask
-        dist_bad = (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2
+        dist_bad = (x_t_im - x_c_im[index_contaminant_highest_sprk]) ** 2 + (y_t_im - y_c_im[index_contaminant_highest_sprk]) ** 2
         # Now we define a term that contains the flux of the targets and their respective contaminants except the
         # one with the highest value of SPRk (i.e. the contaminant of interest)
         Itc_acc = It + Ic_acc - Ic_max
@@ -230,21 +231,15 @@ for i in range(nP):
         # We compute the flux over the secondary mask and the extended secondary mask
         f_beb = Ic_acc * secondary_mask
         f_t_c = It * secondary_mask
-        #f_tot_c = (np.sum(f_t_c) + np.sum(f_beb))
         f_tot_c = np.sum(f_t_c + f_beb)
-        #if np.sum(f_t_c + f_beb) == f_tot_c:
-        #    print('A goevo, putos')
-        #else:
-        #    breakpoint
-
         # We compute spr_tot_c, that is, the expression given in Marchiori presentation for PLATO week #8
         spr_tot_secondary_mask = np.sum(Itc_acc * secondary_mask) / f_tot_c
 
         # We compute now the delta_obs and etas for the two apertures
-        delta_obs_nominal_mask = sprk[ind_sprk] * dback_contaminant_highest_spr                                         # observed transit depth in the nominal mask
+        delta_obs_nominal_mask = sprk[index_contaminant_highest_sprk] * dback_contaminant_highest_spr                                         # observed transit depth in the nominal mask
         delta_obs_secondary_mask = (1 - spr_tot_secondary_mask) * dback_contaminant_highest_spr                                        # observed transit depth in the secondary mask
-        eta_t = sprk[ind_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / (nsr_1h_24_cameras * (1 - SPR_tot)) # signal statistical significance in the nominal mask
-        eta_t_6_cameras = sprk[ind_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr/ (nsr_1h_6_cameras * (1 - SPR_tot)) # signal statistical significance in the nominal mask
+        eta_t = sprk[index_contaminant_highest_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / (nsr_1h_24_cameras * (1 - SPR_tot)) # signal statistical significance in the nominal mask
+        eta_t_6_cameras = sprk[index_contaminant_highest_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr/ (nsr_1h_6_cameras * (1 - SPR_tot)) # signal statistical significance in the nominal mask
         eta_c = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_24_cameras_secondary_mask # signal statistical significance in the secondary mask
         eta_c_6_cameras = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_6_cameras_secondary_mask
     
@@ -255,8 +250,8 @@ for i in range(nP):
         eta_true_positive_6_cameras_super_earth = 522 * np.sqrt(42 * 3) / nsr_1h_6_cameras
         
         nsprmax = min(10, n_c)
-        SPRK_10first = np.zeros(10)
         eta_10first = np.zeros(10)
+        sprk_10first = np.zeros(10)
         eta_cob_10first = np.zeros(10)
         sigma_cob_10first = np.zeros(10)
         abs_cob_shift_10first = np.zeros(10)
@@ -268,7 +263,7 @@ for i in range(nP):
         #dback_10first_index = np.random.randint(0, len(del_back), size=10)
         # sorting the SPRk by decreasing order and taking the 10 first values
         sprk_sorted_index = (np.argsort(sprk)[::-1])
-        SPRK_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
+        sprk_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
         dback_10first[0:nsprmax] = dback[sprk_sorted_index[0:nsprmax]]
         td_10first[0:nsprmax] = td[sprk_sorted_index[0:nsprmax]]
         for l in range(nsprmax):
@@ -281,21 +276,21 @@ for i in range(nP):
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
         ## 24 cameras
         eta_cob, sigma_1_24, abs_cob = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
-                                            sprk=sprk[ind_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
+                                            sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
         ## 6 cameras
         eta_cob_6_cameras, sigma_1_6_cameras, abs_cob_6_cameras = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=6, I_t=It,
-        I_contaminants=Ic_acc, sprk=sprk[ind_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr) 
+        I_contaminants=Ic_acc, sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr) 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         ## 24 cameras
         eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
-                                            sprk=sprk_sec[ind_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
+                                            sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
         ## 6 cameras
         eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
-                                            sprk=sprk_sec[ind_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
+                                            sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         
         ################################################################################################################
@@ -304,8 +299,6 @@ for i in range(nP):
         extended_mask = extended_binary_mask(nominal_mask, W=1) # extended mask (1 pixel ring around the nominal mask)
         extended_mask_key = mask_to_bitmask(extended_mask)     # mask key for the extended mask
         extended_mask_size = np.count_nonzero(extended_mask)   # mask size for the extended mask
-
-        w_ext_6_cameras = extended_binary_mask(nominal_mask, W=1)
         
         # Now we compute all the metrics associated with every extended mask.
         NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * extended_mask)) / np.sum(It * extended_mask) # E1. 11 in Marchiori paper
@@ -314,14 +307,14 @@ for i in range(nP):
         sprk_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=extended_mask)
         SPR_crit_ext = spr_crit(dback=dback_10first[0], SPR_tot=SPR_tot_ext, nsr=NSR_ext_1h_24_cameras, td=td_10first[0], ntr=ntr)
         n_bad_ext = np.sum(sprk_ext > SPR_crit_ext)                           # N_bad for the extended mask
-        delta_obs_ext = sprk_ext[ind_sprk] * dback_10first[0]                            # w.r.t. the nominal mask
-        eta_ext = sprk_ext[ind_sprk] * np.sqrt(td_10first[0] * ntr) * dback_10first[0] / (NSR_ext_1h_24_cameras *(1 - SPR_tot_ext)) # w.r.t the nominal mask
-        #eta_ext_6_cameras = sprk_ext[ind_sprk] * np.sqrt(td * ntr) * dback / (NSR_ext_1h_6_cameras *(1 - SPR_tot_ext))
+        delta_obs_ext = sprk_ext[index_contaminant_highest_sprk] * dback_10first[0]                            # w.r.t. the nominal mask
+        eta_ext = sprk_ext[index_contaminant_highest_sprk] * np.sqrt(td_10first[0] * ntr) * dback_10first[0] / (NSR_ext_1h_24_cameras *(1 - SPR_tot_ext)) # w.r.t the nominal mask
+        #eta_ext_6_cameras = sprk_ext[index_contaminant_highest_sprk] * np.sqrt(td * ntr) * dback / (NSR_ext_1h_6_cameras *(1 - SPR_tot_ext))
 
         # ------------------------------------------EXTENDED COB-------------------------------------------------------#
         ## 24 cameras w.r.t. the most significant contaminant
         eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=extended_mask, Ik=Ic_max, n_cam=24, 
-        I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[ind_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
+        I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------EXTENDED COB-------------------------------------------------------#
         
         # Now we will take the first 10 contaminants in terms of SPR
@@ -376,7 +369,7 @@ for i in range(nP):
         #                                          END OF TESTING Bray et al.'s ASSUMPTION                             #
         ################################################################################################################
         # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
-        # n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[ind_sprk] > SPR_crit) & (sprk_ext > sprk[ind_sprk])
+        # n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[index_contaminant_highest_sprk] > SPR_crit) & (sprk_ext > sprk[index_contaminant_highest_sprk])
         # )[0])
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         print('Target ID = ', ID_target[k])
@@ -386,9 +379,9 @@ for i in range(nP):
         print('Nbad for this target (6 cameras) =', n_bad_6_cameras)
         print('Transit depth of the contaminant with the highest spr =', dback_contaminant_highest_spr, 'ppm')
         print('Magnitude difference between the target and the contaminant with the highest sprk = ',
-              m_c[ind_sprk] - m_t)
+              m_c[index_contaminant_highest_sprk] - m_t)
         print('Distance between the target and the contaminant with the highest sprk = ',
-              (x_t_im - x_c_im[ind_sprk]) ** 2 + (y_t_im - y_c_im[ind_sprk]) ** 2)
+              (x_t_im - x_c_im[index_contaminant_highest_sprk]) ** 2 + (y_t_im - y_c_im[index_contaminant_highest_sprk]) ** 2)
         print('Secondary mask size =', secondary_mask_size)
         print('sprk_tot_24_cameras:', SPR_tot)
         print('sprk_tot_6_cameras', SPR_tot_6_cameras)
@@ -404,17 +397,17 @@ for i in range(nP):
         print('NSR1H_6_C',  nsr_1h_6_cameras_secondary_mask)
         print('spr_tot_c', spr_tot_secondary_mask)
         print('spr_tot_c_6_cameras', SPR_tot_sec)
-        print('spr_t is:', sprk[ind_sprk])
+        print('spr_t is:', sprk[index_contaminant_highest_sprk])
         print('SPRk_10_first_ext are:', SPRK_ext_10first)
         print('eta_10first_ext are:', eta_ext_10first)
         print('eta_10first are:', eta_10first)
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
         # Now we save the important metrics for every target w.r.t the nominal mask
-        save_info = np.array([ID_t, m_t, n_c, m_c_bad, dist_bad, nominal_mask_key, nominal_mask_size, nsr_1h_24_cameras, n_bad, SPR_crit_24_cameras, sprk[ind_sprk], SPR_tot, eta_t, delta_obs_nominal_mask, abs_cob, eta_cob, 
+        save_info = np.array([ID_t, m_t, n_c, m_c_bad, dist_bad, nominal_mask_key, nominal_mask_size, nsr_1h_24_cameras, n_bad, SPR_crit_24_cameras, sprk[index_contaminant_highest_sprk], SPR_tot, eta_t, delta_obs_nominal_mask, abs_cob, eta_cob, 
                               sigma_1_24])
         
-        save_info = np.append(save_info, SPRK_10first)
+        save_info = np.append(save_info, sprk_10first)
         save_info = np.append(save_info, eta_10first)
         save_info = np.append(save_info, eta_true_positive_24_cameras_earth_like)
         save_info = np.append(save_info, eta_true_positive_6_cameras_jovian_planet)
@@ -431,6 +424,8 @@ for i in range(nP):
         save_info = np.append(save_info, eta_cob_10first_6_cameras)
         save_info = np.append(save_info, sigma_cob_10first_6_cameras)
         save_info = np.append(save_info, abs_cob_shift_10first_6_cameras)
+        save_info = np.append(save_info, td_10first)
+        save_info = np.append(save_info, dback_10first)
 
         # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
@@ -441,7 +436,7 @@ for i in range(nP):
         save_info_contaminant = np.append(save_info_contaminant, SPR_tot_sec)
 
         # Now we save the important metrics w.r.t the extended mask
-        save_info_ext = np.array([ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[ind_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
+        save_info_ext = np.array([ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[index_contaminant_highest_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
                                   sigma_1_24_ext, n_bad_ext, SPR_tot_ext])
         
         save_info_ext = np.append(save_info_ext, SPRK_ext_10first)
@@ -457,9 +452,9 @@ for i in range(nP):
 
 
         # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
-        save_info_bray = np.array([ID_t, m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[ind_sprk], SPR_tot_bray])
+        save_info_bray = np.array([ID_t, m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[index_contaminant_highest_sprk], SPR_tot_bray])
         
-        file_out.write('%.2f %i %.2f\n'% (ID_t, n_bad, sprk[ind_sprk]))
+        file_out.write('%.2f %i %.2f\n'% (ID_t, n_bad, sprk[index_contaminant_highest_sprk]))
         
         return save_info, save_info_contaminant, save_info_ext, save_info_bray     
 
