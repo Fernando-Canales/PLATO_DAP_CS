@@ -79,9 +79,9 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 np.random.seed(300)
 
 file_out = open(DIRout + 'metrics_fer.txt', 'w')
-save_info = np.zeros((n_tar * nP, 126))     # numpy arr. to store the metrics for the nominal mask
-save_info_sec = np.zeros((n_tar * nP, 16)) # numpy arr. to store the metrics for the secondary mask
-save_info_ext = np.zeros((n_tar * nP, 105)) # numpy arr. to store the metrics for the extended mask
+save_info = np.zeros((n_tar * nP, 148))     # numpy arr. to store the metrics for the nominal mask
+save_info_sec = np.zeros((n_tar * nP, 18)) # numpy arr. to store the metrics for the secondary mask
+save_info_ext = np.zeros((n_tar * nP, 126)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
 n_star_p_bin = np.zeros(nP)                # numpy arr. to store the number of stars per bin
 # ------------------------------------------------
@@ -200,7 +200,6 @@ for i in range(nP):
         SPR_crit_6_cameras = spr_crit(dback=dback[0], SPR_tot=SPR_tot, nsr=nsr_1h_6_cameras, td=td[0], ntr=ntr)
         
         n_bad = np.sum(sprk > SPR_crit_24_cameras) # N_bad
-        print(n_bad)
         n_bad_24_cameras = np.sum(sprk > SPR_crit_24_cameras)
         n_bad_6_cameras = np.sum(sprk > SPR_crit_6_cameras)
         index_contaminant_highest_sprk = np.argmax(sprk)      # index of the contaminant with the highest sprk w.r.t. nominal mask
@@ -254,8 +253,10 @@ for i in range(nP):
         sprk_10first = np.zeros(10)
         eta_cob_10first = np.zeros(10)
         sigma_cob_10first = np.zeros(10)
+        gamma_nom_10first = np.zeros(10)
         abs_cob_shift_10first = np.zeros(10)
         eta_cob_10first_6_cameras = np.zeros(10)
+        gamma_nom_10first_6cameras = np.zeros(10)
         sigma_cob_10first_6_cameras = np.zeros(10)
         abs_cob_shift_10first_6_cameras = np.zeros(10)
         dback_10first = np.zeros(10)
@@ -269,27 +270,27 @@ for i in range(nP):
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             eta_10first[l] = sprk[m] * np.sqrt(td[m] * ntr) * dback[m] / nsr_1h_24_cameras / (1. - SPR_tot)
-            eta_cob_10first[l], sigma_cob_10first[l], abs_cob_shift_10first[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
+            eta_cob_10first[l], sigma_cob_10first[l], abs_cob_shift_10first[l], gamma_nom_10first[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
-            eta_cob_10first_6_cameras[l], sigma_cob_10first_6_cameras[l], abs_cob_shift_10first_6_cameras[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
+            eta_cob_10first_6_cameras[l], sigma_cob_10first_6_cameras[l], abs_cob_shift_10first_6_cameras[l], gamma_nom_10first_6cameras[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
         ## 24 cameras
-        eta_cob, sigma_1_24, abs_cob = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
+        eta_cob, sigma_1_24, abs_cob, gamma_nom = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
         ## 6 cameras
-        eta_cob_6_cameras, sigma_1_6_cameras, abs_cob_6_cameras = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=6, I_t=It,
+        eta_cob_6_cameras, sigma_1_6_cameras, abs_cob_6_cameras, gamma_nom_6cameras = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=6, I_t=It,
         I_contaminants=Ic_acc, sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr) 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
 
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         ## 24 cameras
-        eta_cob_c, sigma_1_24_c, abs_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
+        eta_cob_c, sigma_1_24_c, abs_cob_c, gamma_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
         ## 6 cameras
-        eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
+        eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras, gamma_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         
@@ -313,7 +314,7 @@ for i in range(nP):
 
         # ------------------------------------------EXTENDED COB-------------------------------------------------------#
         ## 24 cameras w.r.t. the most significant contaminant
-        eta_cob_ext, sigma_1_24_ext, abs_cob_ext = centroid_shift(w=extended_mask, Ik=Ic_max, n_cam=24, 
+        eta_cob_ext, sigma_1_24_ext, abs_cob_ext, gamma_ext = centroid_shift(w=extended_mask, Ik=Ic_max, n_cam=24, 
         I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------EXTENDED COB-------------------------------------------------------#
         
@@ -325,6 +326,7 @@ for i in range(nP):
         
         SPRK_ext_10first = np.zeros(10)
         eta_ext_10first = np.zeros(10)
+        gamma_ext_10first = np.zeros(10)
         eta_ext_10first_6_cameras = np.zeros(10)
         eta_cob_ext_10first = np.zeros(10)
         eta_cob_ext_10first_6_cameras = np.zeros(10)
@@ -332,6 +334,7 @@ for i in range(nP):
         sigma_cob_ext_10first_6_cameras = np.zeros(10)
         abs_cob_shift_ext_10first = np.zeros(10)
         abs_cob_shift_ext_10first_6_cameras = np.zeros(10)
+        gamma_ext_10first_6_cameras = np.zeros(10)
         dback_ext_10first = np.zeros(10)
         td_ext_10first = np.zeros(10)
 
@@ -343,9 +346,9 @@ for i in range(nP):
             m = sprk_sorted_index[l]
             eta_ext_10first[l] = sprk_ext[m] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_1h_24_cameras * (1 - SPR_tot_ext))       
             eta_ext_10first_6_cameras[l] = sprk_ext[l] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_1h_6_cameras * (1 - SPR_tot_ext))
-            eta_cob_ext_10first[l], sigma_cob_ext_10first[l], abs_cob_shift_ext_10first[l] = centroid_shift(w=extended_mask, Ik=Ic[m],  
+            eta_cob_ext_10first[l], sigma_cob_ext_10first[l], abs_cob_shift_ext_10first[l], gamma_ext_10first[l] = centroid_shift(w=extended_mask, Ik=Ic[m],  
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
-            eta_cob_ext_10first_6_cameras[l], sigma_cob_ext_10first_6_cameras[l], abs_cob_shift_ext_10first_6_cameras[l] = centroid_shift(w=extended_mask, Ik=Ic[m],
+            eta_cob_ext_10first_6_cameras[l], sigma_cob_ext_10first_6_cameras[l], abs_cob_shift_ext_10first_6_cameras[l], gamma_ext_10first_6_cameras[l] = centroid_shift(w=extended_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
        
         ################################################################################################################
@@ -424,8 +427,12 @@ for i in range(nP):
         save_info = np.append(save_info, eta_cob_10first_6_cameras)
         save_info = np.append(save_info, sigma_cob_10first_6_cameras)
         save_info = np.append(save_info, abs_cob_shift_10first_6_cameras)
+        save_info = np.append(save_info, gamma_nom_10first)
+        save_info = np.append(save_info, gamma_nom_10first_6cameras)
         save_info = np.append(save_info, td_10first)
         save_info = np.append(save_info, dback_10first)
+        save_info = np.append(save_info, gamma_nom)
+        save_info = np.append(save_info, gamma_nom_6cameras)
 
         # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
@@ -433,7 +440,9 @@ for i in range(nP):
         save_info_contaminant = np.append(save_info_contaminant, eta_cob_c_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, abs_cob_c_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, sigma_1_6_cameras_c)
+        save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, SPR_tot_sec)
+        save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c)
 
         # Now we save the important metrics w.r.t the extended mask
         save_info_ext = np.array([ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[index_contaminant_highest_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
@@ -449,6 +458,9 @@ for i in range(nP):
         save_info_ext = np.append(save_info_ext, eta_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext_10first)
+        save_info_ext = np.append(save_info_ext, gamma_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext)
 
 
         # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
