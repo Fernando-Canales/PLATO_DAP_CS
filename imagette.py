@@ -146,7 +146,7 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     sigma_cs_1h_ncameras = sigma_cs / (12 * np.sqrt(n_cam))
     # Now we compute the statistical significance of the centroid shift
     eta_cob = abs_cs * np.sqrt(td * ntr) / sigma_cs_1h_ncameras
-    return eta_cob, sigma_cs_1h_ncameras, abs_cs
+    return eta_cob, sigma_cs_1h_ncameras, abs_cs, gamma
 
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):
