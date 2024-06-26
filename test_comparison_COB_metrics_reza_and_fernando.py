@@ -22,28 +22,6 @@ reza_eta_ext_cob_bt = np.array([5.49588899e-01, 3.26133877e+00, 1.40896750e-01, 
 # Now we print some useful stuff
 print("Shape of Réza's metrics:", reza_metrics_nominal_mask.shape)
 print("Shape of Fernando's metrics:", fernando_metrics_nominal_mask.shape)
-print("ID of Réza's targets:", reza_metrics_nominal_mask[:, 0])
-print("ID of Fernando's targets:", fernando_metrics_nominal_mask[:, 0])
-
-print("==================== NOMINAL MASK ANALYSIS ====================")
-print("Centroid shift errors for Réza's only target of P mag = 10:", reza_metrics_nominal_mask[0, 42:52])
-print("Centroid shift errors for Fernando's only target of P mag = 10:", fernando_metrics_nominal_mask[0, 56:66])
-print("Gamma values for Réza's first only target of P mag = 10:", reza_metrics_nominal_mask[0, 32:42])
-print("Gamma values for Fernando's only target of P mag = 10:", fernando_metrics_nominal_mask[0, 46:56])
-print("SPRk values for Reza's only target of P mag = 10:", reza_metrics_nominal_mask[0, 22:32])
-print("SPRk values for Fernando's only target of P mag = 10:", fernando_metrics_nominal_mask[0, 17:27])
-print("eta_cob values for Reza's only target of P mag = 10:", reza_eta_cob_bt)
-print("eta_cob values for Fernando's only target of P mag = 10", fernando_metrics_nominal_mask[0, 46:56])
-print("==============================================================")
-
-print("=================== EXTENDED MASK ANALYSIS ===================")
-print("Centroid shift errors for Réza's only target of P mag = 10:", reza_metrics_extended_mask[0, 41:51])
-print("Centroid shift errors for Fernando's only target of P mag = 10:", fernando_metrics_extended_mask[0, 55:65])
-print("Gamma values for Réza's first only target of P mag = 10:", reza_metrics_extended_mask[0, 31:41])
-print("Gamma values for Fernando's only target of P mag = 10:", fernando_metrics_extended_mask[0, 45:55])
-print("SPRk values for Reza's only target of P mag = 10:", reza_metrics_extended_mask[0, 21:31])
-print("SPRk values for Fernando's only target of P mag = 10:", fernando_metrics_extended_mask[0, 14:24])
-print("==============================================================")
 
 # Now I can use dictionaries and write a .txt file with the comparison
 nominal_metrics = {
