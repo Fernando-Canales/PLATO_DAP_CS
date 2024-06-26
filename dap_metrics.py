@@ -8,6 +8,11 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 from pylab import * # type: ignore
 import sys
 import os
+#import argparse
+
+#parser = argparse.ArgumentParser()
+#parser.add_argument("output_folder")
+#args = parser.parse_args()
 # ------------------------------------------------
 
 # ------------------------------------------------
@@ -19,9 +24,10 @@ import os
 #print(RezaID)
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
 PSFfile = 'PSF.npz'                                                   # processed PSF files
-DIRout = 'test_results/' # storage directory
+DIRout = 'test_results/'
+#DIRout = 'test_results/' + args.output_folder + "/" # storage directory
 #output_run_dir = DIRout + sys.argv[1] + "/"
-#os.makedirs(output_run_dir, exist_ok = True)
+#os.makedirs(DIRout, exist_ok = True)
 
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
@@ -152,7 +158,6 @@ for i in range(nP):
             if m_c[o - 1] > 0:
                 # Then we compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
                 Ic[o - 1, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx_c[o - 1], offy=offy_c[o - 1])
-                COBx_c, COBy_c = barycenter(Ic[o - 1], subres=1)
                 # Let's obtain the value of the reference flux for every contaminant star
                 f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o - 1], m_t)
                 # Let's calculate the Intensity per pixel of the imagette of every contaminant star
@@ -184,10 +189,10 @@ for i in range(nP):
         # We obtain 10 random values for transit depth and transit duration
             for n in range(n_c):
                 dback_index = np.random.randint(0, len(del_back))
-                td_index = np.random.randint(0, len(tr_dur))
+                #td_index = np.random.randint(0, len(tr_dur))
             
                 dback[n] = del_back[dback_index]
-                td[n] = tr_dur[td_index]
+                td[n] = tr_dur[dback_index]
         
         # We compute the critical SPR now
         #SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr) # spr_crit w.r.t. the nominal mask
@@ -308,7 +313,6 @@ for i in range(nP):
         NSR_ext_1h_6_cameras = ((10 ** 6) / (12 * np.sqrt(6))) * NSR_ext
         sprk_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=(It + Ic_acc), w=extended_mask)
         SPR_crit_ext = spr_crit(dback=dback_10first[0], SPR_tot=SPR_tot_ext, nsr=NSR_ext_1h_24_cameras, td=td_10first[0], ntr=ntr)
-        SPR_crit_ext_6_cameras = spr_crit(dback=dback_10first[0], SPR_tot=SPR_tot_ext, nsr=NSR_ext_1h_6_cameras, td=td_10first[0], ntr=ntr)
         n_bad_ext = np.sum(sprk_ext > SPR_crit_ext)                           # N_bad for the extended mask
         delta_obs_ext = sprk_ext[ind_sprk] * dback_10first[0]                            # w.r.t. the nominal mask
         eta_ext = sprk_ext[ind_sprk] * np.sqrt(td_10first[0] * ntr) * dback_10first[0] / (NSR_ext_1h_24_cameras *(1 - SPR_tot_ext)) # w.r.t the nominal mask
@@ -466,9 +470,7 @@ for i in range(nP):
         save_info_ext[counter] = result[2]
         save_info_bray[counter] = result[3]
         counter = counter + 1
-        
-       
-        
+               
 
     print("NUMBER OF PROCESSED TARGETS: %i" % counter)
 
