@@ -8,6 +8,7 @@
 /__pycache__/
 /catalogues_stars
 ID_comparisor.py
+data_reader.py
 /argv.py
 /master.py
 dap_metrics_dummy.py

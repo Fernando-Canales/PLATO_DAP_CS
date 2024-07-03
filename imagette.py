@@ -141,7 +141,7 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     var_y_corrected = (np.sum((y - c_y)**2 * var_delta_I_tot_w)) / np.sum(w * I_tot)**2
     # Now we compute the error associated with the absolute centroid shift
     #sigma_cs = (np.sqrt(2) / abs_cs) * np.sqrt((cs_x ** 2) * (sigma_x ** 2) + (cs_y ** 2) + (sigma_y ** 2))
-    sigma_cs = np.sqrt(2 * (gamma_x ** 2 * var_x_corrected + gamma_y ** 2 * var_y_corrected)) / gamma
+    sigma_cs = np.sqrt((gamma_x ** 2 * var_x_corrected + gamma_y ** 2 * var_y_corrected)) / gamma
     # Now we average the error over 1 hour and 24 cameras
     sigma_cs_1h_ncameras = sigma_cs / (12 * np.sqrt(n_cam))
     # Now we compute the statistical significance of the centroid shift

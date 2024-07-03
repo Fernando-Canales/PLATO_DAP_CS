@@ -35,7 +35,7 @@ nominal_metrics = {
     },
     'Gamma_values': {
         'Reza': np.round(reza_metrics_nominal_mask[0, 32:42], 6),
-        'Fernando': np.round(fernando_metrics_nominal_mask[0, 46:56], 6)
+        'Fernando': np.round(fernando_metrics_nominal_mask[0, 106:116], 6)
     },
     'SPRk_values': {
         'Reza': np.round(reza_metrics_nominal_mask[0, 22:32], 6),
@@ -54,7 +54,7 @@ extended_metrics = {
     },
     'Gamma_values': {
         'Reza': np.round(reza_metrics_extended_mask[0, 31:41], 6),
-        'Fernando': np.round(fernando_metrics_extended_mask[0, 45:55], 6)
+        'Fernando': np.round(fernando_metrics_extended_mask[0, 105:115], 6)
     },
     'SPRk_values': {
         'Reza': np.round(reza_metrics_extended_mask[0, 21:31], 5),
@@ -91,6 +91,6 @@ def write_metrics_to_txt(file_path, nominal_metrics, extended_metrics):
                 file.write("-"*65 + "\n")
 
 # Call the function to write metrics to a text file
-write_metrics_to_txt('metrics_comparison.txt', nominal_metrics, extended_metrics)
+write_metrics_to_txt('COB_metrics_comparison.txt', nominal_metrics, extended_metrics)
 
 print("Table saved as metrics_comparison.txt")
