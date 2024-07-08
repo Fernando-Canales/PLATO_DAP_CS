@@ -41,8 +41,8 @@ sd = 50.2      # Overall detector noise(includ. readout at beginning of life,sme
 sq = 7.2       # Quantization noise in units of e-rms/px
 
 # Parameters for the eclipsing binaries (comment if you don't want fixed values for every contaminant)
-#dback = 85000  # transit depth in ppm
-#td = 4         # transit duration in hours
+transit_depth = 85000  # transit depth in ppm
+transit_duration = 4         # transit duration in hours
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
@@ -183,8 +183,8 @@ for i in range(nP):
         use_fixed_values = True  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
-            td.fill(4)  # Fill the array with the fixed value
-            dback.fill(85000)  # Fill the array with the fixed value
+            td.fill(transit_duration)  # Fill the array with the fixed value
+            dback.fill(transit_depth)  # Fill the array with the fixed value
         else:
         # We obtain 10 random values for transit depth and transit duration
             for n in range(n_c):
