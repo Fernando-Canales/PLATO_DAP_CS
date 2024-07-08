@@ -79,7 +79,7 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 np.random.seed(300)
 
 file_out = open(DIRout + 'metrics_fer.txt', 'w')
-save_info = np.zeros((n_tar * nP, 148))     # numpy arr. to store the metrics for the nominal mask
+save_info = np.zeros((n_tar * nP, 149))     # numpy arr. to store the metrics for the nominal mask
 save_info_sec = np.zeros((n_tar * nP, 18)) # numpy arr. to store the metrics for the secondary mask
 save_info_ext = np.zeros((n_tar * nP, 126)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
@@ -433,6 +433,7 @@ for i in range(nP):
         save_info = np.append(save_info, dback_10first)
         save_info = np.append(save_info, gamma_nom)
         save_info = np.append(save_info, gamma_nom_6cameras)
+        save_info = np.append(save_info, nsr_1h_6_cameras)
 
         # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
