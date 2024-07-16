@@ -13,11 +13,13 @@ reza_metrics_nominal_mask = np.load(Reza_results_dir+'targets_P5.npy')
 fernando_metrics_nominal_mask = np.load(Fernando_results_dir+'targets_P5.npy')
 reza_metrics_extended_mask = np.load(Reza_results_dir+'targets_P5_extended.npy')
 fernando_metrics_extended_mask = np.load(Fernando_results_dir+'targets_P5_extended.npy')
+reza_metrics_eta_nominal_mask = np.load(Reza_results_dir+'eta_bt_24_cameras.npy')
+fernando_metrics_eta_nominal_mask = np.load(Fernando_results_dir+'eta_bt_24_cameras.npy')
+reza_metrics_eta_extended_mask = np.load(Reza_results_dir+'eta_ext_bt_24_cameras.npy')
+fernando_metrics_eta_extended_mask = np.load(Fernando_results_dir+'eta_ext_bt_24_cameras.npy')
+reza_metrics_eta_cob_nominal_mask = np.load(Reza_results_dir+'eta_cob_bt_24_cameras.npy')
+reza_metrics_eta_cob_extended_mask = np.load(Reza_results_dir+'eta_ext_cob_bt_24_cameras.npy')
 
-reza_eta_cob_bt = np.array([3.08584065e-01, 1.07772231e+00, 3.20483141e-01, 2.30258952e-01,
-  8.93119284e-02, 1.11092182e-01, 7.17252846e-02, 9.51674183e-02, 3.73985932e-02, 4.18769588e-02])
-reza_eta_ext_cob_bt = np.array([5.49588899e-01, 3.26133877e+00, 1.40896750e-01, 1.23489419e+00,
-  3.89595585e-01, 2.17777821e-01, 1.75965129e+00, 1.05425505e+00, 3.86637187e-02, 7.20801135e-01])
 
 # Now we print some useful stuff
 print("Shape of Réza's metrics:", reza_metrics_nominal_mask.shape)
@@ -40,6 +42,14 @@ nominal_metrics = {
     'SPRk_values': {
         'Reza': np.round(reza_metrics_nominal_mask[0, 22:32], 6),
         'Fernando': np.round(fernando_metrics_nominal_mask[0, 17:27], 6)
+    },
+    'eta_COB_values':{
+        'Reza': np.round(reza_metrics_eta_cob_nominal_mask[0, :], 6),
+        'Fernando': np.round(fernando_metrics_nominal_mask[0, 46:56], 6)
+    },
+    'eta_flux_values':{
+        'Reza': np.round(reza_metrics_eta_nominal_mask[0, :], 6),
+        'Fernando': np.round(fernando_metrics_eta_nominal_mask[0, :], 6)
     }
 }
 
@@ -57,8 +67,16 @@ extended_metrics = {
         'Fernando': np.round(fernando_metrics_extended_mask[0, 105:115], 6)
     },
     'SPRk_values': {
-        'Reza': np.round(reza_metrics_extended_mask[0, 21:31], 5),
-        'Fernando': np.round(fernando_metrics_extended_mask[0, 14:24], 5)
+        'Reza': np.round(reza_metrics_extended_mask[0, 21:31], 6),
+        'Fernando': np.round(fernando_metrics_extended_mask[0, 14:24], 6)
+    },
+    'eta_COB_values':{
+        'Reza': np.round(reza_metrics_eta_cob_extended_mask[0, :], 6),
+        'Fernando': np.round(fernando_metrics_extended_mask[0, 45:55], 6)
+    },
+    'eta_flux_values':{
+        'Reza': np.round(reza_metrics_eta_extended_mask[0,:], 6),
+        'Fernando': np.round(fernando_metrics_eta_extended_mask[0, :], 6)
     }
 }
 

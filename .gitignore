@@ -15,5 +15,9 @@ dap_metrics_dummy.py
 /NSR_agg_evolution.png
 /master_multiprocessing.py
 /nominal_mask_plotter.py
+gaia_id_crossmatcher.py 
+text_comparison_all_metrics.py
+important_metrics_comparison.tex
+text_comparison_all_metrics.py
 
 

@@ -46,7 +46,7 @@ transit_duration = 4         # transit duration in hours
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 8                          # number of targets per magnitude interval
+n_tar = 1000                          # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
