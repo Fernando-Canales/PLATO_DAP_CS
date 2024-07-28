@@ -46,7 +46,7 @@ transit_duration = 4         # transit duration in hours
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 1000                          # number of targets per magnitude interval
+n_tar = 5                          # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -79,7 +79,7 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 np.random.seed(300)
 
 file_out = open(DIRout + 'metrics_fer.txt', 'w')
-save_info = np.zeros((n_tar * nP, 149))     # numpy arr. to store the metrics for the nominal mask
+save_info = np.zeros((n_tar * nP, 179))     # numpy arr. to store the metrics for the nominal mask
 save_info_sec = np.zeros((n_tar * nP, 18)) # numpy arr. to store the metrics for the secondary mask
 save_info_ext = np.zeros((n_tar * nP, 126)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
@@ -212,7 +212,7 @@ for i in range(nP):
 
         # Now we find the distance between the target and the contaminant star with the highest value of sprk w.r.t the
         # nominal mask
-        dist_bad = (x_t_im - x_c_im[index_contaminant_highest_sprk]) ** 2 + (y_t_im - y_c_im[index_contaminant_highest_sprk]) ** 2
+        dist_bad = np.sqrt((x_t_im - x_c_im[index_contaminant_highest_sprk]) ** 2 + (y_t_im - y_c_im[index_contaminant_highest_sprk]) ** 2)
         # Now we define a term that contains the flux of the targets and their respective contaminants except the
         # one with the highest value of SPRk (i.e. the contaminant of interest)
         Itc_acc = It + Ic_acc - Ic_max
@@ -261,12 +261,21 @@ for i in range(nP):
         abs_cob_shift_10first_6_cameras = np.zeros(10)
         dback_10first = np.zeros(10)
         td_10first = np.zeros(10)
+        magnitude_contaminant_10first = np.zeros(10)
+        x_coordinate_in_the_imagette_for_a_contaminant_10first = np.zeros(10)
+        y_coordinate_in_the_imagette_for_a_contaminant_10first = np.zeros(10)
         #dback_10first_index = np.random.randint(0, len(del_back), size=10)
         # sorting the SPRk by decreasing order and taking the 10 first values
         sprk_sorted_index = (np.argsort(sprk)[::-1])
         sprk_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
         dback_10first[0:nsprmax] = dback[sprk_sorted_index[0:nsprmax]]
         td_10first[0:nsprmax] = td[sprk_sorted_index[0:nsprmax]]
+        x_coordinate_in_the_imagette_for_a_contaminant_10first = x_c_im[0:nsprmax]
+        y_coordinate_in_the_imagette_for_a_contaminant_10first = y_c_im[0:nsprmax]
+        magnitude_contaminant_10first = m_c[0:nsprmax]
+        print('x-coordinate for the first 10 contaminants', x_coordinate_in_the_imagette_for_a_contaminant_10first)
+        print('y-coordinate for the first 10 contaminants', y_coordinate_in_the_imagette_for_a_contaminant_10first)
+        print('magnitude for the first 10 contaminants', magnitude_contaminant_10first)
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             eta_10first[l] = sprk[m] * np.sqrt(td[m] * ntr) * dback[m] / nsr_1h_24_cameras / (1. - SPR_tot)
@@ -434,6 +443,9 @@ for i in range(nP):
         save_info = np.append(save_info, gamma_nom)
         save_info = np.append(save_info, gamma_nom_6cameras)
         save_info = np.append(save_info, nsr_1h_6_cameras)
+        save_info = np.append(save_info, x_coordinate_in_the_imagette_for_a_contaminant_10first)
+        save_info = np.append(save_info, y_coordinate_in_the_imagette_for_a_contaminant_10first)
+        save_info = np.append(save_info, magnitude_contaminant_10first)
 
         # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])

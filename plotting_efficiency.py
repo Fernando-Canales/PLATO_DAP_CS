@@ -74,6 +74,9 @@ data = np.load(dataDIR + 'targets_P5.npy')
 #146: gamma_nom
 #147: gamma_nom_6_cameras
 #148: nsr1h_6cameras
+#149-158: x_coordinate_contaminant_stars_10first
+#159-168: y_coordinate_contaminant_stars_10first
+#168-178: magnitude_10first_contaminants
  
 data_sec = np.load(dataDIR + 'targets_P5_secondary.npy')
 #0: ID_t
@@ -300,7 +303,7 @@ delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
 nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
 eta_ext_bt = np.zeros((n, 10))
 eta_ext_bt_6_cameras = np.zeros((n,10))
-eta_bt = np.zeros((n, 10))
+eta_bt_direct_equation= np.zeros((n, 10))
 eta_bt_direct_equation = np.zeros((n,10))
 eta_bt_direct_equation_6_cameras = np.zeros((n,10))
 eta_bt_6_cameras = np.zeros((n, 10))
@@ -315,7 +318,7 @@ for i in range(n):
     dback = np.ones(10)*85000
     td = np.ones(10)*4.
     #eta_bt[i, :] = (SPRK10_first[i, :]/data[i, 9])*flux_trsh *(dback/85000)*np.sqrt(td/4)
-    eta_bt[i, :] = dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11]))
+    eta_bt_direct_equation[i, :] = dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11]))
     #eta_bt_6_cameras[i, :] = (SPRK10_first[i, :]/data[i, 44])*flux_trsh*(dback/85000)*np.sqrt(td/4)
     eta_bt_6_cameras[i, :] = dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt[i, :] = dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13]))
@@ -327,9 +330,9 @@ for i in range(n):
     #td[:] = 4.
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
-    nbad_sp[i] = np.sum( (eta_bt[i,:]>7.1) & (delta_int<4*84. ))
+    nbad_sp[i] = np.sum( (eta_bt_direct_equation[i,:]>7.1) & (delta_int<4*84. ))
 
-# Save the eta_bt array
+# Save the eta_bt_direct_equationarray
 np.save(dataDIR+'eta_bt_24_cameras.npy', eta_bt_direct_equation)
 np.save(dataDIR+'eta_bt_6_cameras', eta_bt_direct_equation_6_cameras)
 np.save(dataDIR+'eta_ext_bt_24_cameras.npy', eta_ext_bt)
@@ -728,9 +731,9 @@ plt.figure(22)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    fp_ext_overall_24_cameras = (eta_bt>flux_trsh)[m,:].sum()
+    fp_ext_overall_24_cameras = (eta_bt_direct_equation>flux_trsh)[m,:].sum()
     fp_ext_overall_6_cameras = (eta_bt_6_cameras>flux_trsh)[m,:].sum()
-    eff_ext_overall = ((eta_ext_bt > flux_thresh_ext_mask) & (delta_obs_ext>delta_obs) & (eta_bt>flux_trsh))[m,:].sum() / fp_ext_overall_24_cameras*100.
+    eff_ext_overall = ((eta_ext_bt > flux_thresh_ext_mask) & (delta_obs_ext>delta_obs) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / fp_ext_overall_24_cameras*100.
     eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras>delta_obs) & (eta_bt_6_cameras>flux_trsh))[m,:].sum() / fp_ext_overall_6_cameras*100.
     eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_6_cameras[m].sum()) * 100
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
@@ -798,12 +801,12 @@ plt.figure(24)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    s_24_cameras = (eta_bt>flux_trsh)[m,:].sum()
+    s_24_cameras = (eta_bt_direct_equation>flux_trsh)[m,:].sum()
     s_6_cameras = (eta_bt_6_cameras>flux_trsh)[m,:].sum()
     #eff_ext = (efd[m].sum() / fp[m].sum()) * 100
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt>flux_trsh))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / s_24_cameras * 100.
     eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_trsh) &  (eta_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_trsh) & (eta_bt>flux_trsh))[m,:].sum() / s_24_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / s_24_cameras * 100.
     eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_trsh) & (eta_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
     #eff_cob = (cd[m].sum() / fp_24_cameras[m].sum()) * 100
     #eff_cob_6_cameras = (cd_6_cameras[m].sum() / fp_6_cameras[m].sum()) * 100
@@ -852,6 +855,42 @@ for i in range(nP):
 plt.legend()
 plt.xlabel('P magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
+
+nfp = (eta_bt_direct_equation > flux_trsh)
+nfp_ext_mask = (eta_ext_bt > flux_thresh_ext_mask) & (delta_obs_ext > delta_obs)
+nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_trsh)
+nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_trsh)
+nfp_sec_mask = (eta_c > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t) & (eta_t > flux_trsh)
+
+eff_ext = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
+print('extended flux efficiency: %f' % eff_ext)
+
+eff_sec = nfp_sec_mask.sum()/fp.sum()*100
+print('secondary flux efficiency: %f' % eff_sec)
+
+eff_cob_nom = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
+print('nominal cob efficiency: %f' % eff_cob_nom)
+
+eff_cob_ext = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
+print('extended cob efficiency: %f' % eff_cob_ext)
+
+eff_cob_sec = (secondary_mask_conditions_cob_24_cameras & fp).sum()/fp.sum()*100.
+print('secondary mask cob efficiency: %f' % eff_cob_sec)
+
+f = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
+print('fraction only detected by nominal centroids but not by the extended flux %f' % f)
+
+f = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
+print('fraction only detected by the extended flux but not by nominal centroids %f' % f)
+
+f = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
+print('fraction only detected by extended centroids but not by extended flux %f' % f)
+
+# Broadcast `d` to match `b`
+d_broadcasted = np.broadcast_to(nfp_sec_mask[:, np.newaxis], nfp_nom_cob.shape)
+f_broadcasted = (d_broadcasted & (nfp_nom_cob == False)).sum() / fp.sum()
+print('fraction only detected by the secondary flux but not by nominal centroids %f' % f_broadcasted)
+
 
 
 """ 
@@ -934,7 +973,7 @@ for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     #if Pi == mag_value:
-    condition_eta_nom = (delta_obs_ext>delta_obs) & (eta_bt>flux_trsh)
+    condition_eta_nom = (delta_obs_ext>delta_obs) & (eta_bt_direct_equation>flux_trsh)
     filtered_eta_nom = condition_eta_nom[m, :]
     count_nom = filtered_eta_nom.sum()
     count_eta_nom.append(count_nom) 
@@ -965,7 +1004,7 @@ mag_mask = (mag >= 12.25) & (mag <= 12.75)
 eta_ext = eta_ext_bt[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
-eta_and_delta_mask = (eta_bt[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
+eta_and_delta_mask = (eta_bt_direct_equation[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
 eta_and_delta_mask_6_cameras = (eta_bt_6_cameras[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
 
 final_eta_ext = eta_ext[eta_and_delta_mask]
@@ -994,7 +1033,7 @@ plt.legend()
 
 plt.figure(32)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_nom_24_cameras = eta_bt[mag_mask]
+eta_nom_24_cameras = eta_bt_direct_equation[mag_mask]
 eta_nom_6_cameras = eta_bt_6_cameras[mag_mask]
 
 eta_nom_24_cameras_flat = eta_nom_24_cameras.flatten()
@@ -1028,7 +1067,7 @@ mag_mask = (mag >= 12.25) & (mag <= 12.75)
 eta_ext = eta_ext_bt[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
-eta_mask = (eta_bt[mag_mask] >= flux_trsh)
+eta_mask = (eta_bt_direct_equation[mag_mask] >= flux_trsh)
 eta_mask_6_cameras = (eta_bt_6_cameras[mag_mask] >= flux_trsh)
 
 final_eta_ext = eta_ext[eta_mask]
@@ -1117,7 +1156,6 @@ plt.yscale('log')
 plt.legend()
 
 
-
 plt.figure(38)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
 eta_ext = eta_ext_bt[mag_mask]
@@ -1185,10 +1223,10 @@ plt.legend()
 
 
 
-l1 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= 2*flux_trsh) & (eta_bt[mag_mask] >= 2 *flux_trsh)
-l2 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt[mag_mask], eta_bt[mag_mask] <= 2*flux_trsh) & (eta_ext >= 2*flux_trsh)
-l3 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt[mag_mask], eta_bt[mag_mask] <= 2*flux_trsh) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= (2*flux_trsh))
-l4 = np.logical_and(flux_trsh < eta_bt[mag_mask], eta_bt[mag_mask] < 2*flux_trsh)
+l1 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= 2*flux_trsh) & (eta_bt_direct_equation[mag_mask] >= 2 *flux_trsh)
+l2 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] <= 2*flux_trsh) & (eta_ext >= 2*flux_trsh)
+l3 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] <= 2*flux_trsh) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= (2*flux_trsh))
+l4 = np.logical_and(flux_trsh < eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] < 2*flux_trsh)
 
 
 print('L1 is:', np.sum(l1))
@@ -1200,14 +1238,16 @@ print('L1 + L2 + L3 is:', np.sum(l1 + l2 + l3))
 
 
 plt.figure(41)
-mask_ext=  (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh)  
-#& (delta_obs_ext_6_cameras>delta_obs)
-mask_nom = (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt > flux_trsh) & (eta_cob_nom_10first_24_cameras > cob_trsh) 
-#& (delta_obs_ext_6_cameras>delta_obs)
+mask_ext=  (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt_direct_equation > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) 
+#& (delta_obs_ext > delta_obs)  
+
+mask_nom = (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt_direct_equation > flux_trsh) & (eta_cob_nom_10first_24_cameras > cob_trsh) 
+#& (delta_obs_ext > delta_obs)
 
 
-cob_mask_cases =  (eta_cob_ext_10first_24_cameras > eta_ext_bt) & (eta_ext_bt > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt > flux_trsh)
-cob_ext = (eta_ext_bt > eta_cob_ext_10first_24_cameras ) & (eta_ext_bt > flux_thresh_ext_mask) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt > flux_trsh)
+
+cob_mask_cases =  (eta_cob_ext_10first_24_cameras > eta_ext_bt) & (eta_ext_bt > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation> flux_trsh)
+cob_ext = (eta_ext_bt > eta_cob_ext_10first_24_cameras ) & (eta_ext_bt > flux_thresh_ext_mask) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation> flux_trsh)
 cob_ext_mask = (eta_cob_ext_10first_24_cameras > cob_trsh)
 cob_nom_mask = (eta_cob_nom_10first_24_cameras > cob_trsh)
 
@@ -1216,36 +1256,46 @@ print('Number of times eta_ext^COB > eta_ext given (eta_ext > eta_min) and (eta_
 print('Number of times eta_ext^COB > eta^COB_min:', np.sum(cob_ext_mask))
 print('Number of times eta_nom^COB > eta^COB_min:', np.sum(cob_nom_mask))
 
-etas_ext_nom = eta_ext_bt[mask_ext]/eta_bt[mask_ext]
+etas_ext_nom = eta_ext_bt[mask_ext]/eta_bt_direct_equation[mask_ext]
 etas =  eta_ext_bt[mask_ext]/eta_cob_ext_10first_24_cameras[mask_ext]
 etas_nom = eta_ext_bt[mask_nom] / eta_cob_nom_10first_24_cameras[mask_nom]
 
 
-# Find the indices where eta_cob_nom is higher than eta_ext
-indices_higher_cob_ext = np.where(etas < 1)[0]
+# Find the indices where eta_cob_ext is higher than eta_ext
+indices_for_when_eta_cob_ext_is_higher_than_eta_ext = np.where(etas < 1)[0]
+indices_for_when_eta_cob_ext_is_smaller_than_eta_ext = np.where(etas > 1)[0]
 
 # Find the indices where eta_cob_nom is higher than eta_ext
-indices_higher_cob_nom = np.where(etas_nom < 1)[0]
+indices_for_when_eta_cob_nom_is_higher_than_eta_ext = np.where(etas_nom < 1)[0]
+indices_for_when_eta_cob_nom_is_smaller_than_eta_ext = np.where(etas_nom > 1)[0]
+
+print(len(indices_for_when_eta_cob_ext_is_higher_than_eta_ext))
+print(len(indices_for_when_eta_cob_ext_is_smaller_than_eta_ext))
+print(len(indices_for_when_eta_cob_nom_is_higher_than_eta_ext))
+print(len(indices_for_when_eta_cob_nom_is_smaller_than_eta_ext))
+
 #etas_nom = eta_ext_bt[mask_ext_eta]/eta_cob_10first[mask_eta_min]
 mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
-plt.plot(mag_2d[mask_ext], etas, 'ko',  markersize=2, alpha=0.5, label=r'$ \eta_{ext} / \eta_{ext}^{COB} $ given $(\eta_{ext} > \eta_{min}^{ext})$ and $(\eta_{ext}^{COB} > \eta_{min}^{COB})$ and $(\eta_{nom} > \eta_{min})$' )
+#plt.plot(mag_2d[mask_ext], etas, 'ko',  markersize=2, alpha=0.5, label=r'$ \eta_{k}^{ext} / \eta_{k}^{ext,COB} $ given $(\eta_{k}^{ext} > \eta_{min}^{ext})$ and $(\eta_{k}^{ext,COB} > \eta_{min}^{COB})$ and $(\eta_{k}^{nom} > \eta_{min})$ and $(\delta_{k}^{ext} > \delta_{k}^{nom})$')
 #plt.plot(mag_2d[mask_ext], etas_ext_nom, 'go', markersize=2, alpha=0.5, label=r'$ \eta_{ext} / \eta_{nom} $ given $(\eta_{ext} > \eta_{min})$ and $(\eta_{ext}^{COB} > \eta_{min}^{COB})$ and $(\eta_{nom} > \eta_{min})$')
-plt.plot(mag_2d[mask_nom], etas_nom, 'bo', markersize=2, alpha=0.5, label=r'$ \eta_{ext} / \eta_{nom}^{COB} $ given $(\eta_{ext} > \eta_{min}^{ext})$ and $(\eta_{nom}^{COB} > \eta_{min}^{COB})$ and $(\eta_{nom} > \eta_{min})$' )
+plt.plot(mag_2d[mask_nom], etas_nom, 'bo', markersize=2, alpha=0.5, label=r'$ \eta_{k}^{ext} / \eta_{k}^{nom,COB} $ given $(\eta_{k}^{ext} > \eta_{min}^{ext})$ & $(\eta_{k}^{nom,COB} > \eta_{min}^{COB})$ & $(\eta_{k}^{nom} > \eta_{min})$ & $(\delta_{k}^{ext} > \delta_{k}^{nom})$')
 #$(\delta_{obs}^{ext} > \delta_{obs})$ and
-plt.hlines(1, xmin=10,xmax=13, linestyles='dashdot', colors='red')
+plt.text(11.5, 0.5, len(indices_for_when_eta_cob_nom_is_higher_than_eta_ext))
+plt.text(11.5, 10, len(indices_for_when_eta_cob_nom_is_smaller_than_eta_ext))
+plt.hlines(1, xmin=10,xmax=13, linestyles='dashdot', colors='red',  linewidth=3)
 plt.xlabel('P magnitude', fontsize=fsize)
 #plt.ylabel(r'$ \eta_{ext} / \eta_{ext}^{COB} $ given $(\eta_{ext} > \eta_{min})$', fontsize=fsize)
 plt.yscale('log')
 #plt.ylim(0.01, 1000000000)
-# Adjust legend and layout
-plt.legend(fontsize='small')
-plt.tight_layout()
 plt.xlim(10, 13)
+# Adjust legend and layout
+plt.legend(fontsize='small', handlelength=2)
+plt.tight_layout()
 
 
 plt.figure(42)
-eta_nom_mag_10 = eta_bt[mag_mask_10]
-eta_nom_mag_13 = eta_bt[mag_mask_13]
+eta_nom_mag_10 = eta_bt_direct_equation[mag_mask_10]
+eta_nom_mag_13 = eta_bt_direct_equation[mag_mask_13]
 
 eta_nom_mag_10_flat = eta_nom_mag_10.flatten()
 eta_nom_mag_13_flat = eta_nom_mag_13.flatten()
@@ -1270,11 +1320,11 @@ plt.legend()
 
 
 plt.figure(43)
-n_ext_fp_mag_10 = np.sum((eta_ext_bt[mag_mask_10] > flux_trsh) & (delta_obs_ext[mag_mask_10]>delta_obs[mag_mask_10]) & (eta_bt[mag_mask_10]>flux_trsh))
-n_fp_mag_10 = np.sum((eta_bt[mag_mask_10] > flux_trsh))
+n_ext_fp_mag_10 = np.sum((eta_ext_bt[mag_mask_10] > flux_trsh) & (delta_obs_ext[mag_mask_10]>delta_obs[mag_mask_10]) & (eta_bt_direct_equation[mag_mask_10]>flux_trsh))
+n_fp_mag_10 = np.sum((eta_bt_direct_equation[mag_mask_10] > flux_trsh))
 
-n_ext_fp_mag_13 = np.sum((eta_ext_bt[mag_mask_13] > flux_trsh) & (delta_obs_ext[mag_mask_13]>delta_obs[mag_mask_13]) & (eta_bt[mag_mask_13]>flux_trsh))
-n_fp_mag_13 = np.sum((eta_bt[mag_mask_13] > flux_trsh))
+n_ext_fp_mag_13 = np.sum((eta_ext_bt[mag_mask_13] > flux_trsh) & (delta_obs_ext[mag_mask_13]>delta_obs[mag_mask_13]) & (eta_bt_direct_equation[mag_mask_13]>flux_trsh))
+n_fp_mag_13 = np.sum((eta_bt_direct_equation[mag_mask_13] > flux_trsh))
 
 # Values to plot
 colors = ['blue', 'green', 'red', 'purple']
@@ -1299,9 +1349,9 @@ plt.title(r'Histogram of $N_{ext}^{fp}$ and $N_{fp}$')
 
 plt.figure(44)
 
-mask_for_eta_ext_given_delta_and_eta_nom_conditions = (delta_obs_ext > delta_obs) & (eta_bt > flux_trsh)
+mask_for_eta_ext_given_delta_and_eta_nom_conditions = (delta_obs_ext > delta_obs) & (eta_bt_direct_equation> flux_trsh)
 eta_ext_given_delta_and_eta_nom_conditions = eta_ext_bt[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
-eta_bt_given_delta_and_eta_nom_conditions = eta_bt[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
+eta_bt_given_delta_and_eta_nom_conditions = eta_bt_direct_equation[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
 
 
 eta_ratio = eta_ext_given_delta_and_eta_nom_conditions/eta_bt_given_delta_and_eta_nom_conditions
@@ -1326,19 +1376,19 @@ plt.legend()
 
 plt.figure(45)
 
-mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions = (eta_ext_bt > flux_trsh) & (eta_bt > flux_trsh)
+mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions = (eta_ext_bt > flux_trsh) & (eta_bt_direct_equation> flux_trsh)
 delta_ext_given_eta_ext_and_eta_nom_conditions = delta_obs_ext[mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions]
 
 mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions = (eta_ext_bt > flux_trsh) & (delta_obs_ext > delta_obs)
-eta_nom_given_eta_ext_and_delta_ext_conditions = eta_bt[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions]
+eta_nom_given_eta_ext_and_delta_ext_conditions = eta_bt_direct_equation[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions]
 
-mask_for_eta_nom_higher_than_eta_min = (eta_bt > flux_trsh)
-eta_nom_higher_than_eta_min = eta_bt[mask_for_eta_nom_higher_than_eta_min]
+mask_for_eta_nom_higher_than_eta_min = (eta_bt_direct_equation> flux_trsh)
+eta_nom_higher_than_eta_min = eta_bt_direct_equation[mask_for_eta_nom_higher_than_eta_min]
 
 plt.plot(mag_2d[mask_for_eta_ext_given_delta_and_eta_nom_conditions], eta_ext_given_delta_and_eta_nom_conditions, 'bo', markersize=2, alpha=0.65, label=r'$\eta_{ext}$ given $(\delta_{ext} > \delta_{nom})$ and $(\eta_{nom} > \eta_{min})$')
 #plt.plot(mag_2d[mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions], delta_ext_given_eta_ext_and_eta_nom_conditions, 'ko', markersize=2, alpha=0.65, label=r'$\delta_{ext}$ given $(\eta_{ext} > \eta_{min})$ and $(\eta_{nom} > \eta_{min})$')
 #plt.plot(mag_2d[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions], eta_nom_given_eta_ext_and_delta_ext_conditions, 'go', markersize=2, alpha=0.65, label=r'$\eta_{nom}$ given $(\delta_{ext} > \delta_{nom})$ and $(\eta_{ext} > \eta_{min})$')
-plt.plot(mag_2d[mask_for_eta_nom_higher_than_eta_min], eta_bt[mask_for_eta_nom_higher_than_eta_min], 'ko', markersize=2, alpha=0.65, label=r'$\eta_{nom} given (\eta_{nom} > \eta_{min}$)')
+plt.plot(mag_2d[mask_for_eta_nom_higher_than_eta_min], eta_bt_direct_equation[mask_for_eta_nom_higher_than_eta_min], 'ko', markersize=2, alpha=0.65, label=r'$\eta_{nom} given (\eta_{nom} > \eta_{min}$)')
 plt.yscale('log')
 plt.legend()
 
@@ -1360,14 +1410,15 @@ plt.plot(mag_2d, SPRK10_first_ext / nsr1h_ext_24_cameras_2d, 'bo', markersize=2)
 plt.xlabel('P magnitude')
 
 plt.figure(48)
-eta_nom_flat = eta_bt.flatten()
+eta_nom_flat = eta_bt_direct_equation.flatten()
 eta_ext_flat = eta_ext_bt.flatten()
+eta_ext_cob_flat = eta_cob_ext_10first_24_cameras.flatten()
 eta_nom_cob_flat = eta_cob_nom_10first_24_cameras.flatten()
 mag_2d_flat = mag_2d.flatten()
 
-plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_cob_flat, 'o', label=r'$\eta_{k}^{ext} / \eta_{k}^{nom, COB}$')
-plt.plot(mag_2d_flat, eta_nom_flat/eta_nom_cob_flat, 'o', label=r'$\eta_{k}^{nom} / \eta_{k}^{nom, COB}$')
-plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_flat, 'o', label=r'$\eta_{k}^{ext} / \eta_{k}^{nom}$')
+#plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_cob_flat, 'o', markersize = 2, alpha = 0.5, label=r'$\eta_{k}^{ext} / \eta_{k}^{nom, COB}$')
+plt.plot(mag_2d_flat, eta_ext_flat/eta_ext_cob_flat, 'o', markersize = 2, alpha = 0.5, label=r'$\eta_{k}^{ext} / \eta_{k}^{ext, COB}$')
+#plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_flat, 'o', label=r'$\eta_{k}^{ext} / \eta_{k}^{nom}$')
 #plt.ylim(0, 200)
 plt.yscale('log')
 plt.legend()

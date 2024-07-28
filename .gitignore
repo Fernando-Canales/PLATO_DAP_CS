@@ -18,6 +18,6 @@ dap_metrics_dummy.py
 gaia_id_crossmatcher.py 
 text_comparison_all_metrics.py
 important_metrics_comparison.tex
-text_comparison_all_metrics.py
+comparison_all_metrics.py
 
 
