@@ -704,36 +704,79 @@ nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_trsh)
 nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_trsh)
 nfp_sec_mask = (eta_c > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t) & (eta_t > flux_trsh)
 
-eff_ext = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
-print('extended flux efficiency: %f' % eff_ext)
+print('++++++++++++ Some important computations ++++++++++++')
+eff_ext_flux = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
+print('extended flux efficiency: %f' % eff_ext_flux)
 
-eff_sec = nfp_sec_mask.sum()/fp.sum()*100
-print('secondary flux efficiency: %f' % eff_sec)
+eff_sec_flux = nfp_sec_mask.sum()/fp.sum()*100
+print('secondary flux efficiency: %f' % eff_sec_flux)
 
-eff_cob_nom = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
-print('nominal cob efficiency: %f' % eff_cob_nom)
+eff_nom_cob = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
+print('nominal cob efficiency: %f' % eff_nom_cob)
 
-eff_cob_ext = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
-print('extended cob efficiency: %f' % eff_cob_ext)
+eff_ext_cob = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
+print('extended cob efficiency: %f' % eff_ext_cob)
 
-eff_cob_sec = (secondary_mask_conditions_cob_24_cameras & fp).sum()/fp.sum()*100.
-print('secondary mask cob efficiency: %f' % eff_cob_sec)
+eff_sec_cob = (secondary_mask_conditions_cob_24_cameras & fp).sum()/fp.sum()*100.
+print('secondary mask cob efficiency: %f' % eff_sec_cob)
 
-f = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
-print('fraction only detected by nominal centroids but not by the extended flux %f' % f)
+fraction_fp_nom_cob_no_ext_flux = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
+print('fraction of false positives only detected by nominal centroids but not by the extended flux: %f' % fraction_fp_nom_cob_no_ext_flux)
 
-f = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
-print('fraction only detected by the extended flux but not by nominal centroids %f' % f)
+fraction_fp_ext_flux_no_nom_cob = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
+print('fraction of false positives only detected by the extended flux but not by nominal centroids: %f' % fraction_fp_ext_flux_no_nom_cob)
 
-f = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
-print('fraction only detected by extended centroids but not by extended flux %f' % f)
+fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
+print('fraction of false positives only detected by extended centroids but not by extended flux: %f' % fraction_fp_ext_cob_no_ext_flux)
 
 # Broadcast `d` to match `b`
 d_broadcasted = np.broadcast_to(nfp_sec_mask[:, np.newaxis], nfp_nom_cob.shape)
 f_broadcasted = (d_broadcasted & (nfp_nom_cob == False)).sum() / fp.sum()
 print('fraction only detected by the secondary flux but not by nominal centroids %f' % f_broadcasted)
 
-         
+# Getting the magnitude of the targets for which nominal centroids are more efficient than extended mask
+mask_for_fraction_of_fp_detected_by_nom_cob_but_no_by_ext_flux = (nfp_ext_mask == False) & nfp_nom_cob & nfp
+
+# Getting the row indices where the mask is treu
+row_indices = np.where(mask_for_fraction_of_fp_detected_by_nom_cob_but_no_by_ext_flux)[0]
+
+# Extract the unique row indices
+unique_row_indices = np.unique(row_indices)
+
+# Extract the corresponding magnitude values
+mag_fraction_fp_nom_cob_no_ext_flux = mag[unique_row_indices]
+
+plt.figure(35)
+#plt.plot(mag_fraction_fp_nom_cob_no_ext_flux, range(len(mag_fraction_fp_nom_cob_no_ext_flux)), 'o')
+#plt.xlabel('Magnitude')
+#plt.ylabel('Index')
+#plt.title('Magnitudes of Targets')
+#plt.hist(mag_fraction_fp_nom_cob_no_ext_flux, bins='auto', alpha=0.7, color='blue')
+#plt.xlabel('Magnitude')
+#plt.ylabel('Number of Targets')
+#plt.title('Distribution of Magnitudes for Efficient Nominal Centroid Detection')
+# Calculate the Freedman-Diaconis number of bins
+# Define bin centers (middle of each bin)
+desired_centers = np.array([10, 10.5, 11, 11.5, 12, 12.5, 13])
+
+# Calculate bin edges
+bin_width = 0.5  # Width of each bin
+bin_edges = np.concatenate([desired_centers - bin_width/2, [desired_centers[-1] + bin_width/2]])
+
+# Compute histogram
+counts, _ = np.histogram(mag_fraction_fp_nom_cob_no_ext_flux, bins=bin_edges)
+percentages = (counts / len(mag_fraction_fp_nom_cob_no_ext_flux)) * 100
+
+# Calculate bin centers
+bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+plt.bar(desired_centers, percentages, width=bin_width, align='center', alpha=0.7, color='blue', edgecolor='black')
+plt.xlabel('Magnitude')
+plt.ylabel('Percentage of Targets')
+plt.title('Distribution of targets for which nominal centroids are\nmore efficient than extended flux (11 % of the total false positives)')
+plt.xticks(desired_centers)  # Set x-ticks to match desired centers
+
+
 """
 The condition of eta_ext
 """
