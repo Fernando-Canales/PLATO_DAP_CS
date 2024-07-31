@@ -721,13 +721,17 @@ eff_sec_cob = (secondary_mask_conditions_cob_24_cameras & fp).sum()/fp.sum()*100
 print('secondary mask cob efficiency: %f' % eff_sec_cob)
 
 fraction_fp_nom_cob_no_ext_flux = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by nominal centroids but not by the extended flux: %f' % fraction_fp_nom_cob_no_ext_flux)
+print('fraction of false positives only detected by nominal centroids and not by the extended flux: %f' % fraction_fp_nom_cob_no_ext_flux)
 
 fraction_fp_ext_flux_no_nom_cob = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by the extended flux but not by nominal centroids: %f' % fraction_fp_ext_flux_no_nom_cob)
+print('fraction of false positives only detected by the extended flux and not by nominal centroids: %f' % fraction_fp_ext_flux_no_nom_cob)
 
 fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
-print('fraction of false positives only detected by extended centroids but not by extended flux: %f' % fraction_fp_ext_cob_no_ext_flux)
+print('fraction of false positives only detected by extended centroids and not by extended flux: %f' % fraction_fp_ext_cob_no_ext_flux)
+
+fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob==False) & nfp_ext_cob & nfp).sum()/nfp.sum()
+print('fraction of false positives only detected by extended centroid and not by nominal centroids: %f' % fraction_fp_ext_cob_no_nom_cob)
+
 
 # Broadcast `d` to match `b`
 d_broadcasted = np.broadcast_to(nfp_sec_mask[:, np.newaxis], nfp_nom_cob.shape)
@@ -747,16 +751,6 @@ unique_row_indices = np.unique(row_indices)
 mag_fraction_fp_nom_cob_no_ext_flux = mag[unique_row_indices]
 
 plt.figure(35)
-#plt.plot(mag_fraction_fp_nom_cob_no_ext_flux, range(len(mag_fraction_fp_nom_cob_no_ext_flux)), 'o')
-#plt.xlabel('Magnitude')
-#plt.ylabel('Index')
-#plt.title('Magnitudes of Targets')
-#plt.hist(mag_fraction_fp_nom_cob_no_ext_flux, bins='auto', alpha=0.7, color='blue')
-#plt.xlabel('Magnitude')
-#plt.ylabel('Number of Targets')
-#plt.title('Distribution of Magnitudes for Efficient Nominal Centroid Detection')
-# Calculate the Freedman-Diaconis number of bins
-# Define bin centers (middle of each bin)
 desired_centers = np.array([10, 10.5, 11, 11.5, 12, 12.5, 13])
 
 # Calculate bin edges
