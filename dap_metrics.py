@@ -5,14 +5,7 @@ import spline2dbase # type: ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 from imagette import barycenter, window, ran_unique_int, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
-from pylab import * # type: ignore
-import sys
-import os
-#import argparse
 
-#parser = argparse.ArgumentParser()
-#parser.add_argument("output_folder")
-#args = parser.parse_args()
 # ------------------------------------------------
 
 # ------------------------------------------------
@@ -25,9 +18,7 @@ import os
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
 PSFfile = 'PSF.npz'                                                   # processed PSF files
 DIRout = 'test_results/'
-#DIRout = 'test_results/' + args.output_folder + "/" # storage directory
-#output_run_dir = DIRout + sys.argv[1] + "/"
-#os.makedirs(DIRout, exist_ok = True)
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
@@ -41,12 +32,12 @@ sd = 50.2      # Overall detector noise(includ. readout at beginning of life,sme
 sq = 7.2       # Quantization noise in units of e-rms/px
 
 # Parameters for the eclipsing binaries (comment if you don't want fixed values for every contaminant)
-transit_depth = 85000  # transit depth in ppm
-transit_duration = 4         # transit duration in hours
+transit_depth = 132000  # transit depth in ppm
+transit_duration = 1.42   # transit duration in hours
 ntr = 3        # number of transits in one hour
 
 # Parameters for the magnitude intervals
-n_tar = 5                          # number of targets per magnitude interval
+n_tar = 100                         # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -270,9 +261,9 @@ for i in range(nP):
         sprk_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
         dback_10first[0:nsprmax] = dback[sprk_sorted_index[0:nsprmax]]
         td_10first[0:nsprmax] = td[sprk_sorted_index[0:nsprmax]]
-        x_coordinate_in_the_imagette_for_a_contaminant_10first = x_c_im[0:nsprmax]
-        y_coordinate_in_the_imagette_for_a_contaminant_10first = y_c_im[0:nsprmax]
-        magnitude_contaminant_10first = m_c[0:nsprmax]
+        x_coordinate_in_the_imagette_for_a_contaminant_10first[0:nsprmax] = x_c_im[sprk_sorted_index[0:nsprmax]]
+        y_coordinate_in_the_imagette_for_a_contaminant_10first[0:nsprmax] = y_c_im[sprk_sorted_index[0:nsprmax]]
+        magnitude_contaminant_10first[0:nsprmax] = m_c[sprk_sorted_index[0:nsprmax]]
         print('x-coordinate for the first 10 contaminants', x_coordinate_in_the_imagette_for_a_contaminant_10first)
         print('y-coordinate for the first 10 contaminants', y_coordinate_in_the_imagette_for_a_contaminant_10first)
         print('magnitude for the first 10 contaminants', magnitude_contaminant_10first)
