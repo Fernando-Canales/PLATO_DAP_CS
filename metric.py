@@ -16,16 +16,20 @@ import multiprocessing
 import math
 import time
 import traceback
-
 # --------------------------------------------------
 # CONFIGURATION PARAMETERS
 
 verbose = False
+doplot = False
+mp =  True  # multiprocessing mode
+
 CatalogueDIR = '/home/samadi/plato/share/catalogues/'
 # CatalogueDIR = '/volumes/astro/sismo/general/plato/web/grids/catalogues/'
 # CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
 # CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-DIRout = 'test2/'
+DIRout = 'test4/'
+# test 6 : v0 optimal extended mask (union of the secondary mask + nominal)
+# test7 # v1 optimal extended mask: for each contaminant, take the extra pixels that maximize the significance
 PSFFileName = 'PSF.npz'
 #CatalogueFileName = 'SFP_DR3_20220831.npy'
 CatalogueFileName = 'SFP_DR3_20230101.npy'
@@ -36,7 +40,6 @@ gauss_width_y = 0.5
 
 bsres = 20  # resolution adopted for the b-spline decomposition
 
-mp = True  # multiprocessing mode
 nproc_max = 10  # number of processors
 
 Pmin = 10
@@ -46,8 +49,9 @@ nStar = 1000
 Delta_P_max = 15.
 distance_max = 7
 n_c_max = 300
-
+mask_extend =  1 # the number by which the nominal mask is extended
 extend_2ndmask = 0
+opt_ext_mask = 0
 
 # Parameters for the NSR
 sb = (45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
@@ -55,9 +59,8 @@ sd = 50.2  # Overall detector noise (including readout at beginning of life, sme
 sq = 7.2  # Quantization noise in units of e-rms/px
 
 # Parameters for the eclipsing binaries
-dback = 85000  # transit depth in ppm
-
-td = 4  # transit duration in hours
+dback = 132000   # mean transit depth in ppm (Victor's value : 85 000)
+td = 6.72 *0.46**2  # mean transit duration in hours  changed to have gamma = 0.46  assuming <td>=6.72h and <dback>= 132 000 ppm
 ntr = 3  # number of transits
 
 seed = 300
@@ -91,7 +94,7 @@ save_info = np.zeros((nStar * nP, 72))
 save_info_2ndmask = np.zeros((nStar * nP, 84))
 
 # The same for the extended mask
-save_info_ext = np.zeros((nStar * nP, 71))
+save_info_ext = np.zeros((nStar * nP, 81))
 
 # The same for bray's et al. assu#mption of using 2 x 2 masks
 save_info_bray = np.zeros((nStar * nP, 6))
@@ -119,10 +122,12 @@ def cob_shift(Itot, Ic, w, dback):
     VarItotw = VarItot * w
 
     # centroid shift calculation
-    Gammax = np.sum(x * Icw) / Ftot - Cx * SPRk
+#    Gammax = np.sum(x * Icw) / Ftot - Cx * SPRk
+    Gammax = np.sum( (x - Cx) * Icw) / Ftot
     s = db / (1 - db * SPRk)
     delta_Cx = s * Gammax
-    Gammay = np.sum(y * Icw) / Ftot - Cy * SPRk
+#    Gammay = np.sum(y * Icw) / Ftot - Cy * SPRk
+    Gammay = np.sum( (y-Cy) * Icw) / Ftot
     delta_Cy = s * Gammay
     Gamma = np.sqrt(Gammax ** 2 + Gammay ** 2)
     delta_C = s * Gamma
@@ -153,6 +158,105 @@ def cob_shift(Itot, Ic, w, dback):
     ## print('delta_COB = ',delta_C)
     ## print('delta_COB_sig =',delta_C_sig_1h_24c)
     return delta_C, delta_C_sig_1h_24c, Gamma
+
+def cal_opt_extended_mask_0(W_t,It,Ic,flag):
+    '''
+    build an optimal extended mask by joining together (union) the secondary mask of each contaminant star that can create a FP
+    '''
+    W_ext = np.zeros(W_t.shape,dtype=bool)
+    W_ext[:,:] = W_t
+
+    idx = np.where(flag)[0]
+    for i in idx: # loop over the flagged contaminant stars
+        It_i = Ic[i]
+        Ic_acc_i = np.sum(Ic, axis=0) - It_i + It
+        # Then we proceed to compute the secondary aperture for the
+        _, W_c = aperture(ft=It_i, fc=Ic_acc_i, sb=sb, sd=sd, sq=sq)
+        W_c = np.array(W_c,dtype=bool)
+        W_ext = W_ext | W_c
+    return W_ext
+
+def cal_opt_extended_mask_1(nmask,It,Ic,flag,background,ron,verbose=False,doplot=False):
+    '''
+    build an optimal extended mask by joining together (union)
+
+    '''
+    Npix = nmask.shape[0]
+    emask = np.zeros((Npix,Npix),dtype=bool)
+    emask[:,:] = nmask
+    we = np.array(extended_binary_mask(nmask,mask_extend),dtype=bool)
+    extra_pixel = we & (emask==False)
+    extra_pixel = extra_pixel.flatten()
+    extra_pixel_idx = np.where(extra_pixel)[0]
+    ne = len(extra_pixel_idx)
+    idx = np.where(flag)[0]
+    Ic_acc = np.sum(Ic, axis=0).flatten()
+    It_f = It.flatten()
+    wt = np.array(nmask,dtype=bool).flatten()
+    for i in idx: # loop over the flagged contaminant stars
+        w = np.zeros(Npix*Npix,dtype=bool)
+        # for each extra pixel, compute its SPR
+        spr = np.zeros(ne)
+        k = 0
+        for j in extra_pixel_idx:
+            spr[k] = Ic[i].flatten()[j]/(Ic_acc[j] + It_f[j])
+            k+= 1
+        # sorting the extra pixel in decreasing SPR
+        j = np.argsort(spr)[::-1]
+        eta_agg = np.zeros(ne)
+        for k in range(ne):
+            l = j[0:k+1]
+            w[extra_pixel_idx[l]] = True
+            w = w | wt
+            ftot_k = np.sum( (Ic_acc + It_f)*w)
+            spr_k = np.sum(  Ic[i].flatten()*w )/ftot_k
+            sprtot_k = np.sum(Ic_acc*w)/ftot_k
+            ft_k = np.sum(It_f*w)
+            nsr_k = math.sqrt( np.sum( w* ( Ic_acc +  It_f  + ron**2 * background) ) )/ft_k
+            eta_agg[k] = spr_k/((1-sprtot_k)*nsr_k)
+        m = np.argmax(eta_agg)
+        w = np.zeros(Npix * Npix, dtype=bool)
+        w[extra_pixel_idx[j][0:m+1]] = True
+        w = np.reshape(w,(Npix,Npix))
+        emask = emask | w
+        if(verbose):
+            print('number of extra pixel kept:', (m + 1) )
+            print('fraction of the extra pixesl:', i, float(m + 1) / float(ne))
+        if(doplot):
+            figure(0)
+            clf()
+            plot(spr[j])
+
+            figure(1)
+            clf()
+            plot(eta_agg)
+
+            figure(2)
+            clf()
+            imshow(w,origin='lower')
+            title('Extra pixels kept')
+
+            figure(3)
+            clf()
+            imshow(emask,origin='lower')
+            title('emask')
+
+            figure(4)
+            clf()
+            imshow(nmask,origin='lower')
+            title('nmaxk')
+
+            figure(5)
+            clf()
+            imshow(we & (wt==False).reshape((Npix,Npix)) ,origin='lower')
+            title('Extra pixels')
+            show(block=True)
+
+
+        # Then we proceed to compute the secondary aperture for the
+#        W_c = np.array(W_c,dtype=bool)
+#        W_ext = W_ext | W_c
+    return emask
 
 
 # ftrack = open(DIRout+'track.log','w')
@@ -287,6 +391,7 @@ for i in range(nP):
         SPR_crit = spr_crit(dback=dback, SPR_tot=SPR_tot, nsr=NSR1h, td=td, ntr=ntr)
 
         n_bad = np.sum(sprk > SPR_crit)
+        if(verbose): print('number of bad = %i' % n_bad)
 
         n_bad_wrong = np.sum(sprk > (SPR_crit / (1. - SPR_tot)))
 
@@ -333,7 +438,20 @@ for i in range(nP):
         ########################################################################################################################
 
         # First we create the extended mask given the nominal mask
-        w_ext = extended_binary_mask(w_t, W=1)
+        if(opt_ext_mask): w_ext = cal_opt_extended_mask_1(w_t,It,Ic,sprk > SPR_crit,sb,sd,verbose=verbose,doplot=doplot)
+        else: w_ext = extended_binary_mask(w_t, W=mask_extend)
+        if(verbose):
+            print('n_bad = %i'  % n_bad)
+            print(sprk > SPR_crit)
+            print('extended maks size = %i'  % w_ext.sum())
+            # figure(0)
+            # clf()
+            # imshow(w_t,origin='lower')
+            # figure(1)
+            # clf()
+            # imshow(w_ext,origin='lower')
+            # show(block=True)
+
         w_ext_key = mask_to_bitmask(w_ext)
         w_ext_size = w_ext.sum()  # mask size
 
@@ -348,6 +466,13 @@ for i in range(nP):
         # Now we compute all the metrics associated with this mask. Let's begin with the NSR
         NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_ext)) / np.sum(It * w_ext)
         NSR_ext_1h = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_ext
+
+        # mask with only the extra pixels of the extended mask
+        Delta_W_ext =   np.array(w_ext,dtype=bool)  &  (np.array(w_t,dtype=bool) == False)
+        NSR_chi = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * Delta_W_ext)) / np.sum(It * w_t)
+        NSR_chi = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_chi
+        rho = np.sum((It + Ic_acc) * w_t) / np.sum((It + Ic_acc) * w_ext) # rho = Ftot_nom / Ftot_ext
+
 
         # Then we compute the sprk over the extended mask for all the contaminants for a this target
         sprk_ext, SPR_tot_ext = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_ext)
@@ -381,6 +506,7 @@ for i in range(nP):
         delta_COB_sig_ext_10first = np.zeros(10)
         eta_COB_ext_10first = np.zeros(10)
         eta_ext_10first = np.zeros(10)
+        eta_dtd_10first = np.zeros(10) # significance of the differential transit depth
         # taking the 10 first SPRk_ext, Gamma_ext and delta_COB_sig_ext (sorted by decreasing SPRk)
         SPRk_ext_10first[0:nsprmax] = sprk_ext[sprk_sorted_index[0:nsprmax]]
         for l in range(nsprmax):
@@ -390,6 +516,8 @@ for i in range(nP):
             Gamma_ext_10first[l] = Gamma_ext_l
             delta_COB_sig_ext_10first[l] = delta_COB_sig_ext_l
             eta_COB_ext_10first[l] = _ * np.sqrt(td * ntr) / delta_COB_sig_ext_l
+            eta_dtd_10first[l] = dback * (sprk_ext[m] - sprk[m]) * np.sqrt(td * ntr) / (
+               (1-SPR_tot) * math.sqrt (  (rho-1.)**2 * NSR1h**2  + rho**2 * NSR_chi**2 )           )
 
         ########################################################################################################################
         #                                     END OF THE EXTENDED MASK METHOD                                                  #
@@ -528,12 +656,13 @@ for i in range(nP):
 
         save_info_ext = np.array([ID_t, P_t, w_ext_key, w_ext_size, NSR_ext_1h, n_bad_ext, SPR_crit_ext, SPR_tot_ext,
                                   ID_c, m_c, eta_ext, delta_obs_ext, delta_COB_ext, delta_COB_sig_1h_24c_ext,
-                                  eta_cob_ext, delta_obs_ext, eta_ext_max, delta_obs_ext_max, n_det_ext, Gamma_ext, 0.])
+                                  eta_cob_ext, delta_obs_ext, eta_ext_max, delta_obs_ext_max, n_det_ext, Gamma_ext, NSR_chi])
         save_info_ext = np.append(save_info_ext, SPRk_ext_10first)
         save_info_ext = np.append(save_info_ext, Gamma_ext_10first)
         save_info_ext = np.append(save_info_ext, delta_COB_sig_ext_10first)
         save_info_ext = np.append(save_info_ext, eta_COB_ext_10first)
         save_info_ext = np.append(save_info_ext, eta_ext_10first)
+        save_info_ext = np.append(save_info_ext, eta_dtd_10first)
 
         save_info_bray = np.array([ID_t, P_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray])
         
@@ -568,7 +697,7 @@ for i in range(nP):
         #file_out.close()
     else:  # sequential mode
         for k in range(n_t):
-            result = process_target_wrapper(k)
+            result = process_target(k)
             if result is not None:
                 save_info[counter] = result[0]
                 save_info_2ndmask[counter] = result[1]
@@ -666,12 +795,13 @@ np.save(DIRout + 'targets_P5_extended.npy', save_info_ext)
 # 17: delta_obs_ext_max
 # 18: n_det_ext
 # 19: Gamma
-# 20:
+# 20: NSRchi
 # 21-30: 10 first SPRk values
 # 31-40: 10 first Gamma values
 # 41-50: 10 first delta_COB_sig_1h_24c
 # 51-60: 10 first eta_COB_ext
 # 61-70: 10 first eta_ext_10first
+# 71-80: 10 first eta_dtd  (significance of the differental transit depth
 
 np.save(DIRout + 'targets_P5_bray.npy', save_info_bray)
 
