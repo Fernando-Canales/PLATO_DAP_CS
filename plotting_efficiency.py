@@ -333,14 +333,17 @@ plt.figure(3)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    size_nominal = np.mean(size_nom[m])
-    size_ext = np.mean(size_e[m])
-    plt.scatter(Pi, size_nominal, color='black')
-    plt.scatter(Pi, size_ext, color='blue')
+    size_nominal_mask = np.mean(size_nom[m])
+    size_extended_mask = np.mean(size_e[m])
+    size_secondary_mask = np.mean(size_sec[m])
+    plt.plot(Pi, size_nominal_mask, 'k+', markersize=10)
+    plt.plot(Pi, size_secondary_mask, 'r+', markersize=10)
+    plt.plot(Pi, size_extended_mask, 'b+', markersize=10)
+    plt.legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'])
 
 plt.xlabel(" P Magnitude", fontsize=fsize)
-plt.ylabel(r"Average mask size", fontsize=fsize)
-plt.title("Average mask size")
+plt.ylabel(r"Average mask size [pixels]", fontsize=fsize)
+#plt.title("Average mask size")
 
 """
 Now we plot the size of every mask as a function of the target P magnitude
@@ -356,15 +359,15 @@ plt.legend()
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel(r'Mask size', fontsize=fsize)
 
-plt.figure(4)
-for i in range(5, 30):
-    Pi = 5 + i * binsize
-    m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad <= Pi + binsize/2.)
-    size_secondary = np.mean(size_sec[m_bad])
-    plt.scatter(Pi, size_secondary, color='red')
+#plt.figure(4)
+#for i in range(5, 30):
+#    Pi = 5 + i * binsize
+#    m_bad = (mag_bad >= Pi - binsize/2.) & (mag_bad <= Pi + binsize/2.)
+#    size_secondary = np.mean(size_sec[m_bad])
+#    plt.scatter(Pi, size_secondary, color='red')
 
-plt.xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
-plt.ylabel(r"Average sec. mask size", fontsize=fsize)
+#plt.xlabel(" P Magnitude of the Contaminants", fontsize=fsize)
+#plt.ylabel(r"Average sec. mask size", fontsize=fsize)
 
 """
 Now we obtain the degeneracy of the masks. For doing so we just need to know the number of unique mask keys. Let's
@@ -372,12 +375,20 @@ begin to plot the cumulative or total number of unique shapes of the secondary m
 problematic contaminant stars
 """
 plt.figure(5)
-for i in range(5, 30):
+for i in range(nP):
     Pi = 5 + i * binsize
     m_bad = (mag_bad <= Pi + binsize/2.)
     key_secondary = len(np.unique(key_sec[m_bad]))
     plt.scatter(Pi, key_secondary, color='red')
-
+#for i in range(nP):
+#    Pi = Pmin + i * binsize
+#    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+#    key_secondary = len(np.unique(key_sec[m]))
+#    key_nom = len(np.unique(key_nom[m]))
+#    key_ext = len(np.unique(key_ext[m]))
+#    plt.scatter(Pi, key_secondary, color='r')
+#    plt.scatter(Pi, key_nom, color='k')
+#    plt.scatter(Pi, key_ext, color='b')
 
 plt.xlabel("P Magnitude of the Contaminant", fontsize=fsize)
 plt.ylabel("Cum. count of mask shapes", fontsize=fsize)
@@ -388,19 +399,31 @@ plt.ylabel("Cum. count of mask shapes", fontsize=fsize)
 Now we plot the cumulative or total number of nominal mask shapes to address the total number of target stars 
 """
 plt.figure(6)
+# Initialize array to store the cumulative sum for all masks combined
+cumulative_total = []
+P_values = []
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag <= Pi + binsize/2.)
+    m = (mag <= Pi + binsize/2.) & fp
     pix_nominal = len(np.unique(key_nom[m]))
     pix_sec = len(np.unique(key_sec[m]))
     pix_ext = len(np.unique(key_ext[m]))
-    plt.scatter(Pi, pix_nominal, color='black')
-    plt.scatter(Pi, pix_sec, color='red')
-    plt.scatter(Pi, pix_ext, color='blue')
+    # Sum the counts of all mask types
+    total_masks = pix_nominal + pix_sec + pix_ext
+    cumulative_total.append(total_masks)
+    P_values.append(Pi)
+    plt.plot(Pi, pix_nominal, 'ko', label='Nominal Mask' if i == 0 else "")
+    plt.plot(Pi, pix_sec, 'ro', label='Secondary Mask' if i == 0 else "")
+    plt.plot(Pi, pix_ext, 'bo', label='Extended Mask' if i == 0 else "")
 
+# Plot the cumulative total without connecting the dots
+plt.plot(P_values, cumulative_total, marker='o', linestyle='', color='orange', label='Three masks combined')
 
+# Add legend and labels
+plt.legend(loc='best')
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Cum. count of mask shapes', fontsize=fsize)
+plt.show()
 
 """
 Now let's plot the efficiency of the C.O.B. shift measurements
