@@ -1,4 +1,11 @@
 /*.txt
+/*.pdf
+xpsf_pix.npy
+ypsf_pix.npy
+pxc.npy
+pyc.npy
+psfbs.npy
+
 /PSF.npz
 /psf_fits
 /simulation_results
@@ -21,5 +28,5 @@ important_metrics_comparison.tex
 comparison_all_metrics.py
 pruebisima.py
 PSF_Focus_0mu_0.2pxdif.npz
-
 PSF_Focus_0mu_0.1pxdif.npz
+PSF_Focus_0mu.hdf5
