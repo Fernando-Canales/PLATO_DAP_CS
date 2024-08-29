@@ -5,7 +5,7 @@ ypsf_pix.npy
 pxc.npy
 pyc.npy
 psfbs.npy
-
+target_id_finder.py
 /PSF.npz
 /psf_fits
 /simulation_results
