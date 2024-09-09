@@ -5,6 +5,10 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 from imagette import ran_unique_int
 
 dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE_and_NO_BACKGROUND_NOISE/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -212,7 +216,7 @@ SPRK10_first = data_ext[:, 14:24]
 # We get now the 10 first values for each param. of the nominal cob shift
 SPRK10_first = data[:, 17:27]
 eta_cob_nom_10first_24_cameras = data[:, 46:56]
-sigma_cob_10first = data[:, 56:66]
+sigma_cob_10first_24_cameras = data[:, 56:66]
 abs_cob_shift_10first = data[:, 66:76]
 eta_cob_nom_10first_6_cameras = data[:, 76:86]
 sigma_cob_10first_6_cameras = data[:, 86:96]
@@ -220,6 +224,7 @@ abs_cob_shift_10first = data[:, 96:106]
 delta_cob_ext = data_ext[:, 10]
 eta_cob_ext = data_ext[:, 11]
 sigma_cob_ext = data_ext[:, 12]
+gamma_cob_nom_10first_24_cameras = data[:, 106:116]
 # We get now the 10 first values for each param. of the nominal cob shift
 
 # We get now the 10 first values for each param. of the extended cob shift
@@ -230,32 +235,32 @@ delta_cob_ext_10first_24_cameras = data_ext[:, 65:75]
 eta_cob_ext_10first_6_cameras = data_ext[:, 75:85]
 sigma_cob_ext_10first_6_cameras = data_ext[:, 85:95]
 delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
+gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
 
 # We get now the new varaibles for the significant transit depth
 sig_depth_secondary_mask_24_cameras = nsr1h_sec*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
 sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_extended_mask_24_cameras = data_ext[:, 4]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_extended_mask_6_cameras = data_ext[:, 44]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_nominal_mask_24_cameras = data[:, 7]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_nominal_mask_6_cameras = data[:, 148]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR*(1 - SPRtot)
+sig_depth_extended_mask_24_cameras = data_ext[:, 4]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
+sig_depth_extended_mask_6_cameras = data_ext[:, 44]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
+sig_depth_nominal_mask_24_cameras = data[:, 7]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
+sig_depth_nominal_mask_6_cameras = data[:, 148]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
 
 # We obtainn the value of the quadratic sum of the noises (Eq. (38) of the paper)
 sig_depth_24_cameras = np.sqrt(sig_depth_nominal_mask_24_cameras**2 + sig_depth_extended_mask_24_cameras**2)
 sig_depth_6_cameras = np.sqrt(sig_depth_nominal_mask_6_cameras**2 + sig_depth_extended_mask_6_cameras**2)
 
 # First, the expressions for the efficiency false positives detections for the different masks
-fp = (eta_t > flux_trsh)  # false positive
-sdr_flux = fp & (eta_c > flux_trsh) & (delta_obs_c > delta_obs_t)  # secondary mask false positive detection rate
-fp_24_cameras = (eta_t > flux_trsh)  # eta_t > 7.1: false positive
-fp_6_cameras = (eta_t_6_cameras > flux_trsh)
-secondary_mask_conditions_24_cameras = (eta_c > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t  + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras**2 + sig_depth_nominal_mask_24_cameras**2)) & fp_24_cameras  # secondary mask efficiency condition for 24 cameras
-secondary_mask_conditions_6_cameras = (eta_c_6_cameras > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras**2 + sig_depth_nominal_mask_6_cameras**2)) & fp_6_cameras # secondary mask efficiency condition for 6 cameras
-eficiency_extended_mask_highest_spr_contaminant = fp_24_cameras & (eta_ext_for_the_most_significant_contaminant > flux_thresh_ext_mask) & (delta_obs_ext_single_contaminant > delta_obs_t + depth_sig_scaling*sig_depth_24_cameras)  # extended mask false positive detection rate
-cd = fp_24_cameras & (eta_cob > cob_trsh)  # nominal mask false positive detection rate via cob shift
-cd_6_cameras = fp_6_cameras & (eta_cob_6_cameras > cob_trsh)
-secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_trsh) & fp_24_cameras  # secondary mask efficiency condition for 24 cameras and cob shift
-secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_trsh) & fp_6_cameras # secondary mask efficiency condition for 6 cameras and cob shift
-ecd = fp_24_cameras & (eta_cob_ext > cob_trsh)  # extended mask false positive detection rate via cob shift
+fp_single_contaminant_24_cameras = (eta_t > flux_trsh)  # false positive
+sdr_flux = fp_single_contaminant_24_cameras & (eta_c > flux_trsh) & (delta_obs_c > delta_obs_t)  # secondary mask false positive detection rate
+fp_single_contaminant_6_cameras = (eta_t_6_cameras > flux_trsh)
+secondary_mask_conditions_24_cameras = (eta_c > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t  + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras**2 + sig_depth_nominal_mask_24_cameras**2)) & fp_single_contaminant_24_cameras  # secondary mask efficiency condition for 24 cameras
+secondary_mask_conditions_6_cameras = (eta_c_6_cameras > flux_thrsh_sec_mask) & (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras**2 + sig_depth_nominal_mask_6_cameras**2)) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras
+eficiency_extended_mask_highest_spr_contaminant = fp_single_contaminant_24_cameras & (eta_ext_for_the_most_significant_contaminant > flux_thresh_ext_mask) & (delta_obs_ext_single_contaminant > delta_obs_t + depth_sig_scaling*sig_depth_24_cameras)  # extended mask false positive detection rate
+cd = fp_single_contaminant_24_cameras & (eta_cob > cob_trsh)  # nominal mask false positive detection rate via cob shift
+cd_6_cameras = fp_single_contaminant_6_cameras & (eta_cob_6_cameras > cob_trsh)
+secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_trsh) & fp_single_contaminant_24_cameras  # secondary mask efficiency condition for 24 cameras and cob shift
+secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_trsh) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras and cob shift
+ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_trsh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
 sig_depth_extended_mask_24_cameras_10first = np.reshape(sig_depth_extended_mask_24_cameras, (n, 1))
@@ -273,39 +278,33 @@ sig_depth_24_cameras_10first = np.sqrt(sig_depth_nominal_mask_24_cameras_10first
 sig_depth_6_cameras_10first = np.sqrt(sig_depth_nominal_mask_6_cameras_10first**2 + sig_depth_extended_mask_6_cameras_10first**2)
 
 nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
-eta_ext_bt = np.zeros((n, 10))
+eta_ext_bt_24_cameras= np.zeros((n, 10))
 eta_ext_bt_6_cameras = np.zeros((n,10))
-eta_bt_direct_equation= np.zeros((n, 10))
-eta_bt_direct_equation = np.zeros((n,10))
-eta_bt_direct_equation_6_cameras = np.zeros((n,10))
-eta_bt_6_cameras = np.zeros((n, 10))
+eta_nom_bt_24_cameras= np.zeros((n, 10))
+eta_nom_bt_6_cameras = np.zeros((n,10))
 delta_obs = np.zeros((n,10))
 delta_obs_ext = np.zeros((n,10))
 delta_obs_ext_6_cameras = np.zeros((n, 10))
+mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
 
 for i in range(n):
-    #j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
-    #dback = dback_set[j,0] # transit depth
-    #td = dback_set[j,1] # transit duration
     dback = np.ones(10)*dback_ref
     td = np.ones(10)*td_ref
-    #eta_bt[i, :] = (SPRK10_first[i, :]/data[i, 9])*flux_trsh *(dback/85000)*np.sqrt(td/4)
-    eta_bt_direct_equation[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11])) # Eq.(12) from the paper
-    #eta_bt_6_cameras[i, :] = (SPRK10_first[i, :]/data[i, 44])*flux_trsh*(dback/85000)*np.sqrt(td/4)
-    eta_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
-    eta_ext_bt[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
+    eta_nom_bt_24_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11])) # Eq.(12) from the paper
+    eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
+    eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
     eta_ext_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
-    nbad_sp[i] = np.sum( (eta_bt_direct_equation[i,:]>7.1) & (delta_int<4*84. ))
+    nbad_sp[i] = np.sum( (eta_nom_bt_24_cameras[i,:]>7.1) & (delta_int<4*84. ))
 
-# Save the eta_bt_direct_equationarray
-np.save(dataDIR+'eta_bt_24_cameras.npy', eta_bt_direct_equation)
-np.save(dataDIR+'eta_bt_6_cameras', eta_bt_direct_equation_6_cameras)
-np.save(dataDIR+'eta_ext_bt_24_cameras.npy', eta_ext_bt)
+# Save the eta_nom_bt_24_camerasarray
+np.save(dataDIR+'eta_bt_24_cameras.npy', eta_nom_bt_24_cameras)
+np.save(dataDIR+'eta_nom_bt_6_cameras', eta_nom_bt_6_cameras)
+np.save(dataDIR+'eta_ext_bt_24_cameras.npy', eta_ext_bt_24_cameras)
 np.save(dataDIR+'eta_ext_bt_6_cameras.npy', eta_ext_bt_6_cameras)
 
 """
@@ -330,7 +329,6 @@ plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.xlabel('Number of potential N_bad', fontsize=fsize)
 plt.ylabel('Fraction of targets [%]', fontsize=fsize)
 plt.legend()
-#plt.show()
 
 """
 Now we obtain the NSR for both Bray et al 2 x 2 and our nominal masks as a function of the Target magnitude
@@ -386,13 +384,13 @@ plt.ylabel(r'Mask size', fontsize=fsize)
 """
 Now we plot the cumulative or total number of nominal mask shapes to address the total number of target stars 
 """
-plt.figure(6)
+plt.figure(5)
 # Initialize array to store the cumulative sum for all masks combined
 cumulative_total = []
 P_values = []
 for i in range(nP):
     Pi = Pmin + i * binsize
-    m = (mag <= Pi + binsize/2.) & fp
+    m = (mag <= Pi + binsize/2.) & fp_single_contaminant_24_cameras
     pix_nominal = len(np.unique(key_nom[m]))
     pix_sec = len(np.unique(key_sec[m]))
     pix_ext = len(np.unique(key_ext[m]))
@@ -416,7 +414,7 @@ print('cumulative count of mask shapes', cumulative_total)
 """
 Now we plot the NSR over 1h  for every mask as a function of the target P magnitude
 """
-plt.figure(8)
+plt.figure(6)
 plt.plot(mag, nsr1h, 'k+', label='Nominal mask')
 plt.plot(mag, nsr1h_sec, 'r+', label='Secondary Mask')
 plt.plot(mag, nsr1h_ext, 'b+', label='Extended Mask')
@@ -426,16 +424,18 @@ plt.xlabel('P magnitude', fontsize=fsize)
 plt.ylabel(r'$NSR_{1hr} [ppm \sqrt{hr}]$', fontsize=fsize)
 plt.title(r'$NSR_{1hr}$ for every mask')
 
-
 """
 Now we plot the COB shift as a function of the target P magnitude
 """
-plt.figure(10)
-plt.plot(mag, delta_cob, 'k+', label='nominal mask')
-plt.plot(mag, delta_cob_sec, 'r+', label='secondary mask')
-plt.plot(mag, delta_cob_ext, 'b+', label='extended mask')
+plt.figure(7)
+plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'ko', markersize=2, alpha=0.5)
+plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize=2, alpha=0.5)
+plt.plot(mag, sigma_cob_sec_24_cameras, 'rP', markersize = 2, alpha = 0.5)
+plt.plot([], [], 'ko', label='nominal mask')
+plt.plot([], [], 'b^', label='extended mask')
+plt.plot([], [], 'rP', label='secondary mask')
 plt.xlabel('P magnitude', fontsize=fsize)
-plt.ylabel(r'$\Delta_{COB}$', fontsize=fsize)
+plt.ylabel(r'$\sigma^{1h, N_{T}}$', fontsize=fsize)
 plt.semilogy()
 plt.legend()
 
@@ -443,15 +443,15 @@ plt.legend()
 """
 Now we plot the comparison between the flux and COB shift methods as a function of the target P magnitude
 """
-plt.figure(11)
+plt.figure(8)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    eff_cob = (cd[m].sum() / fp_24_cameras[m].sum()) * 100
-    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
-    eff_cob_ext = (ecd[m].sum() / fp_24_cameras[m].sum()) * 100
-    sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
-    ext = (eficiency_extended_mask_highest_spr_contaminant[m].sum() / fp_24_cameras[m].sum()) * 100
+    eff_cob = (cd[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    eff_cob_ext = (ecd[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    ext = (eficiency_extended_mask_highest_spr_contaminant[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     plt.plot(Pi, sec, 'r+')
     plt.plot(Pi, ext, 'b+')
     plt.plot(Pi, eff_cob, 'k^')
@@ -468,7 +468,7 @@ plt.title('Efficieny Comparison of Every Method for Every Mask', fontsize=fsize)
 """
 Now we plot the two expressions for the error of the COB (the ones )
 """
-plt.figure(13)
+plt.figure(9)
 plt.plot(mag, sigma_cob, 'ko')
 plt.semilogy()
 plt.xlabel('P magnitude', fontsize=fsize)
@@ -480,15 +480,15 @@ plt.title(r'COB error expression that does not dependend on $\delta_{back}$')
 """ 
 Comparing double-aperture photometry with (nominal) COB shift
 """
-plt.figure(14)
+plt.figure(10)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    eff_cob = (cd[m].sum() / fp_24_cameras[m].sum()) * 100
-    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
-    eff_cob_ext = (ecd[m].sum() / fp_24_cameras[m].sum()) * 100
-    sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
-    ext = (eficiency_extended_mask_highest_spr_contaminant[m].sum() / fp_24_cameras[m].sum()) * 100
+    eff_cob = (cd[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    eff_cob_ext = (ecd[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    ext = (eficiency_extended_mask_highest_spr_contaminant[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     plt.plot(Pi, sec, 'r+')
     plt.plot(Pi, ext, 'b+')
     plt.legend(['Sec. Mask Flux', 'Ext. Mask Flux'], loc='best')
@@ -500,17 +500,17 @@ plt.title('Efficieny Comparison for the two types of DAP', fontsize=fsize)
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
-plt.figure(16)
+plt.figure(11)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    fp_ext_overall_24_cameras = (eta_bt_direct_equation>flux_trsh)[m,:].sum()
-    fp_ext_overall_6_cameras = (eta_bt_6_cameras>flux_trsh)[m,:].sum()
-    eff_ext_overall_24_cameras= ((eta_ext_bt > flux_thresh_ext_mask) & (delta_obs_ext>delta_obs+depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / fp_ext_overall_24_cameras*100.
-    eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras>delta_obs + depth_sig_scaling*sig_depth_6_cameras_10first) & (eta_bt_6_cameras>flux_trsh))[m,:].sum() / fp_ext_overall_6_cameras*100.
-    eff_ext_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant[m].sum()/fp_24_cameras[m].sum())
-    eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_6_cameras[m].sum()) * 100
-    eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
+    fp_ext_overall_24_cameras = (eta_nom_bt_24_cameras>flux_trsh)[m,:].sum()
+    fp_ext_overall_6_cameras = (eta_nom_bt_6_cameras>flux_trsh)[m,:].sum()
+    eff_ext_overall_24_cameras= ((eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext>delta_obs+depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras>flux_trsh))[m,:].sum() / fp_ext_overall_24_cameras*100.
+    eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras>delta_obs + depth_sig_scaling*sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras>flux_trsh))[m,:].sum() / fp_ext_overall_6_cameras*100.
+    eff_ext_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant[m].sum()/fp_single_contaminant_24_cameras[m].sum())
+    eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
+    eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
     error = np.sqrt(n_tar * eff_ext_overall_24_cameras* (100 - eff_ext_overall_24_cameras)) / n_tar
     error_6_cameras = np.sqrt(n_tar * eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras)) / n_tar
@@ -552,7 +552,7 @@ plt.ylabel('Efficiency[%]', fontsize=fsize)
 """
 Now we plot the statistical significance for every mask as a function of the target P magnitude
 """
-plt.figure(17)
+plt.figure(12)
 
 plt.plot(mag, eta_t_24_cameras, 'o', markersize=4,  label='Earth-like planets (24 cameras)', )
 #plt.plot(mag, eta_t_24_cameras_superearth, 'o', markersize=4,  label='Super-Earths (24 cameras)')
@@ -569,18 +569,18 @@ plt.xlim(10, 13)
 Now we plot the efficiency of the COB shift (all contaminants)
     
 """
-plt.figure(18)
+plt.figure(13)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    s_24_cameras = (eta_bt_direct_equation>flux_trsh)[m,:].sum()
-    s_6_cameras = (eta_bt_6_cameras>flux_trsh)[m,:].sum()
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / s_24_cameras * 100.
-    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_trsh) &  (eta_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation>flux_trsh))[m,:].sum() / s_24_cameras * 100.
-    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_trsh) & (eta_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
-    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_24_cameras[m].sum()) * 100
-    eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_6_cameras[m].sum()) * 100
+    s_24_cameras = (eta_nom_bt_24_cameras>flux_trsh)[m,:].sum()
+    s_6_cameras = (eta_nom_bt_6_cameras>flux_trsh)[m,:].sum()
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_nom_bt_24_cameras>flux_trsh))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_trsh) &  (eta_nom_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_trsh) & (eta_nom_bt_24_cameras>flux_trsh))[m,:].sum() / s_24_cameras * 100.
+    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_trsh) & (eta_nom_bt_6_cameras>flux_trsh))[m,:].sum() / s_6_cameras * 100.
+    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
+    eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     
     #Computing the errors:
     error_ext_cob = np.sqrt(n_tar * eff_ext_cob_overall * (100 - eff_ext_cob_overall)) / n_tar
@@ -623,32 +623,26 @@ plt.legend()
 plt.xlabel('P magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 
-nfp = (eta_bt_direct_equation > flux_trsh)
-nfp_ext_mask = (eta_ext_bt > flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
-nfp_ext_mask_without_noise = (eta_ext_bt > flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs)
+nfp = (eta_nom_bt_24_cameras > flux_trsh)
+nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
+nfp_ext_mask_without_noise = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
 nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_trsh)
 nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_trsh)
 nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 
-nfp_highest_contaminant = (eta_bt_direct_equation[:,0]>flux_trsh)
-nfp_ext_mask_highest_contaminant = (eta_ext_bt[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
+nfp_highest_contaminant = (eta_nom_bt_24_cameras[:,0]>flux_trsh)
+nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
 
 
 print('++++++++++++ Some important computations ++++++++++++')
-eff_ext_mask_highest_contaminant = (nfp_ext_mask_highest_contaminant  & nfp_highest_contaminant).sum()/nfp_highest_contaminant.sum()*100.
-print('extended flux efficiency most significant cont: %f' % eff_ext_mask_highest_contaminant)
-
-eff_ext_mask_without_noise = (nfp_ext_mask_without_noise & nfp).sum()/nfp.sum()*100
-print('extended flux (without noise) efficiency: %f' % eff_ext_mask_without_noise)
-
 eff_ext_flux = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
 print('extended flux efficiency: %f' % eff_ext_flux)
 
-eff_sec_flux = nfp_sec_mask.sum()/fp.sum()*100
+eff_sec_flux = nfp_sec_mask.sum()/fp_single_contaminant_24_cameras.sum()*100
 print('secondary flux efficiency: %f' % eff_sec_flux)
 
-eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant).sum()/fp_24_cameras.sum()*100.
+eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant).sum()/fp_single_contaminant_24_cameras.sum()*100.
 print('extended flux for a single contaminant efficiency: %f' % eff_ext_flux_single_contaminant)
 
 eff_nom_cob = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
@@ -657,7 +651,7 @@ print('nominal cob efficiency: %f' % eff_nom_cob)
 eff_ext_cob = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
 print('extended cob efficiency: %f' % eff_ext_cob)
 
-eff_sec_cob = (secondary_mask_conditions_cob_24_cameras).sum()/fp_24_cameras.sum()*100.
+eff_sec_cob = (secondary_mask_conditions_cob_24_cameras).sum()/fp_single_contaminant_24_cameras.sum()*100.
 print('secondary mask cob efficiency: %f' % eff_sec_cob)
 
 fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
@@ -690,7 +684,7 @@ mag_fraction_fp_nom_cob_no_ext_flux = mag[unique_row_indices]
 """
 The condition of eta_ext
 """
-plt.figure(19)
+plt.figure(14)
 mag_value = 12.5
 
 # Lists to store data for plotting histograms
@@ -701,7 +695,7 @@ for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     #if Pi == mag_value:
-    condition_eta_ext = (delta_obs_ext>delta_obs) & (eta_ext_bt>flux_trsh)
+    condition_eta_ext = (delta_obs_ext>delta_obs) & (eta_ext_bt_24_cameras>flux_trsh)
     filtered_eta_ext = condition_eta_ext[m, :]
     count_ext = filtered_eta_ext.sum()
     count_eta_ext.append(count_ext) 
@@ -721,8 +715,7 @@ plt.ylabel('Counts')
 plt.legend()
 
 
-
-plt.figure(20)
+plt.figure(15)
 mag_value = 12.5
 
 # Lists to store data for plotting histograms
@@ -733,11 +726,11 @@ for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     #if Pi == mag_value:
-    condition_eta_nom = (delta_obs_ext>delta_obs) & (eta_bt_direct_equation>flux_trsh)
+    condition_eta_nom = (delta_obs_ext>delta_obs) & (eta_nom_bt_24_cameras>flux_trsh)
     filtered_eta_nom = condition_eta_nom[m, :]
     count_nom = filtered_eta_nom.sum()
     count_eta_nom.append(count_nom) 
-    condition_eta_nom_6_cameras = (delta_obs_ext>delta_obs) & (eta_bt_6_cameras>flux_trsh)
+    condition_eta_nom_6_cameras = (delta_obs_ext>delta_obs) & (eta_nom_bt_6_cameras>flux_trsh)
     filtered_eta_nom_6_cameras = condition_eta_nom_6_cameras[m, :]
     count_nom_6_cameras = filtered_eta_nom_6_cameras.sum()
     count_eta_nom_6_cameras.append(count_nom_6_cameras)
@@ -754,18 +747,16 @@ plt.xlabel('Magnitude Bin')
 plt.ylabel('Counts')
 plt.legend()
 
-
-
 """
 The histogram of eta_ext
 """
-plt.figure(21)
+plt.figure(16)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_ext = eta_ext_bt[mag_mask]
+eta_ext = eta_ext_bt_24_cameras[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
-eta_and_delta_mask = (eta_bt_direct_equation[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
-eta_and_delta_mask_6_cameras = (eta_bt_6_cameras[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
+eta_and_delta_mask = (eta_nom_bt_24_cameras[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
+eta_and_delta_mask_6_cameras = (eta_nom_bt_6_cameras[mag_mask] >= flux_trsh) & (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
 
 final_eta_ext = eta_ext[eta_and_delta_mask]
 final_eta_ext_6_cameras = eta_ext_6_cameras[eta_and_delta_mask_6_cameras]
@@ -790,10 +781,10 @@ plt.ylim(0, 150)
 plt.legend()
 
 
-plt.figure(22)
+plt.figure(17)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_nom_24_cameras = eta_bt_direct_equation[mag_mask]
-eta_nom_6_cameras = eta_bt_6_cameras[mag_mask]
+eta_nom_24_cameras = eta_nom_bt_24_cameras[mag_mask]
+eta_nom_6_cameras = eta_nom_bt_6_cameras[mag_mask]
 
 eta_nom_24_cameras_flat = eta_nom_24_cameras.flatten()
 
@@ -819,13 +810,13 @@ plt.legend()
 """
 The histogram of eta_ext
 """
-plt.figure(23)
+plt.figure(18)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_ext = eta_ext_bt[mag_mask]
+eta_ext = eta_ext_bt_24_cameras[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
-eta_mask = (eta_bt_direct_equation[mag_mask] >= flux_trsh)
-eta_mask_6_cameras = (eta_bt_6_cameras[mag_mask] >= flux_trsh)
+eta_mask = (eta_nom_bt_24_cameras[mag_mask] >= flux_trsh)
+eta_mask_6_cameras = (eta_nom_bt_6_cameras[mag_mask] >= flux_trsh)
 
 final_eta_ext = eta_ext[eta_mask]
 final_eta_ext_6_cameras = eta_ext_6_cameras[eta_mask_6_cameras]
@@ -853,9 +844,9 @@ plt.legend()
 """
 The histogram of eta_ext
 """
-plt.figure(24)
+plt.figure(19)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_ext = eta_ext_bt[mag_mask]
+eta_ext = eta_ext_bt_24_cameras[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
 delta_mask = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask])
@@ -882,9 +873,9 @@ plt.ylabel('Counts')
 #plt.ylim(0, 200)
 plt.legend()
 
-plt.figure(25)
+plt.figure(20)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_ext = eta_ext_bt[mag_mask]
+eta_ext = eta_ext_bt_24_cameras[mag_mask]
 eta_ext_6_cameras = eta_ext_bt_6_cameras[mag_mask]
 
 final_eta_ext = eta_ext.flatten()
@@ -911,9 +902,9 @@ plt.yscale('log')
 plt.legend()
 
 
-plt.figure(26)
+plt.figure(21)
 mag_mask = (mag >= 12.25) & (mag <= 12.75)
-eta_ext = eta_ext_bt[mag_mask]
+eta_ext = eta_ext_bt_24_cameras[mag_mask]
 eta_ext_cob = eta_cob_ext_10first_24_cameras[mag_mask]
 eta_ext_flat = eta_ext.flatten()
 eta_ext_cob_flat = eta_ext_cob.flatten()
@@ -929,11 +920,11 @@ plt.text(6, 2000, eta_ratio_above, color='blue', weight='bold')
 plt.xlabel(r'$ \eta_{k}^{ext} / \eta^{COB, ext}_{k}$')
 plt.ylabel('Counts')
 
-plt.figure(27)
+plt.figure(22)
 mag_mask_10 = (mag >= 9.75) & (mag <= 10.25)
 mag_mask_13 = (mag >= 12.75) & (mag <= 13.25)
-eta_ext_mag_10 = eta_ext_bt[mag_mask_10]
-eta_ext_mag_13 = eta_ext_bt[mag_mask_13]
+eta_ext_mag_10 = eta_ext_bt_24_cameras[mag_mask_10]
+eta_ext_mag_13 = eta_ext_bt_24_cameras[mag_mask_13]
 delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
 
 eta_ext_mag_10_flat = eta_ext_mag_10.flatten()
@@ -959,8 +950,6 @@ plt.ylabel('Counts')
 plt.legend()
 #plt.hist(delta_ext_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\delta_{ext}$')
 
-
-plt.figure(28)
 delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
 delta_ext_mag_13 = delta_obs_ext_6_cameras[mag_mask_13]
 
@@ -968,10 +957,10 @@ delta_ext_mag_13 = delta_obs_ext_6_cameras[mag_mask_13]
 delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
 delta_ext_mag_13_flat = delta_ext_mag_13.flatten()
 
-l1 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= 2*flux_trsh) & (eta_bt_direct_equation[mag_mask] >= 2 *flux_trsh)
-l2 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] <= 2*flux_trsh) & (eta_ext >= 2*flux_trsh)
-l3 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] <= 2*flux_trsh) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= (2*flux_trsh))
-l4 = np.logical_and(flux_trsh < eta_bt_direct_equation[mag_mask], eta_bt_direct_equation[mag_mask] < 2*flux_trsh)
+l1 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= 2*flux_trsh) & (eta_nom_bt_24_cameras[mag_mask] >= 2 *flux_trsh)
+l2 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_nom_bt_24_cameras[mag_mask], eta_nom_bt_24_cameras[mag_mask] <= 2*flux_trsh) & (eta_ext >= 2*flux_trsh)
+l3 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_trsh <= eta_nom_bt_24_cameras[mag_mask], eta_nom_bt_24_cameras[mag_mask] <= 2*flux_trsh) & np.logical_and(flux_trsh <= eta_ext, eta_ext <= (2*flux_trsh))
+l4 = np.logical_and(flux_trsh < eta_nom_bt_24_cameras[mag_mask], eta_nom_bt_24_cameras[mag_mask] < 2*flux_trsh)
 
 
 print('L1 is:', np.sum(l1))
@@ -981,14 +970,14 @@ print('L4 is:',np.sum(l4))
 print('L1 + L2 + L3 is:', np.sum(l1 + l2 + l3))
 
 
-mask_ext=  (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt_direct_equation > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) 
+mask_ext=  (eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (eta_nom_bt_24_cameras > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) 
 #& (delta_obs_ext > delta_obs)  
 
-mask_nom = (eta_ext_bt > flux_thresh_ext_mask) & (eta_bt_direct_equation > flux_trsh) & (eta_cob_nom_10first_24_cameras > cob_trsh) 
+mask_nom = (eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (eta_nom_bt_24_cameras > flux_trsh) & (eta_cob_nom_10first_24_cameras > cob_trsh) 
 #& (delta_obs_ext > delta_obs)
 
-cob_mask_cases =  (eta_cob_ext_10first_24_cameras > eta_ext_bt) & (eta_ext_bt > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation> flux_trsh)
-cob_ext = (eta_ext_bt > eta_cob_ext_10first_24_cameras ) & (eta_ext_bt > flux_thresh_ext_mask) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_bt_direct_equation> flux_trsh)
+cob_mask_cases =  (eta_cob_ext_10first_24_cameras > eta_ext_bt_24_cameras) & (eta_ext_bt_24_cameras > flux_trsh) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_nom_bt_24_cameras> flux_trsh)
+cob_ext = (eta_ext_bt_24_cameras > eta_cob_ext_10first_24_cameras ) & (eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (eta_cob_ext_10first_24_cameras > cob_trsh) & (eta_nom_bt_24_cameras> flux_trsh)
 cob_ext_mask = (eta_cob_ext_10first_24_cameras > cob_trsh)
 cob_nom_mask = (eta_cob_nom_10first_24_cameras > cob_trsh)
 
@@ -997,9 +986,9 @@ print('Number of times eta_ext^COB > eta_ext given (eta_ext > eta_min) and (eta_
 print('Number of times eta_ext^COB > eta^COB_min:', np.sum(cob_ext_mask))
 print('Number of times eta_nom^COB > eta^COB_min:', np.sum(cob_nom_mask))
 
-etas_ext_nom = eta_ext_bt[mask_ext]/eta_bt_direct_equation[mask_ext]
-etas =  eta_ext_bt[mask_ext]/eta_cob_ext_10first_24_cameras[mask_ext]
-etas_nom = eta_ext_bt[mask_nom] / eta_cob_nom_10first_24_cameras[mask_nom]
+etas_ext_nom = eta_ext_bt_24_cameras[mask_ext]/eta_nom_bt_24_cameras[mask_ext]
+etas =  eta_ext_bt_24_cameras[mask_ext]/eta_cob_ext_10first_24_cameras[mask_ext]
+etas_nom = eta_ext_bt_24_cameras[mask_nom] / eta_cob_nom_10first_24_cameras[mask_nom]
 
 
 # Find the indices where eta_cob_ext is higher than eta_ext
@@ -1015,12 +1004,8 @@ print(len(indices_for_when_eta_cob_ext_is_smaller_than_eta_ext))
 print(len(indices_for_when_eta_cob_nom_is_higher_than_eta_ext))
 print(len(indices_for_when_eta_cob_nom_is_smaller_than_eta_ext))
 
-mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
-
-
-plt.figure(30)
-eta_nom_mag_10 = eta_bt_direct_equation[mag_mask_10]
-eta_nom_mag_13 = eta_bt_direct_equation[mag_mask_13]
+eta_nom_mag_10 = eta_nom_bt_24_cameras[mag_mask_10]
+eta_nom_mag_13 = eta_nom_bt_24_cameras[mag_mask_13]
 
 eta_nom_mag_10_flat = eta_nom_mag_10.flatten()
 eta_nom_mag_13_flat = eta_nom_mag_13.flatten()
@@ -1032,24 +1017,12 @@ number_of_stars_above_eta_min_for_eta_nom_mag_10 = len(np.where(eta_nom_mag_10_f
 number_of_stars_above_eta_min_for_eta_nom_mag_13 = len(np.where(eta_nom_mag_13_flat > 7.1)[0])
 
 
-plt.hist(eta_nom_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{nom}$ (P = 10)')
-plt.hist(eta_nom_mag_13_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{nom}$ (P = 13)')
-plt.vlines(7.1, ymin=0, ymax=12000, linestyles='dashdot', colors='red', label=r'$\eta_{min} = 7.1$')
-plt.text(6, 1500, number_of_stars_below_eta_min_for_eta_nom_mag_10, color='blue', weight='bold')
-plt.text(9, 1500, number_of_stars_above_eta_min_for_eta_nom_mag_10, color='blue', weight='bold')
-plt.text(6, 600, number_of_stars_below_eta_min_for_eta_nom_mag_13, color='orange', weight='bold')
-plt.text(9, 600, number_of_stars_above_eta_min_for_eta_nom_mag_13, color='orange', weight='bold')
-plt.xlabel(r'$\eta_{nom}$')
-plt.yscale('log')
-plt.legend()
+plt.figure(23)
+n_ext_fp_mag_10 = np.sum((eta_ext_bt_24_cameras[mag_mask_10] > flux_trsh) & (delta_obs_ext[mag_mask_10]>delta_obs[mag_mask_10]) & (eta_nom_bt_24_cameras[mag_mask_10]>flux_trsh))
+n_fp_mag_10 = np.sum((eta_nom_bt_24_cameras[mag_mask_10] > flux_trsh))
 
-
-plt.figure(31)
-n_ext_fp_mag_10 = np.sum((eta_ext_bt[mag_mask_10] > flux_trsh) & (delta_obs_ext[mag_mask_10]>delta_obs[mag_mask_10]) & (eta_bt_direct_equation[mag_mask_10]>flux_trsh))
-n_fp_mag_10 = np.sum((eta_bt_direct_equation[mag_mask_10] > flux_trsh))
-
-n_ext_fp_mag_13 = np.sum((eta_ext_bt[mag_mask_13] > flux_trsh) & (delta_obs_ext[mag_mask_13]>delta_obs[mag_mask_13]) & (eta_bt_direct_equation[mag_mask_13]>flux_trsh))
-n_fp_mag_13 = np.sum((eta_bt_direct_equation[mag_mask_13] > flux_trsh))
+n_ext_fp_mag_13 = np.sum((eta_ext_bt_24_cameras[mag_mask_13] > flux_trsh) & (delta_obs_ext[mag_mask_13]>delta_obs[mag_mask_13]) & (eta_nom_bt_24_cameras[mag_mask_13]>flux_trsh))
+n_fp_mag_13 = np.sum((eta_nom_bt_24_cameras[mag_mask_13] > flux_trsh))
 
 # Values to plot
 colors = ['blue', 'green', 'red', 'purple']
@@ -1067,11 +1040,11 @@ plt.ylim(0, 3700)
 plt.title(r'Histogram of $N_{ext}^{fp}$ and $N_{fp}$')
 
 
-plt.figure(32)
+plt.figure(24)
 
-mask_for_eta_ext_given_delta_and_eta_nom_conditions = (delta_obs_ext > delta_obs) & (eta_bt_direct_equation> flux_trsh)
-eta_ext_given_delta_and_eta_nom_conditions = eta_ext_bt[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
-eta_bt_given_delta_and_eta_nom_conditions = eta_bt_direct_equation[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
+mask_for_eta_ext_given_delta_and_eta_nom_conditions = (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras> flux_trsh)
+eta_ext_given_delta_and_eta_nom_conditions = eta_ext_bt_24_cameras[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
+eta_bt_given_delta_and_eta_nom_conditions = eta_nom_bt_24_cameras[mask_for_eta_ext_given_delta_and_eta_nom_conditions]
 
 eta_ratio = eta_ext_given_delta_and_eta_nom_conditions/eta_bt_given_delta_and_eta_nom_conditions
 
@@ -1091,56 +1064,145 @@ plt.xlim(10,13)
 plt.yscale('log')
 plt.legend()
 
-plt.figure(33)
-
-mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions = (eta_ext_bt > flux_trsh) & (eta_bt_direct_equation> flux_trsh)
+mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions = (eta_ext_bt_24_cameras> flux_trsh) & (eta_nom_bt_24_cameras> flux_trsh)
 delta_ext_given_eta_ext_and_eta_nom_conditions = delta_obs_ext[mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions]
 
-mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions = (eta_ext_bt > flux_trsh) & (delta_obs_ext > delta_obs)
-eta_nom_given_eta_ext_and_delta_ext_conditions = eta_bt_direct_equation[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions]
+mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions = (eta_ext_bt_24_cameras> flux_trsh) & (delta_obs_ext > delta_obs)
+eta_nom_given_eta_ext_and_delta_ext_conditions = eta_nom_bt_24_cameras[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions]
 
-mask_for_eta_nom_higher_than_eta_min = (eta_bt_direct_equation> flux_trsh)
-eta_nom_higher_than_eta_min = eta_bt_direct_equation[mask_for_eta_nom_higher_than_eta_min]
-
-plt.plot(mag_2d[mask_for_eta_ext_given_delta_and_eta_nom_conditions], eta_ext_given_delta_and_eta_nom_conditions, 'bo', markersize=2, alpha=0.65, label=r'$\eta_{ext}$ given $(\delta_{ext} > \delta_{nom})$ and $(\eta_{nom} > \eta_{min})$')
-#plt.plot(mag_2d[mask_for_delta_ext_given_eta_ext_and_eta_nom_conditions], delta_ext_given_eta_ext_and_eta_nom_conditions, 'ko', markersize=2, alpha=0.65, label=r'$\delta_{ext}$ given $(\eta_{ext} > \eta_{min})$ and $(\eta_{nom} > \eta_{min})$')
-#plt.plot(mag_2d[mask_for_eta_nom_given_eta_ext_and_delta_ext_conditions], eta_nom_given_eta_ext_and_delta_ext_conditions, 'go', markersize=2, alpha=0.65, label=r'$\eta_{nom}$ given $(\delta_{ext} > \delta_{nom})$ and $(\eta_{ext} > \eta_{min})$')
-plt.plot(mag_2d[mask_for_eta_nom_higher_than_eta_min], eta_bt_direct_equation[mask_for_eta_nom_higher_than_eta_min], 'ko', markersize=2, alpha=0.65, label=r'$\eta_{nom} given (\eta_{nom} > \eta_{min}$)')
-plt.yscale('log')
-plt.legend()
+mask_for_eta_nom_higher_than_eta_min = (eta_nom_bt_24_cameras> flux_trsh)
+eta_nom_higher_than_eta_min = eta_nom_bt_24_cameras[mask_for_eta_nom_higher_than_eta_min]
 
 
-plt.figure(34)
-eta_nom_flat = eta_bt_direct_equation.flatten()
-eta_ext_flat = eta_ext_bt.flatten()
+eta_nom_flat = eta_nom_bt_24_cameras.flatten()
+eta_ext_flat = eta_ext_bt_24_cameras.flatten()
 eta_ext_cob_flat = eta_cob_ext_10first_24_cameras.flatten()
 eta_nom_cob_flat = eta_cob_nom_10first_24_cameras.flatten()
 mag_2d_flat = mag_2d.flatten()
 
-#plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_cob_flat, 'o', markersize = 2, alpha = 0.5, label=r'$\eta_{k}^{ext} / \eta_{k}^{nom, COB}$')
-plt.plot(mag_2d_flat, eta_ext_flat/eta_ext_cob_flat, 'o', markersize = 2, alpha = 0.5, label=r'$\eta_{k}^{ext} / \eta_{k}^{ext, COB}$')
-#plt.plot(mag_2d_flat, eta_ext_flat/eta_nom_flat, 'o', label=r'$\eta_{k}^{ext} / \eta_{k}^{nom}$')
-#plt.ylim(0, 200)
-plt.yscale('log')
-plt.legend()
 
-plt.figure(36)
-plt.plot(mag_2d, eta_cob_ext_10first_24_cameras, 'bo')
-plt.plot(mag_2d, eta_cob_nom_10first_24_cameras, 'r^')
 
+indices_fp_eta_cob_nom = np.where(eta_nom_bt_24_cameras > 7.1)
+eta_cob_nom_fp = eta_cob_nom_10first_24_cameras[indices_fp_eta_cob_nom]
+#eta_cob_nom_fp = eta_cob_nom_10first_24_cameras[indice_eta_cob_nom_below_3]
+#eta_cob_nom_fp_cleaned = eta_cob_nom_fp[~np.isnan(eta_cob_nom_fp)]
+index_below_3_nom  = (eta_cob_nom_fp < 3)
+eta_cob_nom_fp_cleaned = eta_cob_nom_fp[index_below_3_nom]
+
+indices_fp_eta_cob_ext = np.where(eta_nom_bt_24_cameras > 7.1)
+#eta_cob_ext_fp = eta_cob_ext_10first_24_cameras[indices_eta_cob_ext_below_3]
+eta_cob_ext_fp = eta_cob_ext_10first_24_cameras[indices_fp_eta_cob_ext]
+index_below_3_ext = (eta_cob_ext_fp < 3)
+eta_cob_ext_fp = eta_cob_ext_fp[index_below_3_ext]
+mag_ext = mag_2d[indices_fp_eta_cob_nom]
+mag_etas_ratio = mag_ext[index_below_3_nom]
+
+trim_length_for_ratio_etas = min(len(mag_etas_ratio), len(eta_cob_nom_fp_cleaned), len(eta_cob_ext_fp))
+
+eta_cob_nom_fp_trimmed = eta_cob_nom_fp_cleaned[:trim_length_for_ratio_etas]
+eta_cob_ext_fp_trimmed = eta_cob_ext_fp[:trim_length_for_ratio_etas]
+mag_trimmed = mag_etas_ratio[:trim_length_for_ratio_etas]
+
+sigma_ext = sigma_cob_ext_10first_24_cameras[indices_fp_eta_cob_ext]
+sigma_nom = sigma_cob_10first_24_cameras[indices_fp_eta_cob_nom]
+
+gamma_ext = gamma_cob_ext_10first_24_cameras[indices_fp_eta_cob_ext]
+gamma_nom = gamma_cob_nom_10first_24_cameras[indices_fp_eta_cob_nom]
+mag_fp = mag_2d[indices_fp_eta_cob_nom]
+
+# NowTrim the arrays to match the length of the shortest array (mag in this case)
+trim_length = min(len(mag), len(eta_cob_nom_fp_cleaned), len(eta_cob_ext_fp))
+
+count_below_3_nom = np.sum(eta_cob_nom_fp < 3)
+count_below_3_ext = np.sum(eta_cob_ext_fp < 3)
+
+
+indices_eta_cob_ext_below_3 = np.where((eta_cob_ext_10first_24_cameras < 3) & (eta_nom_bt_24_cameras > 7.1))
+indice_eta_cob_nom_below_3 = np.where((eta_cob_nom_10first_24_cameras < 3) & (eta_nom_bt_24_cameras > 7.1))
+
+sigma_cob_ext = sigma_cob_ext_10first_24_cameras[indices_eta_cob_ext_below_3]
+sigma_cob_nom = sigma_cob_10first_24_cameras[indice_eta_cob_nom_below_3]
+
+gamma_cob_ext = gamma_cob_ext_10first_24_cameras[indices_eta_cob_ext_below_3]
+gamma_cob_nom = gamma_cob_nom_10first_24_cameras[indice_eta_cob_nom_below_3]
+
+trim_length_sigma = min(len(mag), len(sigma_cob_nom), len(sigma_cob_ext))
+
+sigma_cob_nom_trimmed = sigma_cob_nom[:trim_length_sigma]
+sigma_cob_ext_trimmed = sigma_cob_ext[:trim_length_sigma]
+mag_trimmed_sigma = mag[:trim_length_sigma]
+
+trim_length_gamma = min(len(mag), len(gamma_cob_nom), len(gamma_cob_ext))
+gamma_cob_ext_trimmed = gamma_cob_ext[:trim_length_gamma]
+gamma_cob_nom_trimmed = gamma_cob_nom[:trim_length_gamma]
+
+# Printing the results
+print(f'Number of elements in eta_cob_nom_fp_trimmed below 3: {count_below_3_nom}')
+print(f'Number of elements in eta_cob_ext_fp_trimmed below 3: {count_below_3_ext}')
+
+plt.figure(25)
+#plt.plot(mag_etas_ratio, eta_cob_ext_fp_trimmed/eta_cob_nom_fp_trimmed, 'bo', markersize = 5)
+plt.plot(mag_2d[eta_nom_bt_24_cameras > 7.1], eta_cob_ext_10first_24_cameras[eta_nom_bt_24_cameras > 7.1]/ eta_cob_nom_10first_24_cameras[eta_nom_bt_24_cameras> 7.1], 'bo', markersize=5)
+#plt.plot(mag_trimmed, eta_cob_nom_fp_trimmed, 'k+')
+plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
+#plt.ylim(0.1, 10)
+plt.xlim(9.5, 13.5)
+plt.semilogy()
+plt.ylabel(r'$ \eta_{k}^{ext, \Delta C} / \eta_{k}^{nom, \Delta C}$', fontsize=fsize)
+plt.xlabel('P mag', fontsize=fsize)
 # Plot a single point for the legend with labels
-plt.plot([], [], 'bo', label='eta_cob_ext')
-plt.plot([], [], 'r^', label='eta_cob_nom')
-
+#plt.plot([], [], 'b^', label='Ext. mask')
+#plt.plot([], [], 'k+', label='Nom. mask')
+print('the median of eta_cob_ext is:', np.median(eta_cob_ext_fp_trimmed))
+print('the median of eta_cob_nom is:', np.median(eta_cob_nom_fp_trimmed))
 plt.legend()
 
-plt.figure(37)
+plt.figure(26)
 plt.plot(mag_2d, nsr1h_ext, 'ko')
 plt.plot(mag_2d, nsr1h, 'gP')
 
-plt.plot([], [], 'ko', label='nsr_nom')
-plt.plot([], [], 'gP', label='nsr_ext')
+plt.plot([], [], 'ko', label='nsr_ext')
+plt.plot([], [], 'gP', label='nsr_nom')
 
+plt.legend()
+
+plt.figure(27)
+plt.plot(mag_etas_ratio, sigma_cob_ext_trimmed/sigma_cob_nom_trimmed, 'bo', markersize = 5)
+#plt.plot(mag_trimmed_sigma, sigma_cob_nom_trimmed, 'k+')
+#plt.ylim(0.1, 10)
+#plt.xlim(9.5, 13.5)
+#plt.semilogy()
+plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
+plt.ylabel(r'$ \sigma_{k}^{ext, 1h, N_{T}} / \sigma_{k}^{nom, 1h, N_{T}}}$', fontsize=fsize)
+plt.xlabel('P mag', fontsize=fsize)
+#plt.plot([], [], 'b^', label='Ext. mask')
+#plt.plot([], [], 'k+', label='Nom. mask')
+plt.legend()
+
+plt.figure(28)
+plt.plot(mag_etas_ratio, gamma_cob_ext_trimmed/gamma_cob_nom_trimmed, 'bo', markersize = 5)
+#plt.plot(mag_trimmed_sigma, gamma_cob_nom_trimmed, 'k+')
+#plt.ylim(0.1, 10)
+#plt.xlim(9.5, 13.5)
+#plt.semilogy()
+plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
+plt.ylabel(r'$ \Gamma_{k}^{ext} / \Gamma_{k}^{nom} $', fontsize=fsize)
+plt.xlabel('P mag', fontsize=fsize)
+# Plot a single point for the legend with labels
+#plt.plot([], [], 'b^', label='Ext. mask')
+#plt.plot([], [], 'k+', label='Nom. mask')
+plt.legend()
+
+plt.figure(29)
+plt.plot(mag_fp, gamma_ext/sigma_ext, 'b^')
+plt.plot(mag_fp, gamma_nom/sigma_nom, 'k+')
+plt.hlines(3, xmin=9, xmax=14, linestyles='dashdot', colors='red', label=r'$\eta_{min}^{\Delta C} = 3$')
+# Plot a single point for the legend with labels
+plt.plot([], [], 'b^', label='Ext. mask')
+plt.plot([], [], 'k+', label='Nom. mask')
+plt.xlim(9.5, 13.5)
+plt.semilogy()
+plt.ylabel(r'$ \Gamma_{k} / \sigma^{1h, NT}$', fontsize=fsize)
 plt.legend()
 
 plt.show()

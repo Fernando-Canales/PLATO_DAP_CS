@@ -3,9 +3,8 @@
 import numpy as np # type: ignore
 import spline2dbase # type: ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
-from imagette import barycenter, window, ran_unique_int, centroid_shift
+from imagette import window, ran_unique_int, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
-
 # ------------------------------------------------
 
 # ------------------------------------------------
@@ -18,7 +17,10 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
 #PSFfile = 'PSF.npz'                                                   # processed PSF files
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
+#PSFfile = 'PSF_Focus_0mu_0.1pxdif.npz'
 DIRout = 'test_results/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 
 # Parameters for the imagette and PSF decomposition
@@ -28,6 +30,8 @@ subres = 128   # resolution of the PSF
 bsres = 20     # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
+#sb = 0
+#sd = 0
 sb = (45 * 21) # Background noise from zodiacal light in e-/px(poisson noise)times integration time (21 sec.)
 sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2       # Quantization noise in units of e-rms/px
@@ -55,11 +59,6 @@ psfdata = np.load(PSFfile)                       # processed PSFs
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue
 
 ID = np.arange(0, data.shape[0]) # ID for every star in the catalogue
-
-# down select the full catalog to a single target
-#RI = 0
-#data = data[ID==RezaID[RI],:]
-#ID = ID[RezaID[RI]]
 
 x_star = data[:, 3]              # x-coordinate on the focal plane for every star in the catalogue
 y_star = data[:, 4]              # y-coordinate on the focal plane for every star in the catalogue
@@ -126,8 +125,6 @@ for i in range(nP):
         offy = y_t_im - pyc[psf_idx] # y-coordinate of the offset between the center of the imagette and the center of the PSF
         # Then we compute the imagette for the TARGET by integrating the b-spline decomposition of the PSF
         imagette = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx, offy=offy)
-        # ploting_initial(2, 1, psf, imagette, i='PSF', j='Target')
-        #COBx, COBy = barycenter(imagette, subres=1)
         Delta_P = data[:, 2] - m_t
         f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2) # reference flux with vignetting after integration time for the TARGET
         It = f_ref_t * imagette                                     # Intensity of the TARGET (flux per pixel)
@@ -278,8 +275,8 @@ for i in range(nP):
         IDs_from_the_10first_contaminants[0:nsprmax] = ID_contaminants[sprk_sorted_index[0:nsprmax]]
         x_coordinate_in_the_imagette_for_a_contaminant_10first[0:nsprmax] = x_c_im[sprk_sorted_index[0:nsprmax]]
         y_coordinate_in_the_imagette_for_a_contaminant_10first[0:nsprmax] = y_c_im[sprk_sorted_index[0:nsprmax]]
-        delta_x_from_target_to_10first_contaminants[0:nsprmax] = x_t_im - x_c_im[sprk_sorted_index[0:nsprmax]]
-        delta_y_from_target_to_10first_contaminants[0:nsprmax] = y_t_im - y_c_im[sprk_sorted_index[0:nsprmax]]
+        delta_x_from_target_to_10first_contaminants[0:nsprmax] = x_c_im[sprk_sorted_index[0:nsprmax]] - x_t_im 
+        delta_y_from_target_to_10first_contaminants[0:nsprmax] = y_c_im[sprk_sorted_index[0:nsprmax]] - y_t_im 
         dist_from_target_to_10first_contaminants[0:nsprmax] = np.sqrt((x_t_im - x_c_im[sprk_sorted_index[0:nsprmax]]) ** 2 + (y_t_im - y_c_im[sprk_sorted_index[0:nsprmax]]) ** 2)
         magnitude_contaminant_10first[0:nsprmax] = m_c[sprk_sorted_index[0:nsprmax]]
         print('x-coordinate for the first 10 contaminants', x_coordinate_in_the_imagette_for_a_contaminant_10first)
