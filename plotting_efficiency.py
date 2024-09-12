@@ -1001,22 +1001,22 @@ plt.ylabel('Counts')
 plt.figure(22)
 mag_mask_10 = (mag >= 9.75) & (mag <= 10.25)
 mag_mask_13 = (mag >= 12.75) & (mag <= 13.25)
-eta_ext_mag_10 = eta_ext_bt_24_cameras[mag_mask_10]
-eta_ext_mag_13 = eta_ext_bt_24_cameras[mag_mask_13]
-delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
+eta_sec_mag_10 = eta_c[mag_mask_10]
+eta_sec_mag_13 = eta_c[mag_mask_13]
+delta_sec_mag_10 = delta_obs_c[mag_mask_10]
 
-eta_ext_mag_10_flat = eta_ext_mag_10.flatten()
-delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
-eta_ext_mag_13_flat = eta_ext_mag_13.flatten()
+#eta_ext_mag_10_flat = eta_ext_mag_10.flatten()
+#delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
+#eta_ext_mag_13_flat = eta_ext_mag_13.flatten()
 
-number_below_mag_10 = len(np.where(eta_ext_mag_10_flat < 7.1)[0])
-number_above_mag_10 = len(np.where(eta_ext_mag_10_flat > 7.1)[0])
+number_below_mag_10 = len(np.where(eta_sec_mag_10 < 7.1)[0])
+number_above_mag_10 = len(np.where(eta_sec_mag_10 > 7.1)[0])
 
-number_below_mag_13 = len(np.where(eta_ext_mag_13_flat < 7.1)[0])
-number_above_mag_13 = len(np.where(eta_ext_mag_13_flat > 7.1)[0])
+number_below_mag_13 = len(np.where(eta_sec_mag_13 < 7.1)[0])
+number_above_mag_13 = len(np.where(eta_sec_mag_13 > 7.1)[0])
 
-plt.hist(eta_ext_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{ext}$ (P = 10)')
-plt.hist(eta_ext_mag_13_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{ext}$ (P = 13)')
+plt.hist(eta_sec_mag_10, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{sec}$ (P = 10)')
+plt.hist(eta_sec_mag_13, bins=51, range=(0, 10), alpha=0.5, label=r'$\eta_{sec}$ (P = 13)')
 plt.vlines(7.1, ymin=0, ymax=12000, linestyles='dashdot', colors='red', label=r'$\eta_{min} = 7.1$')
 plt.text(4, 6700, number_below_mag_10, color='blue', weight='bold')
 plt.text(9, 6700, number_above_mag_10, color='blue', weight='bold')
@@ -1028,12 +1028,12 @@ plt.ylabel('Counts')
 plt.legend()
 #plt.hist(delta_ext_mag_10_flat, bins=51, range=(0, 10), alpha=0.5, label=r'$\delta_{ext}$')
 
-delta_ext_mag_10 = delta_obs_ext_6_cameras[mag_mask_10]
-delta_ext_mag_13 = delta_obs_ext_6_cameras[mag_mask_13]
+delta_obs_sec_mag_10 = delta_obs_c[mag_mask_10]
+delta_obs_sec_mag_13 = delta_obs_c[mag_mask_13]
 
 
-delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
-delta_ext_mag_13_flat = delta_ext_mag_13.flatten()
+#delta_ext_mag_10_flat = delta_ext_mag_10.flatten()
+#delta_ext_mag_13_flat = delta_ext_mag_13.flatten()
 
 l1 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_thresh_nom_mask <= eta_ext, eta_ext <= 2*flux_thresh_nom_mask) & (eta_nom_bt_24_cameras[mag_mask] >= 2 *flux_thresh_nom_mask)
 l2 = (delta_obs_ext[mag_mask] >= delta_obs[mag_mask]) & np.logical_and(flux_thresh_nom_mask <= eta_nom_bt_24_cameras[mag_mask], eta_nom_bt_24_cameras[mag_mask] <= 2*flux_thresh_nom_mask) & (eta_ext >= 2*flux_thresh_nom_mask)
@@ -1096,16 +1096,16 @@ number_of_stars_above_eta_min_for_eta_nom_mag_13 = len(np.where(eta_nom_mag_13_f
 
 
 plt.figure(23)
-n_ext_fp_mag_10 = np.sum((eta_ext_bt_24_cameras[mag_mask_10] > flux_thresh_nom_mask) & (delta_obs_ext[mag_mask_10]>delta_obs[mag_mask_10]) & (eta_nom_bt_24_cameras[mag_mask_10]>flux_thresh_nom_mask))
-n_fp_mag_10 = np.sum((eta_nom_bt_24_cameras[mag_mask_10] > flux_thresh_nom_mask))
+n_sec_fp_mag_10 = np.sum((eta_c[mag_mask_10] > flux_thresh_sec_mask) & (delta_obs_c[mag_mask_10]>delta_obs_t[mag_mask_10] + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras[mag_mask_10]**2 + sig_depth_nominal_mask_24_cameras[mag_mask_10]**2)) & (eta_t[mag_mask_10]>flux_thresh_nom_mask))
+n_fp_mag_10 = np.sum((eta_t[mag_mask_10] > flux_thresh_nom_mask))
 
-n_ext_fp_mag_13 = np.sum((eta_ext_bt_24_cameras[mag_mask_13] > flux_thresh_nom_mask) & (delta_obs_ext[mag_mask_13]>delta_obs[mag_mask_13]) & (eta_nom_bt_24_cameras[mag_mask_13]>flux_thresh_nom_mask))
-n_fp_mag_13 = np.sum((eta_nom_bt_24_cameras[mag_mask_13] > flux_thresh_nom_mask))
+n_sec_fp_mag_13 = np.sum((eta_c[mag_mask_13] > flux_thresh_sec_mask) & (delta_obs_c[mag_mask_13]>delta_obs_t[mag_mask_13] + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras[mag_mask_10]**2 + sig_depth_nominal_mask_6_cameras[mag_mask_10]**2)) & (eta_t[mag_mask_13]>flux_thresh_nom_mask))
+n_fp_mag_13 = np.sum((eta_t[mag_mask_13] > flux_thresh_nom_mask))
 
 # Values to plot
 colors = ['blue', 'green', 'red', 'purple']
-values = [n_ext_fp_mag_10, n_ext_fp_mag_13, n_fp_mag_10, n_fp_mag_13]
-labels = [r'$N_{fp}^{ext}(mag = 10)$', r'$N_{fp}^{ext} (mag = 13)$', r'$N_{fp}(mag=10)$', r'$N_{fp}(mag=13)$']
+values = [n_sec_fp_mag_10, n_sec_fp_mag_13, n_fp_mag_10, n_fp_mag_13]
+labels = [r'$N_{FP}^{sec}(mag = 10)$', r'$N_{FP}^{sec} (mag = 13)$', r'$N_{FP}(mag=10)$', r'$N_{FP}(mag=13)$']
 
 # Plotting the histogram
 bars = plt.bar(labels, values, color=['blue', 'green', 'red', 'purple'])
@@ -1115,7 +1115,7 @@ for bar, value, color in zip(bars, values, colors):
 plt.xlabel('Conditions')
 plt.ylabel('Count')
 plt.ylim(0, 3700)
-plt.title(r'Histogram of $N_{ext}^{fp}$ and $N_{fp}$')
+plt.title(r'Histogram of $N_{sec}^{FP}$ and $N_{FP}$')
 
 
 plt.figure(24)
@@ -1282,5 +1282,13 @@ plt.xlim(9.5, 13.5)
 plt.semilogy()
 plt.ylabel(r'$ \Gamma_{k} / \sigma^{1h, NT}$', fontsize=fsize)
 plt.legend()
+
+
+plt.figure(30)
+plt.plot(mag[eta_t > flux_thresh_nom_mask], eta_c[eta_t > flux_thresh_nom_mask], 'rP', markersize=5)
+plt.plot(mag[eta_t > flux_thresh_nom_mask], nsr1h_sec[eta_t > flux_thresh_nom_mask], 'ko', markersize=5)
+plt.semilogy()
+plt.ylabel(r'$\eta_{kmax}^{sec}$ for cases where $(\eta_{nom} > \eta_{min})$', fontsize=fsize)
+plt.xlabel('P mag', fontsize=fsize)
 
 plt.show()

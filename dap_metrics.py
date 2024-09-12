@@ -233,7 +233,7 @@ for i in range(nP):
         # We compute spr_tot_c, that is, the expression given in Marchiori presentation for PLATO week #8
         spr_tot_secondary_mask = np.sum(Itc_acc * secondary_mask) / f_tot_c
 
-        # We compute now the delta_obs and etas for the two apertures
+        # We compute now the delta_obs and etas for the two apertures w.r.t. the most significant contaminant star
         delta_obs_nominal_mask = sprk[index_contaminant_highest_sprk] * dback_contaminant_highest_spr                                         # observed transit depth in the nominal mask
         delta_obs_secondary_mask = (1 - spr_tot_secondary_mask) * dback_contaminant_highest_spr                                        # observed transit depth in the secondary mask
         eta_t = sprk[index_contaminant_highest_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / (nsr_1h_24_cameras_nominal_mask * (1 - SPR_tot)) # signal statistical significance in the nominal mask
@@ -296,7 +296,7 @@ for i in range(nP):
         eta_cob, sigma_1_24, abs_cob, gamma_nom = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
-        ## 6 cameras
+        ## 6 cameras 
         eta_cob_6_cameras, sigma_1_6_cameras, abs_cob_6_cameras, gamma_nom_6cameras = centroid_shift(w=nominal_mask, Ik=Ic_max, n_cam=6, I_t=It,
         I_contaminants=Ic_acc, sprk=sprk[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr) 
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
