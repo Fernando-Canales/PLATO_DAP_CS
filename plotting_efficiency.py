@@ -4,9 +4,9 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 
 from imagette import ran_unique_int
 
-#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE_and_NO_BACKGROUND_NOISE/'
@@ -569,8 +569,8 @@ for i in range(nP):
     
     eff_ext_overall_24_cameras = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
     eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
-    eff_ext_2_pix_overall_24_cameras = ((eta_ext_2_pix_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_24_cameras > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
-    eff_ext_2_pix_overall_6_cameras = ((eta_ext_2_pix_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
+    #eff_ext_2_pix_overall_24_cameras = ((eta_ext_2_pix_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_24_cameras > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
+    #eff_ext_2_pix_overall_6_cameras = ((eta_ext_2_pix_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
     eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
@@ -579,16 +579,16 @@ for i in range(nP):
     error_6_cameras = np.sqrt(n_tar * eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras)) / n_tar
     error_sec_6_cameras = np.sqrt(n_tar * eff_sec_6_cameras * (100 - eff_sec_6_cameras)) / n_tar
     error_sec = np.sqrt(n_tar * eff_sec * (100 - eff_sec)) / n_tar
-    error_ext_2_pix_24_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_24_cameras * (100 - eff_ext_2_pix_overall_24_cameras)) / n_tar
-    error_ext_2_pix_6_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_6_cameras * (100 - eff_ext_2_pix_overall_6_cameras)) / n_tar
+    #error_ext_2_pix_24_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_24_cameras * (100 - eff_ext_2_pix_overall_24_cameras)) / n_tar
+    #error_ext_2_pix_6_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_6_cameras * (100 - eff_ext_2_pix_overall_6_cameras)) / n_tar
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.errorbar(Pi, eff_ext_2_pix_overall_24_cameras, yerr=error_ext_2_pix_24_cameras, fmt='P', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
-    plt.errorbar(Pi, eff_ext_2_pix_overall_6_cameras, yerr=error_ext_2_pix_6_cameras, fmt='P', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_ext_2_pix_overall_24_cameras, yerr=error_ext_2_pix_24_cameras, fmt='P', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_ext_2_pix_overall_6_cameras, yerr=error_ext_2_pix_6_cameras, fmt='P', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
     plt.fill_between([9, 11.7], [50, 50], [100, 100], color='aqua', alpha=0.1)
     plt.fill_between([11, 13.4], [50, 50], [100, 100], color='plum', alpha=0.1)
 
@@ -606,11 +606,11 @@ for i in range(nP):
         plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_24_cameras, eff_ext_2_pix_overall_24_cameras], color='orange', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_6_cameras, eff_ext_2_pix_overall_6_cameras], color='yellow', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_24_cameras, eff_ext_2_pix_overall_24_cameras], color='orange', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_6_cameras, eff_ext_2_pix_overall_6_cameras], color='yellow', linestyle='-', markersize=0)
     
     # Update previous values
-    prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras, prev_eff_ext_2_pix_overall_24_cameras, prev_eff_ext_2_pix_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras, eff_ext_2_pix_overall_24_cameras, eff_ext_2_pix_overall_6_cameras
+    prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
 
 # Additional plot settings
 plt.vlines(11.7, ymin=50, ymax=100, linestyles='dashed', colors='green')
@@ -621,7 +621,7 @@ plt.text(10, 78.1,'Earth-like planet detection\nregion (24 cameras)', color='gre
 plt.text(11, 75, 'On-board light curve processing region', color='red',  weight='bold')
 
 # Display legend
-plt.legend()
+#plt.legend()
 plt.ylim(50,100)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency[%]', fontsize=fsize)
@@ -1286,7 +1286,7 @@ plt.legend()
 
 plt.figure(30)
 plt.plot(mag[eta_t > flux_thresh_nom_mask], eta_c[eta_t > flux_thresh_nom_mask], 'rP', markersize=5)
-plt.plot(mag[eta_t > flux_thresh_nom_mask], nsr1h_sec[eta_t > flux_thresh_nom_mask], 'ko', markersize=5)
+#plt.plot(mag[eta_t > flux_thresh_nom_mask], nsr1h_sec[eta_t > flux_thresh_nom_mask], 'ko', markersize=5)
 plt.semilogy()
 plt.ylabel(r'$\eta_{kmax}^{sec}$ for cases where $(\eta_{nom} > \eta_{min})$', fontsize=fsize)
 plt.xlabel('P mag', fontsize=fsize)

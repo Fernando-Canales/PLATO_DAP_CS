@@ -1,4 +1,4 @@
-# ------------------------------------------------
+# ------- -----------------------------------------
 # First we import the main libraries and modules
 import numpy as np # type: ignore
 import spline2dbase # type: ignore
@@ -18,8 +18,10 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 #PSFfile = 'PSF.npz'                                                   # processed PSF files
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.1pxdif.npz'
-#DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
+#DIRout = '/home/fercho/double-aperture-photometry/test_results/metrics_comparison/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_85000ppm_and_td_4hr/'
+DIRout = 'test_results/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
@@ -221,7 +223,7 @@ for i in range(nP):
         secondary_mask_key = mask_to_bitmask(secondary_mask)
         secondary_mask_size = np.count_nonzero(secondary_mask)
        
-        nsr_secondary_mask = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * (secondary_mask**2))) / np.sum(It * secondary_mask) # E1. 11 in Marchiori paper
+        nsr_secondary_mask = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * (secondary_mask**2))) / np.sum(Ic_max * secondary_mask) # E1. 11 in Marchiori paper
         nsr_1h_24_cameras_secondary_mask = ((10 ** 6) / (12 * np.sqrt(24))) * nsr_secondary_mask 
         nsr_1h_6_cameras_secondary_mask = ((10 ** 6) / (12 * np.sqrt(6))) * nsr_secondary_mask 
 
@@ -306,6 +308,7 @@ for i in range(nP):
         eta_cob_c, sigma_1_24_c, abs_cob_c, gamma_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
+        sprk_cob_c = np.sum(Ic_max * secondary_mask)/ np.sum((It + Ic_acc) * secondary_mask)
         ## 6 cameras
         eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras, gamma_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
@@ -452,6 +455,8 @@ for i in range(nP):
         print('SPRk_10_first_ext are:', SPRK_ext_10first)
         print('eta_10first_ext are:', eta_ext_10first)
         print('eta_10first are:', eta_10first)
+        print('spr_sec[index_I_c_max]', sprk_sec[index_contaminant_highest_sprk])
+        print('sprk_cob_c', sprk_cob_c)
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
         # Now we save the important metrics for every target w.r.t the nominal mask

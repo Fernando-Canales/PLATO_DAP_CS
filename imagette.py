@@ -103,6 +103,8 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     """
     # First we define our intensity variable as I_tot
     I_tot = I_t + I_contaminants
+    # Define Ikw
+    Ikw = Ik * w
     # First we define the abscissa of each pixel in the array with the target and all contaminants
     x = np.arange(0, I_tot.shape[1]) + 0.5
     # Second we define the ordinate of each pixel in the array with the target and all contaminants
@@ -116,9 +118,11 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     # Now we define the COB on the Y-direction
     c_y = np.sum(y * w * I_tot) / f_tot
     # Now we define the Gamma factor along the X-direction
-    gamma_x = np.sum(x * w * Ik) / f_tot - c_x * sprk
+    #gamma_x = np.sum(x * w * Ik) / f_tot - c_x * sprk
+    gamma_x = np.sum((x - c_x)* Ikw)/ f_tot
     # Now we define the Gamma factor along the Y-direction
-    gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
+    #gamma_y = np.sum(y * w * Ik) / f_tot - c_y * sprk
+    gamma_y = np.sum((y - c_y)* Ikw) / f_tot
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
     # Now we make sure to deal with the correct units for the C.O.B shift (no ppm) and define the Lambda factor
