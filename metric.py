@@ -27,10 +27,16 @@ CatalogueDIR = '/home/samadi/plato/share/catalogues/'
 # CatalogueDIR = '/volumes/astro/sismo/general/plato/web/grids/catalogues/'
 # CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
 # CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-DIRout = 'test4/'
+DIRout = 'test13/'
 # test 6 : v0 optimal extended mask (union of the secondary mask + nominal)
 # test7 # v1 optimal extended mask: for each contaminant, take the extra pixels that maximize the significance
-PSFFileName = 'PSF.npz'
+# test8 as test4 with a maximum distance of 10 pixel
+# test 9   PSF_Focus_0mu_0.2pxdif.npz
+# test 10  PSF_Focus_0mu_0.1pxdif.npz
+# test 11 as 9 with optimal extended mask v1
+# test 12 as 9 no RON no background no quantification noise
+# test 13 factor sqrt(2) removed in equation for the centroid error
+PSFFileName = 'PSF_Focus_0mu_0.2pxdif.npz'
 #CatalogueFileName = 'SFP_DR3_20220831.npy'
 CatalogueFileName = 'SFP_DR3_20230101.npy'
 
@@ -88,7 +94,7 @@ nP = int(round((Pmax - Pmin) / binsize + 1))
 
 file_out = open(DIRout + 'metrics_reza.txt', 'w')
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((nStar * nP, 72))
+save_info = np.zeros((nStar * nP, 84))
 
 # for the secondary mask
 save_info_2ndmask = np.zeros((nStar * nP, 84))
@@ -153,7 +159,8 @@ def cob_shift(Itot, Ic, w, dback):
     # we assume that the transit does not significantly change the uncertainty
     # delta_Cx_var_in = delta_Cx_var
     # delta_Cy_var_in = delta_Cy_var
-    delta_C_sig = np.sqrt(2 * (Gammax ** 2 * delta_Cx_var + Gammay ** 2 * delta_Cy_var)) / Gamma
+    if(Gamma>0.): delta_C_sig = np.sqrt( (Gammax ** 2 * delta_Cx_var + Gammay ** 2 * delta_Cy_var)) / Gamma
+    else: delta_C_sig = 1e99
     delta_C_sig_1h_24c = delta_C_sig / (12 * np.sqrt(24))  # random error re-scaled to 1h and 24 cameras
     ## print('delta_COB = ',delta_C)
     ## print('delta_COB_sig =',delta_C_sig_1h_24c)
@@ -273,7 +280,7 @@ for i in range(nP):
     ID_target = ID[mask]
 
     j = ran_unique_int(n=nStar, interval=[0, targets_P5.shape[0] - 1])
-    print(j)
+    ##    print(j)
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
     # Now we obtain the x and y coordinates of the targets on the focal plane
@@ -418,6 +425,8 @@ for i in range(nP):
         # sorting the SPRk by decreasing order and taking the 10 first values
         sprk_sorted_index = (np.argsort(sprk)[::-1])
         SPRk_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
+        IDs_10first = np.zeros(10)
+
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             eta_10first[l] = sprk[m] * np.sqrt(td * ntr) * dback / NSR1h / (1. - SPR_tot)
@@ -425,6 +434,7 @@ for i in range(nP):
             Gamma_10first[l] = Gamma_l
             delta_COB_sig_10first[l] = delta_COB_sig_l
             eta_COB_10first[l] = _ * np.sqrt(td * ntr) / delta_COB_sig_l
+            IDs_10first[l] = ID_contaminants[m]
 
         if verbose:
             print('SPR_tot=', SPR_tot)
@@ -619,7 +629,6 @@ for i in range(nP):
         eta_c_10first = np.zeros(10)
         NSR1h_c_10first = np.zeros(10)
         w_c_key_10first = np.zeros(10)
-
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             Itc_acc_l = Itot - Ic[m]
@@ -643,6 +652,9 @@ for i in range(nP):
         save_info = np.append(save_info, delta_COB_sig_10first)
         save_info = np.append(save_info, eta_COB_10first)
         save_info = np.append(save_info, eta_10first)
+        save_info = np.append(save_info, IDs_10first)
+        save_info = np.append(save_info, x_t_im)
+        save_info = np.append(save_info, y_t_im)
 
         save_info_2ndmask = np.array([ID_t, P_t, ID_c, m_c, NSR1h_c, w_c_key, w_c_size, eta_c, delta_obs_c, delta_COB_c,
                                       delta_COB_sig_1h_24c_c, eta_cob_c, spr_tot_c, Gamma_c])
@@ -749,6 +761,9 @@ np.save(DIRout + 'targets_P5.npy', save_info)
 # 42-51: 10 first delta_COB_sig_1h_24c
 # 52-61: 10 first eta_COB
 # 62-71: 10 first eta_10first
+# 72-81: IDs of the 10 first contaminants
+# 82: x target position in the imagette
+# 83: Y target position in the imagette
 
 np.save(DIRout + 'targets_P5_2ndmask.npy', save_info_2ndmask)
 # 0: ID_t

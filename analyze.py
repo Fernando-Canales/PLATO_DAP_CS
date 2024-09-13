@@ -1,17 +1,18 @@
 from pylab import * # type: ignore
 from pylab import * # type: ignore
+from pylab import * # type: ignore
 from imagette import ran_unique_int
 
 # Dir = '40000/'
 # Dir = 'PSF_Focus_0mu_0.2pxdif/'
-Dir = 'test4/'
+Dir = 'test13/'
 # test4: new dback and td such as to have gamma=0.5
 # test5:  extended mask extension by 2 pixels
 # test6: optimal extended mask built by joining together (union) the secondary mask of each contaminant star that can create a FP
 # test7: v1 optimal extended mask: for each contaminant, take the extra pixels that maximize the significance
 # CatalogueDIR='/home/fercho/double-aperture-photometry/catalogues_stars/'
 CatalogueDIR= './'
-Pmin = 8. # 10.5
+Pmin = 10. # 8. # 10.5
 Pmax = 13
 binsize = 0.5
 cob_thr= 3.
@@ -49,6 +50,11 @@ data_nommask = np.load(Dir+'targets_P5.npy')
 # 22-31: 10 first SPRk values
 # 32-41: 10 first Gamma values
 # 42-51: 10 first delta_COB_sig_1h_24c
+# 52-61: 10 first eta_COB
+# 62-71: 10 first eta_10first
+# 72-81: IDs of the 10 first contaminants
+# 82: x target position in the imagette
+# 83: Y target position in the imagette
 
 data_2ndmask = np.load(Dir+'targets_P5_2ndmask.npy')
 # 0: ID_t
@@ -64,9 +70,14 @@ data_2ndmask = np.load(Dir+'targets_P5_2ndmask.npy')
 # 10: delta_COB_sig_1h_24c_c
 # 11: eta_cob_c
 # 12: spr_tot_c
-# 13: Gammax_c
-# 14: Gammay_c
-
+# 13: Gamma_c
+# 14-23: 10 first SPRtot_c values
+# 24-33: 10 first Gamma_c values
+# 34-43: 10 first delta_COB_sig_1h_24c
+# 44-53: 10 first NSR1h_c
+# 54-63: 10 first w_c_key
+# 64-73: 10 first eta_COB_c
+# 74-83: 10 first eta_c_10first
 
 
 data_extmask = np.load(Dir+'targets_P5_extended.npy')
@@ -118,14 +129,16 @@ P = P[m]
 # data_2ndmask[:,7]  *= (dback_ref/85000.)*sqrt(td_ref/4.)
 # data_2ndmask[:,11]  *= (dback_ref/85000.)*sqrt(td_ref/4.)
 
-sig_depth_sec =data_2ndmask[:,4] * (1. - data_2ndmask[:,12])/sqrt(td_ref*ntr) # NSR*(1-SPRtot)
+sig_depth_s_sec =data_2ndmask[:,4]*(1.-data_2ndmask[:,12])/sqrt(td_ref*ntr) # NSR*(1-SPRtot)
 sig_depth_nom =   data_nommask[:,6]*(1. - data_nommask[:,9]) /sqrt(td_ref*ntr)  # NSR*(1-SPRtot)
+sig_depth_s = np.sqrt(sig_depth_nom**2+ sig_depth_s_sec**2)
+
 sig_depth_ext = data_extmask[:, 4] * (1. - data_extmask[:, 7]) /sqrt(td_ref*ntr)  # NSR*(1-SPRtot)
 
 
 sig_depth = np.sqrt(sig_depth_nom**2+ sig_depth_ext**2)
 fp = (data_nommask[:,13] > flx_trh) # eta_t>7: false positive (not yet identified as such)
-sfd = fp & (data_2ndmask[:,7] > sec_flx_trh)  &  (data_2ndmask[:,8] > data_nommask[:,14] + depth_sig_scaling*np.sqrt(sig_depth_sec**2 + sig_depth_nom**2))  # eta_c>7.1 and delta_obt_c > delta_obs_t : secondary mask detection
+sfd = fp & (data_2ndmask[:,7] > sec_flx_trh)  &  (data_2ndmask[:,8] > data_nommask[:,14] + depth_sig_scaling*sig_depth_s)  # eta_c>7.1 and delta_obt_c > delta_obs_t : secondary mask detection
 efd = fp & (data_extmask[:,10] > ext_flx_trh)   & (data_extmask[:,15] > data_nommask[:,14]+ depth_sig_scaling*sig_depth)  # eta_ext>7.1 and delta_obt_ext > delta_obs_t : extended flux detection
 
 cd = fp & (data_nommask[:,17] > cob_thr) # eta_cob>3: COB detection
@@ -477,6 +490,11 @@ a = (eta_ext_bt>ext_flx_trh) & (delta_obs_ext>delta_obs+depth_sig_scaling*sig_de
 eff_ext = ( a  & s).sum()/s.sum()*100.
 print('extended flux efficiency: %f' % eff_ext)
 
+a_noisefree  = (eta_ext_bt>ext_flx_trh) & (delta_obs_ext>delta_obs)
+eff_ext_noisefree = ( a_noisefree   & s).sum()/s.sum()*100.
+print('extended flux efficiency with noise free condition on delta: %f' % eff_ext_noisefree)
+
+
 s_max = (eta_bt[:,0]>flx_trh)
 a_max = (eta_ext_bt[:,0]>ext_flx_trh) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth[:,0])
 eff_ext_max = ( a_max  & s_max).sum()/s_max.sum()*100.
@@ -484,6 +502,7 @@ print('extended flux efficiency most significant cont: %f' % eff_ext_max)
 
 
 n_ext_det = np.sum(a & s,axis=1)
+
 
 eff_s = sfd.sum() / fp.sum() * 100.
 print('secondary mask efficiency: %f' % eff_s)
