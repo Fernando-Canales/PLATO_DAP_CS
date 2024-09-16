@@ -20,9 +20,11 @@ PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.1pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/test_results/metrics_comparison/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_85000ppm_and_td_4hr/'
-DIRout = 'test_results/'
+#DIRout = 'test_results/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_25/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
@@ -36,7 +38,8 @@ bsres = 20     # resolution of the b-spline decomposition of the PSF
 # Parameters for the NSR
 #sb = 0
 #sd = 0
-sb = (45. * 21) # Background noise from zodiacal light in e-/px(poisson noise)times integration time (21 sec.)
+#sb = (45. * 21) # Background noise from zodiacal light in e-/px(poisson noise)times integration time (21 sec.)
+sb = (0. * 21)
 sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2       # Quantization noise in units of e-rms/px
 
