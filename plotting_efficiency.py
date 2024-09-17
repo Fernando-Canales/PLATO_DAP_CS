@@ -760,10 +760,9 @@ unique_row_indices = np.unique(row_indices)
 # Extract the corresponding magnitude values
 mag_fraction_fp_nom_cob_no_ext_flux = mag[unique_row_indices]
 
+magnitudes = mag  # Using the variable with all the magnitude values of the targets
 
 #################### CONSIDERING THE BIAS FROM THE STAR COUNT OF EACH MAGNITUDE BIN #########################
-
-magnitudes = mag  # Using the variable with all the magnitude values of the targets
 
 # Star counts per magnitude bin (from star_count.txt)
 star_counts = {
@@ -779,7 +778,12 @@ star_counts = {
 total_stars = sum(star_counts.values())
 
 # Weights for each magnitude bin
-weights = {P: star_counts[P] / total_stars for P in star_counts}
+weights = np.zeros(len(star_counts))
+
+# Loop over star_counts and fill weights array
+for i, P in enumerate(star_counts):
+    weights[i] = star_counts[P] / total_stars
+#weights = {P: star_counts[P] / total_stars for P in star_counts}
 
 # Initialize weighted sums for efficiency
 weighted_eff_ext_flux = 0
@@ -806,7 +810,7 @@ weighted_error_fraction_fp_ext_flux_no_nom_cob = 0
 weighted_error_fraction_fp_ext_cob_no_nom_cob = 0
 
 # Iterate over each magnitude bin
-for P in weights:
+for i, P in enumerate(star_counts):
     bmin = P - binsize/2
     bmax = P + binsize/2
     # Filter boolean masks per magnitude bin using the `mag` array
@@ -828,16 +832,16 @@ for P in weights:
     fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob[mask_bin] == False) & nfp_ext_cob[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum()
 
     # Weight the efficiencies for the current bin
-    weighted_eff_ext_flux = weighted_eff_ext_flux + weights[P] * eff_ext_flux
-    weighted_eff_sec_flux = weighted_eff_sec_flux + weights[P] * eff_sec_flux
-    weighted_eff_ext_flux_single_contaminant = weighted_eff_ext_flux_single_contaminant + weights[P] * eff_ext_flux_single_contaminant
-    weighted_eff_nom_cob = weighted_eff_nom_cob + weights[P] * eff_nom_cob
-    weighted_eff_ext_cob = weighted_eff_ext_cob + weights[P] * eff_ext_cob
-    weighted_eff_sec_cob = weighted_eff_sec_cob + weights[P] * eff_sec_cob
-    weighted_fraction_fp_ext_cob_no_ext_flux = weighted_fraction_fp_ext_cob_no_ext_flux + weights[P] * fraction_fp_ext_cob_no_ext_flux
-    weighted_fraction_fp_nom_cob_no_ext_flux = weighted_fraction_fp_nom_cob_no_ext_flux + weights[P] * fraction_fp_nom_cob_no_ext_flux
-    weighted_fraction_fp_ext_flux_no_nom_cob = weighted_fraction_fp_ext_flux_no_nom_cob + weights[P] * fraction_fp_ext_flux_no_nom_cob
-    weighted_fraction_fp_ext_cob_no_nom_cob = weighted_fraction_fp_ext_cob_no_nom_cob + weights[P] * fraction_fp_ext_cob_no_nom_cob 
+    weighted_eff_ext_flux = weighted_eff_ext_flux + weights[i] * eff_ext_flux
+    weighted_eff_sec_flux = weighted_eff_sec_flux + weights[i] * eff_sec_flux
+    weighted_eff_ext_flux_single_contaminant = weighted_eff_ext_flux_single_contaminant + weights[i] * eff_ext_flux_single_contaminant
+    weighted_eff_nom_cob = weighted_eff_nom_cob + weights[i] * eff_nom_cob
+    weighted_eff_ext_cob = weighted_eff_ext_cob + weights[i] * eff_ext_cob
+    weighted_eff_sec_cob = weighted_eff_sec_cob + weights[i] * eff_sec_cob
+    weighted_fraction_fp_ext_cob_no_ext_flux = weighted_fraction_fp_ext_cob_no_ext_flux + weights[i] * fraction_fp_ext_cob_no_ext_flux
+    weighted_fraction_fp_nom_cob_no_ext_flux = weighted_fraction_fp_nom_cob_no_ext_flux + weights[i] * fraction_fp_nom_cob_no_ext_flux
+    weighted_fraction_fp_ext_flux_no_nom_cob = weighted_fraction_fp_ext_flux_no_nom_cob + weights[i] * fraction_fp_ext_flux_no_nom_cob
+    weighted_fraction_fp_ext_cob_no_nom_cob = weighted_fraction_fp_ext_cob_no_nom_cob + weights[i] * fraction_fp_ext_cob_no_nom_cob 
 
 
     # Calculate errors
@@ -852,10 +856,10 @@ for P in weights:
     error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(fraction_fp_ext_cob_no_nom_cob * (1 - fraction_fp_ext_cob_no_nom_cob) / N_total)
 
     # Weight the errors for the current bin
-    weighted_error_fraction_fp_ext_cob_no_ext_flux = weighted_error_fraction_fp_ext_cob_no_ext_flux +  weights[P] * error_fraction_fp_ext_cob_no_ext_flux
-    weighted_error_fraction_fp_nom_cob_no_ext_flux = weighted_error_fraction_fp_nom_cob_no_ext_flux + weights[P] * error_fraction_fp_nom_cob_no_ext_flux
-    weighted_error_fraction_fp_ext_flux_no_nom_cob = weighted_error_fraction_fp_ext_flux_no_nom_cob + weights[P] * error_fraction_fp_ext_flux_no_nom_cob
-    weighted_error_fraction_fp_ext_cob_no_nom_cob = weighted_error_fraction_fp_ext_cob_no_nom_cob +  weights[P] * error_fraction_fp_ext_cob_no_nom_cob
+    weighted_error_fraction_fp_ext_cob_no_ext_flux = weighted_error_fraction_fp_ext_cob_no_ext_flux +  weights[i] * error_fraction_fp_ext_cob_no_ext_flux
+    weighted_error_fraction_fp_nom_cob_no_ext_flux = weighted_error_fraction_fp_nom_cob_no_ext_flux + weights[i] * error_fraction_fp_nom_cob_no_ext_flux
+    weighted_error_fraction_fp_ext_flux_no_nom_cob = weighted_error_fraction_fp_ext_flux_no_nom_cob + weights[i] * error_fraction_fp_ext_flux_no_nom_cob
+    weighted_error_fraction_fp_ext_cob_no_nom_cob = weighted_error_fraction_fp_ext_cob_no_nom_cob +  weights[i] * error_fraction_fp_ext_cob_no_nom_cob
 
 # Print weighted efficiency results
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}%')
@@ -1356,16 +1360,16 @@ plt.plot([], [], 'gP', label='nsr_nom')
 plt.legend()
 
 plt.figure(27)
-plt.plot(mag_etas_ratio, sigma_cob_ext_trimmed/sigma_cob_nom_trimmed, 'bo', markersize = 5)
-#plt.plot(mag_trimmed_sigma, sigma_cob_nom_trimmed, 'k+')
+plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize = 5)
+plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'k+')
 #plt.ylim(0.1, 10)
 #plt.xlim(9.5, 13.5)
 #plt.semilogy()
-plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
-plt.ylabel(r'$ \sigma_{k}^{ext, 1h, N_{T}} / \sigma_{k}^{nom, 1h, N_{T}}}$', fontsize=fsize)
+#plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
+plt.ylabel(r'$ \sigma_{k}^{1h, N_{T}}$', fontsize=fsize)
 plt.xlabel('P mag', fontsize=fsize)
-#plt.plot([], [], 'b^', label='Ext. mask')
-#plt.plot([], [], 'k+', label='Nom. mask')
+plt.plot([], [], 'b^', label='Ext. mask')
+plt.plot([], [], 'k+', label='Nom. mask')
 plt.legend()
 
 plt.figure(28)
