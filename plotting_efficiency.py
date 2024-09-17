@@ -27,6 +27,9 @@ gamma_factor_significance = 1 ## other 0.46
 td_ref = 6.72*0.46**2
 dback_ref = 132000
 
+
+data_catalogue = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
+magnitude_all_stars = data_catalogue[:, 2]
 data = np.load(dataDIR + 'targets_P5.npy')
 #0: ID_t
 #1: P_t
@@ -764,28 +767,24 @@ magnitudes = mag  # Using the variable with all the magnitude values of the targ
 
 #################### CONSIDERING THE BIAS FROM THE STAR COUNT OF EACH MAGNITUDE BIN #########################
 
-# Star counts per magnitude bin (from star_count.txt)
-star_counts = {
-    10.0: 7255,
-    10.5: 10810,
-    11.0: 15935,
-    11.5: 23351,
-    12.0: 33878,
-    12.5: 49269,
-    13.0: 70219
-}
-# Total number of target stars in all magnitude bins
-total_stars = float(sum(star_counts.values()))
+star_counts = np.zeros(nP, dtype=int)
+total_stars = 0
+# Loop over each magnitude bin
+for i in range(nP):
+    Pi = Pmin + i * binsize  # Define bin edge
+    mask_bin = (magnitude_all_stars >= Pi - binsize / 2.) & (magnitude_all_stars <= Pi + binsize / 2.)
 
-# Weights for each magnitude bin
-weights = np.zeros(len(star_counts))
+    # Count the number of stars in the current bin
+    star_counts[i] = mask_bin.sum()
 
-# Loop over star_counts and fill weights array
-for i, P in enumerate(star_counts):
-    weights[i] = star_counts[P] / total_stars
-#weights = {P: star_counts[P] / total_stars for P in star_counts}
+    # Count the total number of stars
+    total_stars = total_stars + star_counts[i]
 
-# Initialize weighted sums for efficiency
+# Compute the weights for the current bin
+weights = star_counts / float(total_stars)
+
+
+# Initialize variables for weighted sums and counts
 weighted_eff_ext_flux = 0
 weighted_eff_sec_flux = 0
 weighted_eff_ext_flux_single_contaminant = 0
@@ -798,42 +797,33 @@ weighted_fraction_fp_ext_flux_no_nom_cob = 0
 weighted_fraction_fp_ext_cob_no_nom_cob = 0
 
 # Initialize errors for fractions
-error_fraction_fp_ext_cob_no_ext_flux = 0
-error_fraction_fp_nom_cob_no_ext_flux = 0
-error_fraction_fp_ext_flux_no_nom_cob = 0
-error_fraction_fp_ext_cob_no_nom_cob = 0
-
-# Initialize weighted sums for errors
 weighted_error_fraction_fp_ext_cob_no_ext_flux = 0
 weighted_error_fraction_fp_nom_cob_no_ext_flux = 0
 weighted_error_fraction_fp_ext_flux_no_nom_cob = 0
 weighted_error_fraction_fp_ext_cob_no_nom_cob = 0
 
-# Iterate over each magnitude bin
-for i, P in enumerate(star_counts):
-    bmin = P - binsize/2
-    bmax = P + binsize/2
-    # Filter boolean masks per magnitude bin using the `mag` array
-    mask_bin = (magnitudes >= bmin) & (magnitudes < bmax)
 
-    # Compute the efficiencies and fractions for the current magnitude bin
-    N_total = nfp[mask_bin].sum()
-    
-    # Compute the efficiencies for the current magnitude bin
-    eff_ext_flux = (nfp[mask_bin] & nfp_ext_mask[mask_bin]).sum() / nfp[mask_bin].sum() * 100.
-    eff_sec_flux = nfp_sec_mask[mask_bin].sum() / fp_single_contaminant_24_cameras[mask_bin].sum() * 100
-    eff_ext_flux_single_contaminant = nfp_ext_mask_single_contaminant[mask_bin].sum() / fp_single_contaminant_24_cameras[mask_bin].sum() * 100.
-    eff_nom_cob = (nfp[mask_bin] & nfp_nom_cob[mask_bin]).sum() / nfp[mask_bin].sum() * 100.
-    eff_ext_cob = (nfp_ext_cob[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum() * 100.
-    eff_sec_cob = secondary_mask_conditions_cob_24_cameras[mask_bin].sum() / fp_single_contaminant_24_cameras[mask_bin].sum() * 100.
-    fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask[mask_bin] == False) & nfp_ext_cob[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum()
-    fraction_fp_nom_cob_no_ext_flux = ((nfp_ext_mask[mask_bin] == False) & nfp_nom_cob[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum()
-    fraction_fp_ext_flux_no_nom_cob = ((nfp_nom_cob[mask_bin] == False) & nfp_ext_mask[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum()
-    fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob[mask_bin] == False) & nfp_ext_cob[mask_bin] & nfp[mask_bin]).sum() / nfp[mask_bin].sum()
+# Loop over each magnitude bin
+for i in range(nP):
+    Pi = Pmin + i * binsize  # Define bin edge
+    m = (mag >= Pi - binsize / 2.) & (mag <= Pi + binsize / 2.)
 
-    # Weight the efficiencies for the current bin
-    weighted_eff_ext_flux = weighted_eff_ext_flux + weights[i] * eff_ext_flux
-    weighted_eff_sec_flux = weighted_eff_sec_flux + weights[i] * eff_sec_flux
+    # Compute efficiencies and fractions for the current bin
+    # Example computations (replace with your actual metrics)
+    eff_ext_flux = (nfp[m] & nfp_ext_mask[m]).sum() / nfp[m].sum() * 100.
+    eff_sec_flux = (nfp_sec_mask[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100
+    eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
+    eff_nom_cob = (nfp[m] & nfp_nom_cob[m]).sum() / nfp[m].sum() * 100.
+    eff_ext_cob = (nfp[m] & nfp_ext_cob[m]).sum() / nfp[m].sum() * 100.
+    eff_sec_cob = (secondary_mask_conditions_cob_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
+    fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask[m]==False) & nfp_ext_cob[m] & nfp[m] ).sum()/nfp[m].sum()
+    fraction_fp_nom_cob_no_ext_flux = ((nfp_ext_mask[m]==False) & nfp_nom_cob[m] & nfp[m] ).sum()/nfp[m].sum()
+    fraction_fp_ext_flux_no_nom_cob = ((nfp_nom_cob[m]==False) & nfp_ext_mask[m] & nfp[m] ).sum()/nfp[m].sum()
+    fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob[m]==False) & nfp_ext_cob[m] & nfp[m] ).sum()/nfp[m].sum()
+
+    # Accumulate weighted sums
+    weighted_eff_ext_flux =  weighted_eff_ext_flux  + weights[i] * eff_ext_flux
+    weighted_eff_sec_flux =  weighted_eff_sec_flux + weights[i] * eff_sec_flux
     weighted_eff_ext_flux_single_contaminant = weighted_eff_ext_flux_single_contaminant + weights[i] * eff_ext_flux_single_contaminant
     weighted_eff_nom_cob = weighted_eff_nom_cob + weights[i] * eff_nom_cob
     weighted_eff_ext_cob = weighted_eff_ext_cob + weights[i] * eff_ext_cob
@@ -841,25 +831,19 @@ for i, P in enumerate(star_counts):
     weighted_fraction_fp_ext_cob_no_ext_flux = weighted_fraction_fp_ext_cob_no_ext_flux + weights[i] * fraction_fp_ext_cob_no_ext_flux
     weighted_fraction_fp_nom_cob_no_ext_flux = weighted_fraction_fp_nom_cob_no_ext_flux + weights[i] * fraction_fp_nom_cob_no_ext_flux
     weighted_fraction_fp_ext_flux_no_nom_cob = weighted_fraction_fp_ext_flux_no_nom_cob + weights[i] * fraction_fp_ext_flux_no_nom_cob
-    weighted_fraction_fp_ext_cob_no_nom_cob = weighted_fraction_fp_ext_cob_no_nom_cob + weights[i] * fraction_fp_ext_cob_no_nom_cob 
+    weighted_fraction_fp_ext_cob_no_nom_cob = weighted_fraction_fp_ext_cob_no_nom_cob + weights[i] * fraction_fp_ext_cob_no_nom_cob
 
+    # Calculate errors for fractions
+    error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux) / star_counts[i])
+    error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux) / star_counts[i])
+    error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob) / star_counts[i])
+    error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(fraction_fp_ext_cob_no_nom_cob * (1 - fraction_fp_ext_cob_no_nom_cob) / star_counts[i])
 
-    # Calculate errors
-    #error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(N_total * (fraction_fp_ext_cob_no_ext_flux) * (1 - fraction_fp_ext_cob_no_ext_flux))
-    #error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(N_total * (fraction_fp_nom_cob_no_ext_flux) * (1 - fraction_fp_nom_cob_no_ext_flux))
-    #error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(N_total * (fraction_fp_ext_flux_no_nom_cob) * (1 - fraction_fp_ext_flux_no_nom_cob))
-    #error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(N_total * (fraction_fp_ext_cob_no_nom_cob) * (1 - fraction_fp_ext_cob_no_nom_cob))
-
-    error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux) / N_total)
-    error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux) / N_total)
-    error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob) / N_total)
-    error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(fraction_fp_ext_cob_no_nom_cob * (1 - fraction_fp_ext_cob_no_nom_cob) / N_total)
-
-    # Weight the errors for the current bin
-    weighted_error_fraction_fp_ext_cob_no_ext_flux = weighted_error_fraction_fp_ext_cob_no_ext_flux +  weights[i] * error_fraction_fp_ext_cob_no_ext_flux
+    # Accumulate weighted errors
+    weighted_error_fraction_fp_ext_cob_no_ext_flux = weighted_error_fraction_fp_ext_cob_no_ext_flux + weights[i] * error_fraction_fp_ext_cob_no_ext_flux
     weighted_error_fraction_fp_nom_cob_no_ext_flux = weighted_error_fraction_fp_nom_cob_no_ext_flux + weights[i] * error_fraction_fp_nom_cob_no_ext_flux
     weighted_error_fraction_fp_ext_flux_no_nom_cob = weighted_error_fraction_fp_ext_flux_no_nom_cob + weights[i] * error_fraction_fp_ext_flux_no_nom_cob
-    weighted_error_fraction_fp_ext_cob_no_nom_cob = weighted_error_fraction_fp_ext_cob_no_nom_cob +  weights[i] * error_fraction_fp_ext_cob_no_nom_cob
+    weighted_error_fraction_fp_ext_cob_no_nom_cob = weighted_error_fraction_fp_ext_cob_no_nom_cob + weights[i] * error_fraction_fp_ext_cob_no_nom_cob
 
 # Print weighted efficiency results
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}%')
@@ -868,12 +852,12 @@ print(f'Weighted extended flux for a single contaminant efficiency: {weighted_ef
 print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}%')
 print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}%')
 print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}%')
+
 # Print weighted fractions and their errors
 print(f'Weighted fraction of FPs detected by ECOB but not by EFX: {weighted_fraction_fp_ext_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_ext_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by NCOB but not by EFX: {weighted_fraction_fp_nom_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_nom_cob_no_ext_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by ECOB but not by NCOB: {weighted_fraction_fp_ext_cob_no_nom_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_nom_cob * 100:.2f}%')
-
 """
 The condition of eta_ext
 """
