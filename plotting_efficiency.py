@@ -775,7 +775,7 @@ star_counts = {
     13.0: 70219
 }
 # Total number of target stars in all magnitude bins
-total_stars = sum(star_counts.values())
+total_stars = float(sum(star_counts.values()))
 
 # Weights for each magnitude bin
 weights = np.zeros(len(star_counts))
