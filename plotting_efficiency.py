@@ -579,10 +579,10 @@ for i in range(nP):
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
     # Errors
-    error = np.sqrt(m.sum() * (eff_ext_overall_24_cameras/100) * (1 - (eff_ext_overall_24_cameras/100))) / m.sum()
-    error_6_cameras = np.sqrt(m.sum() * (eff_ext_overall_6_cameras/100) * (1 - (eff_ext_overall_6_cameras/100))) / m.sum()
-    error_sec_6_cameras = np.sqrt(m.sum() * (eff_sec_6_cameras/100) * (1 - (eff_sec_6_cameras/100))) / m.sum()
-    error_sec = np.sqrt(m.sum() * (eff_sec/100) * (1 - (eff_sec/100))) / m.sum()
+    error = np.sqrt(m.sum() * (eff_ext_overall_24_cameras) * (100 - (eff_ext_overall_24_cameras))) / m.sum()
+    error_6_cameras = np.sqrt(m.sum() * (eff_ext_overall_6_cameras) * (100 - (eff_ext_overall_6_cameras))) / m.sum()
+    error_sec_6_cameras = np.sqrt(m.sum() * (eff_sec_6_cameras) * (100 - (eff_sec_6_cameras))) / m.sum()
+    error_sec = np.sqrt(m.sum() * eff_sec * (100 - (eff_sec))) / m.sum()
     #error_ext_2_pix_24_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_24_cameras * (100 - eff_ext_2_pix_overall_24_cameras)) / n_tar
     #error_ext_2_pix_6_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_6_cameras * (100 - eff_ext_2_pix_overall_6_cameras)) / n_tar
 
@@ -625,7 +625,7 @@ plt.text(10, 78.1,'Earth-like planet detection\nregion (24 cameras)', color='gre
 plt.text(11, 75, 'On-board light curve processing region', color='red',  weight='bold')
 
 # Display legend
-#plt.legend()
+plt.legend()
 plt.ylim(50,100)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency[%]', fontsize=fsize)
@@ -665,12 +665,12 @@ for i in range(nP):
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     
     #Computing the errors:
-    error_ext_cob = np.sqrt(m.sum() * (eff_ext_cob_overall/100) * (1 - (eff_ext_cob_overall/100))) / m.sum()
-    error_ext_cob_6_cameras = np.sqrt(m.sum() * (eff_ext_cob_overall_6_cameras/100) * (1 - (eff_ext_cob_overall_6_cameras/100))) / m.sum()
-    error_cob = np.sqrt(m.sum() * (eff_cob/100) * (1 - eff_cob/100)) / m.sum()
-    error_cob_6_cameras = np.sqrt(m.sum() * (eff_cob_6_cameras/100) * (1 - (eff_cob_6_cameras/100))) / m.sum()
-    error_cob_sec = np.sqrt(m.sum() * eff_cob_sec * (1 - (eff_cob_sec/100))) / m.sum()
-    error_cob_sec_6_cameras = np.sqrt(m.sum() * (eff_cob_sec_6_cameras/100) * (1 - (eff_cob_sec_6_cameras/100))) / m.sum()
+    error_ext_cob = np.sqrt(m.sum() * eff_ext_cob_overall * (100 - eff_ext_cob_overall)) / m.sum()
+    error_ext_cob_6_cameras = np.sqrt(m.sum() * eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras)) / m.sum()
+    error_cob = np.sqrt(m.sum() * (eff_cob/100) * (100 - eff_cob)) / m.sum()
+    error_cob_6_cameras = np.sqrt(m.sum() * (eff_cob_6_cameras/100) * (100 - eff_cob_6_cameras)) / m.sum()
+    error_cob_sec = np.sqrt(m.sum() * eff_cob_sec * (100 - eff_cob_sec)) / m.sum()
+    error_cob_sec_6_cameras = np.sqrt(m.sum() * eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras)) / m.sum()
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
@@ -707,7 +707,7 @@ plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
-nfp_ext_mask_without_noise = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs)
+nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
 nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh)
 nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh)
@@ -716,8 +716,7 @@ nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 nfp_highest_contaminant = (eta_nom_bt_24_cameras[:,0]>flux_thresh_nom_mask)
 nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
 
-
-print('++++++++++++ Some important computations ++++++++++++')
+print('++++++++++++ Some important computations (biased) ++++++++++++')
 eff_ext_flux = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
 print('extended flux efficiency: %f' % eff_ext_flux)
 
@@ -788,6 +787,7 @@ weights = star_counts / float(total_stars)
 weighted_eff_ext_flux = 0
 weighted_eff_sec_flux = 0
 weighted_eff_ext_flux_single_contaminant = 0
+weighted_eff_ext_flux_without_significant_transit_depth_condition = 0
 weighted_eff_nom_cob = 0
 weighted_eff_ext_cob = 0
 weighted_eff_sec_cob = 0
@@ -810,10 +810,10 @@ for i in range(nP):
     n_star[i] = m.sum()
 
     # Compute efficiencies and fractions for the current bin
-    # Example computations (replace with your actual metrics)
     eff_ext_flux = (nfp[m] & nfp_ext_mask[m]).sum() / nfp[m].sum() * 100.
     eff_sec_flux = (nfp_sec_mask[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100
     eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
+    eff_ext_flux_without_significant_transit_depth_condition = (nfp[m] & nfp_ext_flux_without_significant_transit_depth_condition[m]).sum() / nfp[m].sum() * 100.
     eff_nom_cob = (nfp[m] & nfp_nom_cob[m]).sum() / nfp[m].sum() * 100.
     eff_ext_cob = (nfp[m] & nfp_ext_cob[m]).sum() / nfp[m].sum() * 100.
     eff_sec_cob = (secondary_mask_conditions_cob_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
@@ -826,6 +826,7 @@ for i in range(nP):
     weighted_eff_ext_flux =  weighted_eff_ext_flux  + weights[i] * eff_ext_flux
     weighted_eff_sec_flux =  weighted_eff_sec_flux + weights[i] * eff_sec_flux
     weighted_eff_ext_flux_single_contaminant = weighted_eff_ext_flux_single_contaminant + weights[i] * eff_ext_flux_single_contaminant
+    weighted_eff_ext_flux_without_significant_transit_depth_condition = weighted_eff_ext_flux_without_significant_transit_depth_condition + weights[i] * eff_ext_flux_without_significant_transit_depth_condition
     weighted_eff_nom_cob = weighted_eff_nom_cob + weights[i] * eff_nom_cob
     weighted_eff_ext_cob = weighted_eff_ext_cob + weights[i] * eff_ext_cob
     weighted_eff_sec_cob = weighted_eff_sec_cob + weights[i] * eff_sec_cob
@@ -855,6 +856,7 @@ for i in range(nP):
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}%')
 print(f'Weighted secondary flux efficiency: {weighted_eff_sec_flux:.2f}%')
 print(f'Weighted extended flux for a single contaminant efficiency: {weighted_eff_ext_flux_single_contaminant:.2f}%')
+print(f'Weighted extended flux without the significant transit depth condition: {weighted_eff_ext_flux_without_significant_transit_depth_condition:.2f}%')
 print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}%')
 print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}%')
 print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}%')
@@ -1354,7 +1356,7 @@ plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize = 5)
 plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'k+')
 #plt.ylim(0.1, 10)
 #plt.xlim(9.5, 13.5)
-#plt.semilogy()
+plt.semilogy()
 #plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
 plt.ylabel(r'$ \sigma_{k}^{1h, N_{T}}$', fontsize=fsize)
 plt.xlabel('P mag', fontsize=fsize)
