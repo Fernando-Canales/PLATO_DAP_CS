@@ -579,10 +579,10 @@ for i in range(nP):
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
     # Errors
-    error = np.sqrt(m.sum() * (eff_ext_overall_24_cameras) * (100 - (eff_ext_overall_24_cameras))) / m.sum()
-    error_6_cameras = np.sqrt(m.sum() * (eff_ext_overall_6_cameras) * (100 - (eff_ext_overall_6_cameras))) / m.sum()
-    error_sec_6_cameras = np.sqrt(m.sum() * (eff_sec_6_cameras) * (100 - (eff_sec_6_cameras))) / m.sum()
-    error_sec = np.sqrt(m.sum() * eff_sec * (100 - (eff_sec))) / m.sum()
+    error = np.sqrt(eff_ext_overall_24_cameras * (100 - eff_ext_overall_24_cameras) / m.sum())
+    error_6_cameras = np.sqrt(eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras) / m.sum())
+    error_sec_6_cameras = np.sqrt(eff_sec_6_cameras * (100 - eff_sec_6_cameras) / m.sum())
+    error_sec = np.sqrt(eff_sec * (100 - eff_sec) / m.sum())
     #error_ext_2_pix_24_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_24_cameras * (100 - eff_ext_2_pix_overall_24_cameras)) / n_tar
     #error_ext_2_pix_6_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_6_cameras * (100 - eff_ext_2_pix_overall_6_cameras)) / n_tar
 
@@ -665,12 +665,12 @@ for i in range(nP):
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     
     #Computing the errors:
-    error_ext_cob = np.sqrt(m.sum() * eff_ext_cob_overall * (100 - eff_ext_cob_overall)) / m.sum()
-    error_ext_cob_6_cameras = np.sqrt(m.sum() * eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras)) / m.sum()
-    error_cob = np.sqrt(m.sum() * (eff_cob/100) * (100 - eff_cob)) / m.sum()
-    error_cob_6_cameras = np.sqrt(m.sum() * (eff_cob_6_cameras/100) * (100 - eff_cob_6_cameras)) / m.sum()
-    error_cob_sec = np.sqrt(m.sum() * eff_cob_sec * (100 - eff_cob_sec)) / m.sum()
-    error_cob_sec_6_cameras = np.sqrt(m.sum() * eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras)) / m.sum()
+    error_ext_cob = np.sqrt(eff_ext_cob_overall * (100 - eff_ext_cob_overall) / m.sum())
+    error_ext_cob_6_cameras = np.sqrt(eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras) / m.sum())
+    error_cob = np.sqrt(eff_cob * (100 - eff_cob) / m.sum())
+    error_cob_6_cameras = np.sqrt(eff_cob_6_cameras * (100 - eff_cob_6_cameras) / m.sum())
+    error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / m.sum())
+    error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / m.sum())
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
@@ -797,10 +797,10 @@ weighted_fraction_fp_ext_flux_no_nom_cob = 0
 weighted_fraction_fp_ext_cob_no_nom_cob = 0
 
 # Initialize errors for fractions
-weighted_error_fraction_fp_ext_cob_no_ext_flux = 0
-weighted_error_fraction_fp_nom_cob_no_ext_flux = 0
-weighted_error_fraction_fp_ext_flux_no_nom_cob = 0
-weighted_error_fraction_fp_ext_cob_no_nom_cob = 0
+weighted_variance_fraction_fp_ext_cob_no_ext_flux = 0
+weighted_variance_fraction_fp_nom_cob_no_ext_flux = 0
+weighted_variance_fraction_fp_ext_flux_no_nom_cob = 0
+weighted_variance_fraction_fp_ext_cob_no_nom_cob = 0
 
 n_star = np.zeros(nP)
 # Loop over each magnitude bin
@@ -840,17 +840,25 @@ for i in range(nP):
     #error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux) / star_counts[i])
     #error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob) / star_counts[i])
     #error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(fraction_fp_ext_cob_no_nom_cob * (1 - fraction_fp_ext_cob_no_nom_cob) / star_counts[i])
-    # Calculate errors for the fractions
-    error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(m.sum() * (fraction_fp_ext_cob_no_ext_flux) * (1 - (fraction_fp_ext_cob_no_ext_flux))) / m.sum()
-    error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(m.sum() * (fraction_fp_nom_cob_no_ext_flux) * (1 - (fraction_fp_nom_cob_no_ext_flux))) / m.sum()
-    error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(m.sum() * (fraction_fp_ext_flux_no_nom_cob) * (1 - (fraction_fp_ext_flux_no_nom_cob))) / m.sum()
-    error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(m.sum() * (fraction_fp_ext_cob_no_nom_cob) *(1 - (fraction_fp_ext_cob_no_nom_cob))) / m.sum()
+    # Calculate variance for the fractions
+    variance_fraction_fp_ext_cob_no_ext_flux = (fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux)) / m.sum()
+    variance_fraction_fp_nom_cob_no_ext_flux = (fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux)) / m.sum()
+    variance_fraction_fp_ext_flux_no_nom_cob = (fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob)) / m.sum()
+    variance_fraction_fp_ext_cob_no_nom_cob = (fraction_fp_ext_cob_no_nom_cob *(1 - fraction_fp_ext_cob_no_nom_cob)) / m.sum()
 
-    # Accumulate weighted errors
-    weighted_error_fraction_fp_ext_cob_no_ext_flux = weighted_error_fraction_fp_ext_cob_no_ext_flux + weights[i] * error_fraction_fp_ext_cob_no_ext_flux
-    weighted_error_fraction_fp_nom_cob_no_ext_flux = weighted_error_fraction_fp_nom_cob_no_ext_flux + weights[i] * error_fraction_fp_nom_cob_no_ext_flux
-    weighted_error_fraction_fp_ext_flux_no_nom_cob = weighted_error_fraction_fp_ext_flux_no_nom_cob + weights[i] * error_fraction_fp_ext_flux_no_nom_cob
-    weighted_error_fraction_fp_ext_cob_no_nom_cob = weighted_error_fraction_fp_ext_cob_no_nom_cob + weights[i] * error_fraction_fp_ext_cob_no_nom_cob
+
+    # Accumulate weighted variance
+    weighted_variance_fraction_fp_ext_cob_no_ext_flux = weighted_variance_fraction_fp_ext_cob_no_ext_flux + weights[i] * variance_fraction_fp_ext_cob_no_ext_flux
+    weighted_variance_fraction_fp_nom_cob_no_ext_flux = weighted_variance_fraction_fp_nom_cob_no_ext_flux + weights[i] * variance_fraction_fp_nom_cob_no_ext_flux
+    weighted_variance_fraction_fp_ext_flux_no_nom_cob = weighted_variance_fraction_fp_ext_flux_no_nom_cob + weights[i] * variance_fraction_fp_ext_flux_no_nom_cob
+    weighted_variance_fraction_fp_ext_cob_no_nom_cob = weighted_variance_fraction_fp_ext_cob_no_nom_cob + weights[i] * variance_fraction_fp_ext_cob_no_nom_cob
+
+    # Computing the errors (standard deviaiton -> square root of the variance previously obtained)
+    weighted_error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_ext_flux)
+    weighted_error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_ext_flux)
+    weighted_error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_flux_no_nom_cob)
+    weighted_error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_nom_cob)
+
 
 # Print weighted efficiency results
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}%')
