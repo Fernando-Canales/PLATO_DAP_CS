@@ -573,8 +573,6 @@ for i in range(nP):
     
     eff_ext_overall_24_cameras = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
     eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
-    #eff_ext_2_pix_overall_24_cameras = ((eta_ext_2_pix_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_24_cameras > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
-    #eff_ext_2_pix_overall_6_cameras = ((eta_ext_2_pix_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
     eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
@@ -583,16 +581,12 @@ for i in range(nP):
     error_6_cameras = np.sqrt(eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras) / m.sum())
     error_sec_6_cameras = np.sqrt(eff_sec_6_cameras * (100 - eff_sec_6_cameras) / m.sum())
     error_sec = np.sqrt(eff_sec * (100 - eff_sec) / m.sum())
-    #error_ext_2_pix_24_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_24_cameras * (100 - eff_ext_2_pix_overall_24_cameras)) / n_tar
-    #error_ext_2_pix_6_cameras = np.sqrt(n_tar * eff_ext_2_pix_overall_6_cameras * (100 - eff_ext_2_pix_overall_6_cameras)) / n_tar
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    #plt.errorbar(Pi, eff_ext_2_pix_overall_24_cameras, yerr=error_ext_2_pix_24_cameras, fmt='P', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
-    #plt.errorbar(Pi, eff_ext_2_pix_overall_6_cameras, yerr=error_ext_2_pix_6_cameras, fmt='P', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
     plt.fill_between([9, 11.7], [50, 50], [100, 100], color='aqua', alpha=0.1)
     plt.fill_between([11, 13.4], [50, 50], [100, 100], color='plum', alpha=0.1)
 
@@ -610,8 +604,6 @@ for i in range(nP):
         plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
-        #plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_24_cameras, eff_ext_2_pix_overall_24_cameras], color='orange', linestyle='-', markersize=0)
-        #plt.plot([prev_Pi, Pi], [prev_eff_ext_2_pix_overall_6_cameras, eff_ext_2_pix_overall_6_cameras], color='yellow', linestyle='-', markersize=0)
     
     # Update previous values
     prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
@@ -716,51 +708,6 @@ nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 nfp_highest_contaminant = (eta_nom_bt_24_cameras[:,0]>flux_thresh_nom_mask)
 nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
 
-print('++++++++++++ Some important computations (biased) ++++++++++++')
-eff_ext_flux = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
-print('extended flux efficiency: %f' % eff_ext_flux)
-
-eff_sec_flux = nfp_sec_mask.sum()/fp_single_contaminant_24_cameras.sum()*100
-print('secondary flux efficiency: %f' % eff_sec_flux)
-
-eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant).sum()/fp_single_contaminant_24_cameras.sum()*100.
-print('extended flux for a single contaminant efficiency: %f' % eff_ext_flux_single_contaminant)
-
-eff_nom_cob = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
-print('nominal cob efficiency: %f' % eff_nom_cob)
-
-eff_ext_cob = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
-print('extended cob efficiency: %f' % eff_ext_cob)
-
-eff_sec_cob = (secondary_mask_conditions_cob_24_cameras).sum()/fp_single_contaminant_24_cameras.sum()*100.
-print('secondary mask cob efficiency: %f' % eff_sec_cob)
-
-fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
-print('fraction of false positives only detected by ECOB and not by EFX: %f' % fraction_fp_ext_cob_no_ext_flux)
-
-fraction_fp_ext_flux_no_ext_cob = ((nfp_ext_cob==False)& nfp_ext_mask & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by EFX and not by ECOB: %f' % fraction_fp_ext_flux_no_ext_cob)
-
-fraction_fp_nom_cob_no_ext_flux = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by NCOB and not by EFX: %f' % fraction_fp_nom_cob_no_ext_flux)
-
-fraction_fp_ext_flux_no_nom_cob = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by the EFX and not by NCOB: %f' % fraction_fp_ext_flux_no_nom_cob)
-
-fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob==False) & nfp_ext_cob & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by ECOB and not by NCOB: %f' % fraction_fp_ext_cob_no_nom_cob)
-
-# Getting the magnitude of the targets for which nominal centroids are more efficient than extended mask
-mask_for_fraction_of_fp_detected_by_nom_cob_but_no_by_ext_flux = (nfp_ext_mask == False) & nfp_nom_cob & nfp
-
-# Getting the row indices where the mask is treu
-row_indices = np.where(mask_for_fraction_of_fp_detected_by_nom_cob_but_no_by_ext_flux)[0]
-
-# Extract the unique row indices
-unique_row_indices = np.unique(row_indices)
-
-# Extract the corresponding magnitude values
-mag_fraction_fp_nom_cob_no_ext_flux = mag[unique_row_indices]
 
 magnitudes = mag  # Using the variable with all the magnitude values of the targets
 
@@ -802,6 +749,15 @@ weighted_variance_fraction_fp_nom_cob_no_ext_flux = 0
 weighted_variance_fraction_fp_ext_flux_no_nom_cob = 0
 weighted_variance_fraction_fp_ext_cob_no_nom_cob = 0
 
+# Initialize variance for efficiencies
+weighted_variance_eff_ext_flux = 0
+weighted_variance_eff_sec_flux = 0
+weighted_variance_eff_ext_flux_single_contaminant = 0
+weighted_variance_eff_ext_flux_without_significant_transit_depth_condition = 0
+weighted_variance_eff_nom_cob = 0
+weighted_variance_eff_ext_cob = 0
+weighted_variance_eff_sec_cob = 0
+
 n_star = np.zeros(nP)
 # Loop over each magnitude bin
 for i in range(nP):
@@ -823,51 +779,77 @@ for i in range(nP):
     fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob[m]==False) & nfp_ext_cob[m] & nfp[m] ).sum()/nfp[m].sum()
 
     # Accumulate weighted sums
-    weighted_eff_ext_flux =  weighted_eff_ext_flux  + weights[i] * eff_ext_flux
-    weighted_eff_sec_flux =  weighted_eff_sec_flux + weights[i] * eff_sec_flux
-    weighted_eff_ext_flux_single_contaminant = weighted_eff_ext_flux_single_contaminant + weights[i] * eff_ext_flux_single_contaminant
-    weighted_eff_ext_flux_without_significant_transit_depth_condition = weighted_eff_ext_flux_without_significant_transit_depth_condition + weights[i] * eff_ext_flux_without_significant_transit_depth_condition
-    weighted_eff_nom_cob = weighted_eff_nom_cob + weights[i] * eff_nom_cob
-    weighted_eff_ext_cob = weighted_eff_ext_cob + weights[i] * eff_ext_cob
-    weighted_eff_sec_cob = weighted_eff_sec_cob + weights[i] * eff_sec_cob
-    weighted_fraction_fp_ext_cob_no_ext_flux = weighted_fraction_fp_ext_cob_no_ext_flux + weights[i] * fraction_fp_ext_cob_no_ext_flux
-    weighted_fraction_fp_nom_cob_no_ext_flux = weighted_fraction_fp_nom_cob_no_ext_flux + weights[i] * fraction_fp_nom_cob_no_ext_flux
-    weighted_fraction_fp_ext_flux_no_nom_cob = weighted_fraction_fp_ext_flux_no_nom_cob + weights[i] * fraction_fp_ext_flux_no_nom_cob
-    weighted_fraction_fp_ext_cob_no_nom_cob = weighted_fraction_fp_ext_cob_no_nom_cob + weights[i] * fraction_fp_ext_cob_no_nom_cob
+    weighted_eff_ext_flux +=  weights[i] * eff_ext_flux
+    weighted_eff_sec_flux +=  weights[i] * eff_sec_flux
+    weighted_eff_ext_flux_single_contaminant += weights[i] * eff_ext_flux_single_contaminant
+    weighted_eff_ext_flux_without_significant_transit_depth_condition += weights[i] * eff_ext_flux_without_significant_transit_depth_condition
+    weighted_eff_nom_cob += weights[i] * eff_nom_cob
+    weighted_eff_ext_cob += weights[i] * eff_ext_cob
+    weighted_eff_sec_cob += weights[i] * eff_sec_cob
+    weighted_fraction_fp_ext_cob_no_ext_flux += weights[i] * fraction_fp_ext_cob_no_ext_flux
+    weighted_fraction_fp_nom_cob_no_ext_flux += weights[i] * fraction_fp_nom_cob_no_ext_flux
+    weighted_fraction_fp_ext_flux_no_nom_cob += weights[i] * fraction_fp_ext_flux_no_nom_cob
+    weighted_fraction_fp_ext_cob_no_nom_cob += weights[i] * fraction_fp_ext_cob_no_nom_cob
 
-    # Calculate errors for fractions
-    #error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux) / star_counts[i])
-    #error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux) / star_counts[i])
-    #error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob) / star_counts[i])
-    #error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(fraction_fp_ext_cob_no_nom_cob * (1 - fraction_fp_ext_cob_no_nom_cob) / star_counts[i])
+    # Calculate variance for the efficiencies
+    variance_eff_ext_flux = (eff_ext_flux * (100 - eff_ext_flux)) / n_star[i]
+    variance_eff_sec_flux = (eff_sec_flux * (100 - eff_sec_flux)) / n_star[i]
+    variance_eff_ext_flux_single_contaminant = (eff_ext_flux_single_contaminant * (100 - eff_ext_flux_single_contaminant)) / n_star[i]
+    variance_eff_ext_flux_without_significant_transit_depth_condition = (eff_ext_flux_without_significant_transit_depth_condition * (100 - eff_ext_flux_without_significant_transit_depth_condition)) / n_star[i]
+    variance_eff_nom_cob = (eff_nom_cob * (100 - eff_nom_cob)) / n_star[i]
+    variance_eff_ext_cob = (eff_ext_cob * (100 - eff_ext_cob)) / n_star[i]
+    variance_eff_sec_cob = (eff_sec_cob * (100 - eff_sec_cob)) / n_star[i]
+
+    # Accumulate weighted variance
+    weighted_variance_eff_ext_flux += weights[i] * variance_eff_ext_flux
+    weighted_variance_eff_sec_flux += weights[i] * variance_eff_sec_flux
+    weighted_variance_eff_ext_flux_single_contaminant += weights[i] * variance_eff_ext_flux_single_contaminant
+    weighted_variance_eff_ext_flux_without_significant_transit_depth_condition += weights[i] * variance_eff_ext_flux_without_significant_transit_depth_condition 
+    weighted_variance_eff_nom_cob += weights[i] * variance_eff_nom_cob
+    weighted_variance_eff_ext_cob += weights[i] * variance_eff_ext_cob
+    weighted_variance_eff_sec_cob += weights[i] * variance_eff_sec_cob
+
+
     # Calculate variance for the fractions
-    variance_fraction_fp_ext_cob_no_ext_flux = (fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux)) / m.sum()
-    variance_fraction_fp_nom_cob_no_ext_flux = (fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux)) / m.sum()
-    variance_fraction_fp_ext_flux_no_nom_cob = (fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob)) / m.sum()
-    variance_fraction_fp_ext_cob_no_nom_cob = (fraction_fp_ext_cob_no_nom_cob *(1 - fraction_fp_ext_cob_no_nom_cob)) / m.sum()
+    variance_fraction_fp_ext_cob_no_ext_flux = (fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux)) / n_star[i]
+    variance_fraction_fp_nom_cob_no_ext_flux = (fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux)) / n_star[i]
+    variance_fraction_fp_ext_flux_no_nom_cob = (fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob)) / n_star[i]
+    variance_fraction_fp_ext_cob_no_nom_cob = (fraction_fp_ext_cob_no_nom_cob *(1 - fraction_fp_ext_cob_no_nom_cob)) / n_star[i]
 
 
     # Accumulate weighted variance
-    weighted_variance_fraction_fp_ext_cob_no_ext_flux = weighted_variance_fraction_fp_ext_cob_no_ext_flux + weights[i] * variance_fraction_fp_ext_cob_no_ext_flux
-    weighted_variance_fraction_fp_nom_cob_no_ext_flux = weighted_variance_fraction_fp_nom_cob_no_ext_flux + weights[i] * variance_fraction_fp_nom_cob_no_ext_flux
-    weighted_variance_fraction_fp_ext_flux_no_nom_cob = weighted_variance_fraction_fp_ext_flux_no_nom_cob + weights[i] * variance_fraction_fp_ext_flux_no_nom_cob
-    weighted_variance_fraction_fp_ext_cob_no_nom_cob = weighted_variance_fraction_fp_ext_cob_no_nom_cob + weights[i] * variance_fraction_fp_ext_cob_no_nom_cob
+    weighted_variance_fraction_fp_ext_cob_no_ext_flux += weights[i] * variance_fraction_fp_ext_cob_no_ext_flux
+    weighted_variance_fraction_fp_nom_cob_no_ext_flux += weights[i] * variance_fraction_fp_nom_cob_no_ext_flux
+    weighted_variance_fraction_fp_ext_flux_no_nom_cob += weights[i] * variance_fraction_fp_ext_flux_no_nom_cob
+    weighted_variance_fraction_fp_ext_cob_no_nom_cob += weights[i] * variance_fraction_fp_ext_cob_no_nom_cob
 
-    # Computing the errors (standard deviaiton -> square root of the variance previously obtained)
-    weighted_error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_ext_flux)
-    weighted_error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_ext_flux)
-    weighted_error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_flux_no_nom_cob)
-    weighted_error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_nom_cob)
+# Compute the final errors as the square root of the weighted variances
+weighted_error_eff_ext_flux = np.sqrt(weighted_variance_eff_ext_flux)
+weighted_error_eff_sec_flux = np.sqrt(weighted_variance_eff_sec_flux)
+weighted_error_eff_ext_flux_single_contaminant = np.sqrt(weighted_variance_eff_ext_flux_single_contaminant)
+weighted_error_eff_ext_flux_without_significant_transit_depth_condition = np.sqrt(weighted_variance_eff_ext_flux_without_significant_transit_depth_condition)
+weighted_error_eff_nom_cob = np.sqrt(weighted_variance_eff_nom_cob)
+weighted_error_eff_ext_cob = np.sqrt(weighted_variance_eff_ext_cob)
+weighted_error_eff_sec_cob = np.sqrt(weighted_variance_eff_sec_cob)
+
+
+# Computing the errors (standard deviaiton -> square root of the variance previously obtained)
+weighted_error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_ext_flux)
+weighted_error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_ext_flux)
+weighted_error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_flux_no_nom_cob)
+weighted_error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_nom_cob)
+
 
 
 # Print weighted efficiency results
-print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}%')
-print(f'Weighted secondary flux efficiency: {weighted_eff_sec_flux:.2f}%')
-print(f'Weighted extended flux for a single contaminant efficiency: {weighted_eff_ext_flux_single_contaminant:.2f}%')
-print(f'Weighted extended flux without the significant transit depth condition: {weighted_eff_ext_flux_without_significant_transit_depth_condition:.2f}%')
-print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}%')
-print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}%')
-print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}%')
+# Print weighted efficiency results with errors
+print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}% ± {weighted_error_eff_ext_flux:.2f}%')
+print(f'Weighted secondary flux efficiency: {weighted_eff_sec_flux:.2f}% ± {weighted_error_eff_sec_flux:.2f}%')
+print(f'Weighted extended flux for a single contaminant efficiency: {weighted_eff_ext_flux_single_contaminant:.2f}% ± {weighted_error_eff_ext_flux_single_contaminant:.2f}%')
+print(f'Weighted extended flux withouth the significant transit condition: {weighted_eff_ext_flux_without_significant_transit_depth_condition:.2f}% ± {weighted_error_eff_ext_flux_without_significant_transit_depth_condition:.2f}%')
+print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}% ± {weighted_error_eff_nom_cob:.2f}%')
+print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}% ± {weighted_error_eff_ext_cob:.2f}%')
+print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}% ± {weighted_error_eff_sec_cob:.2f}%')
 
 # Print weighted fractions and their errors
 print(f'Weighted fraction of FPs detected by ECOB but not by EFX: {weighted_fraction_fp_ext_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_ext_flux * 100:.2f}%')
