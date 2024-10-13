@@ -437,22 +437,32 @@ plt.ylabel(r'Mask size', fontsize=fsize)
 Now we plot the cumulative or total number of nominal mask shapes to address the total number of target stars 
 """
 plt.figure(5)
-# Initialize array to store the cumulative sum for all masks combined
 cumulative_total = []
 P_values = []
 for i in range(nP):
     Pi = Pmin + i * binsize
+    # Apply the filter to select target stars for the current magnitude bin
     m = (mag <= Pi + binsize/2.) & fp_single_contaminant_24_cameras
-    pix_nominal = len(np.unique(key_nom[m]))
-    pix_sec = len(np.unique(key_sec[m]))
-    pix_ext = len(np.unique(key_ext[m]))
-    # Sum the counts of all mask types
-    total_masks = pix_nominal + pix_sec + pix_ext
+    
+    # Get unique mask shapes for each mask type
+    unique_nominal = np.unique(np.array(key_nom[m], dtype=np.int64))
+    unique_sec = np.unique(np.array(key_sec[m], dtype=np.int64))
+    unique_ext = np.unique(np.array(key_ext[m], dtype=np.int64))
+    
+    # Combine the mask arrays
+    combined_masks = np.concatenate((unique_nominal, unique_sec, unique_ext))
+    
+    # Get the unique mask shapes across all types
+    total_masks = len(np.unique(combined_masks))
+    
+    # Store the cumulative total
     cumulative_total.append(total_masks)
     P_values.append(Pi)
-    plt.plot(Pi, pix_nominal, 'ko', label='Nominal Mask' if i == 0 else "")
-    plt.plot(Pi, pix_sec, 'rP', label='Secondary Mask' if i == 0 else "")
-    plt.plot(Pi, pix_ext, 'b^', label='Extended Mask' if i == 0 else "")
+    
+    # Plot individual mask shapes (use their lengths to plot counts)
+    plt.plot(Pi, len(unique_nominal), 'ko', label='Nominal Mask' if i == 0 else "")
+    plt.plot(Pi, len(unique_sec), 'rP', label='Secondary Mask' if i == 0 else "")
+    plt.plot(Pi, len(unique_ext), 'b^', label='Extended Mask' if i == 0 else "")
 
 # Plot the cumulative total without connecting the dots
 plt.plot(P_values, cumulative_total, marker='s', linestyle='', color='orange', label='Three masks combined')
@@ -461,7 +471,7 @@ plt.plot(P_values, cumulative_total, marker='s', linestyle='', color='orange', l
 plt.legend(loc='best')
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Cum. count of mask shapes', fontsize=fsize)
-print('cumulative count of mask shapes', cumulative_total)
+print('Cumulative count of unique mask shapes:', cumulative_total)
 
 """
 Now we plot the NSR over 1h  for every mask as a function of the target P magnitude
@@ -614,7 +624,7 @@ plt.vlines(11, ymin=50, ymax=100, linestyles='dashdot', colors='red')
 plt.ylim(50, 100)
 plt.xlim(9.9, 13.4)
 plt.text(10, 78.1,'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(11, 75, 'On-board light curve processing region', color='red',  weight='bold')
+plt.text(11.2, 75, 'On-board light curve processing region', color='red',  weight='bold')
 
 # Display legend
 plt.legend()
@@ -635,7 +645,7 @@ plt.plot(mag, eta_t_6_cameras_superearth, '*', markersize=4, label='Super-Earth 
 plt.hlines(7.1, xmin=10, xmax=13, linestyles='dashed', colors='red')
 plt.legend()
 plt.semilogy()
-plt.xlabel('P magnitude', fontsize=fsize)
+plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel(r'$ \eta $', fontsize=fsize)
 plt.xlim(10, 13)
 
@@ -691,10 +701,10 @@ for i in range(nP):
     plt.ylim(50, 100)
     plt.xlim(9.9, 13.4)
     plt.text(10, 76.1,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(11, 72, 'On-board light curve processing region', color='red', weight='bold')
+    plt.text(11.2, 72, 'On-board light curve processing region', color='red', weight='bold')
        
 plt.legend()
-plt.xlabel('P magnitude', fontsize=fsize)
+plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
@@ -1342,16 +1352,16 @@ plt.plot([], [], 'gP', label='nsr_nom')
 plt.legend()
 
 plt.figure(27)
-plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize = 5)
-plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'k+')
+plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize = 3)
+plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'ko', markersize=3)
 #plt.ylim(0.1, 10)
 #plt.xlim(9.5, 13.5)
 plt.semilogy()
 #plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
-plt.ylabel(r'$ \sigma_{k}^{1h, N_{T}}$', fontsize=fsize)
-plt.xlabel('P mag', fontsize=fsize)
+plt.ylabel(r'$ \sigma_{k}^{1h, N_{T}} [pix]$', fontsize=fsize)
+plt.xlabel('P Magnitude', fontsize=fsize)
 plt.plot([], [], 'b^', label='Ext. mask')
-plt.plot([], [], 'k+', label='Nom. mask')
+plt.plot([], [], 'ko', label='Nom. mask')
 plt.legend()
 
 plt.figure(28)

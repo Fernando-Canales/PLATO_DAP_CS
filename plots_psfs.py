@@ -17,7 +17,7 @@ bsres = 20  # resolution of the b-spline decomposition of the PSF
 cmap = 'seismic'  # matplotlib color map for the plots
 fsize= 15
 # PSF indices you want to visualize
-psf_indices = [2, 200, 4200]
+psf_indices = [0, 200, 4200]
 
 # Define the parameters for the Diffusion Kernel to convolve the PSFs
 DifKerSize = 3  # Size [pixel]
@@ -59,14 +59,23 @@ for i, k in enumerate(psf_indices):
     imagette = spline2dbase.Spline2Imagette(np.ascontiguousarray(psfbs), bsres, 8, 8)
 
     # Plotting each PSF at different stages in the respective column
-    axs[0, i].imshow(psf_raw[subres:-subres, subres:-subres], origin='lower', cmap=cmap)
+    im1 = axs[0, i].imshow(psf_raw[subres:-subres, subres:-subres], origin='lower', cmap=cmap)
     axs[0, i].set_title(r'$\mathbf{\alpha = %0.2f^\circ}$ (Raw)' % (alpha * 180.0 / np.pi), fontsize=fsize, fontweight='bold')
 
-    axs[1, i].imshow(psf[subres:-subres, subres:-subres], origin='lower', cmap=cmap)
+    im2 = axs[1, i].imshow(psf[subres:-subres, subres:-subres], origin='lower', cmap=cmap)
     axs[1, i].set_title(r'$\mathbf{\alpha = %0.2f^\circ}$ (Convolved)' % (alpha * 180.0 / np.pi), fontsize=fsize, fontweight='bold')
 
-    axs[2, i].imshow(imagette[1:-1, 1:-1], origin='lower', extent=(0, 6, 0, 6), cmap=cmap)
+    im3 = axs[2, i].imshow(imagette[1:-1, 1:-1], origin='lower', extent=(0, 6, 0, 6), cmap=cmap)
     axs[2, i].set_title(r'$\mathbf{\alpha = %0.2f^\circ}$ (Window)' % (alpha * 180.0 / np.pi), fontsize=fsize, fontweight='bold')
+# Add colorbars to the right of each row
+cbar_ax1 = fig.add_axes([0.92, 0.68, 0.01, 0.2])  # Position for the colorbar of the first row
+fig.colorbar(im1, cax=cbar_ax1)
+
+cbar_ax2 = fig.add_axes([0.92, 0.38, 0.01, 0.2])  # Position for the colorbar of the second row
+fig.colorbar(im2, cax=cbar_ax2)
+
+cbar_ax3 = fig.add_axes([0.92, 0.08, 0.01, 0.2])  # Position for the colorbar of the third row
+fig.colorbar(im3, cax=cbar_ax3)
 
 # Adjust layout and show the plots
 plt.subplots_adjust(wspace=0.2, hspace=0.4)
