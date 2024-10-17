@@ -15,16 +15,18 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 #RezaID = int(Rezadata[:, 0])
 #print(RezaID)
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
-#PSFfile = 'PSF.npz'                                                   # processed PSF files
-PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
+#PSFfile = 'PSF.npz'                                                    # processed PSF files
+PSFfile = 'PSF-Leopold7-02470.npz'
+#PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.1pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/test_results/metrics_comparison/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_85000ppm_and_td_4hr/'
 #DIRout = 'test_results/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_25/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
@@ -33,7 +35,7 @@ DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_target
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
 subres = 128   # resolution of the PSF
-bsres = 20     # resolution of the b-spline decomposition of the PSF
+bsres = 5     # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
 #sb = 0
@@ -51,7 +53,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 1000                        # number of targets per magnitude interval
+n_tar = 1000                             # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
