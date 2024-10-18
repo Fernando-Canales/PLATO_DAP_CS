@@ -12,9 +12,9 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 
 # Parameters relative to all the relevant paths
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Elfique-01694.npz'
+PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Noblesse-02760.npz'
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Elfique_PSF/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
 
 
 # Parameters for the imagette and PSF decomposition
@@ -39,7 +39,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 1000                             # number of targets per magnitude interval
+n_tar = 1000                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
