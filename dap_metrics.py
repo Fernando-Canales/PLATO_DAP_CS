@@ -11,25 +11,11 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 # CONFIGURATION PARAMETERS
 
 # Parameters relative to all the relevant paths
-##Rezadata = np.load('/home/fercho/double-aperture-photometry/test_results_multiprocessing/' + 'targets_P5.npy')
-#RezaID = int(Rezadata[:, 0])
-#print(RezaID)
-cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
-#PSFfile = 'PSF.npz'                                                    # processed PSF files
-PSFfile = 'PSF-Leopold7-02470.npz'
-#PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
-#PSFfile = 'PSF_Focus_0mu_0.1pxdif.npz'
-#DIRout = '/home/fercho/double-aperture-photometry/test_results/metrics_comparison/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_85000ppm_and_td_4hr/'
+cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
+PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Elfique-01694.npz'
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_25/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Elfique_PSF/'
+
 
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
