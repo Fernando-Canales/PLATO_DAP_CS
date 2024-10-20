@@ -12,16 +12,17 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 
 # Parameters relative to all the relevant paths
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Noblesse-02760.npz'
+PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
+
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1_target_per_magnitude_bin_test_x_tar_y_tar/'
 
 
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
 subres = 128   # resolution of the PSF
-bsres = 5     # resolution of the b-spline decomposition of the PSF
+bsres = 20     # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
 #sb = 0
@@ -39,7 +40,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 1000                            # number of targets per magnitude interval
+n_tar = 500                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -67,7 +68,7 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 np.random.seed(300)
 
 file_out = open(DIRout + 'metrics_fer.txt', 'w')
-save_info = np.zeros((n_tar * nP, 219))     # numpy arr. to store the metrics for the nominal mask
+save_info = np.zeros((n_tar * nP, 221))     # numpy arr. to store the metrics for the nominal mask
 save_info_sec = np.zeros((n_tar * nP, 20)) # numpy arr. to store the metrics for the secondary mask
 save_info_ext = np.zeros((n_tar * nP, 249)) # numpy arr. to store the metrics for the extended mask
 save_info_bray = np.zeros((n_tar * nP, 8)) # numpy arr. to store the metrics for Bray's 2 x 2 mask
@@ -485,6 +486,8 @@ for i in range(nP):
         save_info = np.append(save_info, IDs_from_the_10first_contaminants)
         save_info = np.append(save_info, delta_x_from_target_to_10first_contaminants)
         save_info = np.append(save_info, delta_y_from_target_to_10first_contaminants)
+        save_info = np.append(save_info, x_tar[k])
+        save_info = np.append(save_info, y_tar[k])
 
         # Now we save the important metrics w.r.t the secondary mask
         save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])

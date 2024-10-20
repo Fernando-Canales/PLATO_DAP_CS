@@ -5,7 +5,7 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 from imagette import ran_unique_int
 
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1_target_per_magnitude_bin_test_x_tar_y_tar/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_25/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
@@ -80,6 +80,8 @@ data = np.load(dataDIR + 'targets_P5.npy')
 #189-198: IDs_from_the_10first_contaminants
 #199-208: delta_x_from_target_to_10first_contaminants
 #209-218: delta_y_from_target_to_10first_contaminants
+#219: x_tar
+#220: y_tar
  
 data_sec = np.load(dataDIR + 'targets_P5_secondary.npy')
 #0: ID_t
@@ -1362,19 +1364,6 @@ plt.plot([], [], 'b^', label='Ext. mask')
 plt.plot([], [], 'ko', label='Nom. mask')
 plt.legend()
 
-plt.figure(28)
-plt.plot(mag_etas_ratio, gamma_cob_ext_trimmed/gamma_cob_nom_trimmed, 'bo', markersize = 5)
-#plt.plot(mag_trimmed_sigma, gamma_cob_nom_trimmed, 'k+')
-#plt.ylim(0.1, 10)
-#plt.xlim(9.5, 13.5)
-#plt.semilogy()
-plt.hlines(1, xmin=9, xmax=14, linestyles='dashdot', colors='red')
-plt.ylabel(r'$ \Gamma_{k}^{ext} / \Gamma_{k}^{nom} $', fontsize=fsize)
-plt.xlabel('P mag', fontsize=fsize)
-# Plot a single point for the legend with labels
-#plt.plot([], [], 'b^', label='Ext. mask')
-#plt.plot([], [], 'k+', label='Nom. mask')
-plt.legend()
 
 plt.figure(29)
 plt.plot(mag_fp, gamma_ext/sigma_ext, 'b^')
