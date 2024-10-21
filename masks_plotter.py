@@ -6,6 +6,8 @@ Fernando Canales
 """
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
+fsize = 14
+DIRout = '/home/fercho/Documents/PhD/Research_Papers/double-aperture-photometry/plots/'
 # Define center and contaminants
 center_x, center_y = 2.5, 2.5  # Center of the 6x6 grid
 contaminants = [
@@ -45,54 +47,69 @@ def extended_binary_mask(mask, W):
 
 extended_mask = extended_binary_mask(mask=nominal_mask, W=1)
 
+# Function to create individual plots or a combined plot
+def plot_masks(save_individual=False):
+    # Create a single figure with three subplots if save_individual is False
+    if not save_individual:
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-# Define the extended mask
-def extended_binary_mask(mask, W):
-    ny, nx = mask.shape
-    maske = np.zeros((ny, nx))
-    maske[:, :] = mask[:, :]
-    for j in range(ny):
-        for i in range(nx):
-            if mask[j, i] > 1.0 - 1e-5:
-                for k in range(-W, W + 1):
-                    if (j + k >= 0) & (j + k < ny):
-                        for m in range(-W, W + 1):
-                            if (i + m >= 0) & (i + m < nx):
-                                maske[j + k, i + m] = 1
-    return maske
+        # Plot the nominal mask
+        plot_single_mask(axes[0], nominal_mask, center_x, center_y, contaminants)
+        axes[0].set_title('Nominal Mask')
 
-extended_mask = extended_binary_mask(mask=nominal_mask, W=1)
+        # Plot the extended mask with nominal mask in dashed lines
+        plot_single_mask(axes[1], extended_mask, center_x, center_y, contaminants)
+        axes[1].set_title('Extended Mask')
+        # Manually add dashed lines for the nominal mask
+        plot_nominal_mask_contour(axes[1], nominal_mask)
 
-# Create a single figure with three subplots
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        # Plot the secondary mask with nominal mask overlaid
+        plot_single_mask(axes[2], secondary_mask + nominal_mask, center_x, center_y, contaminants)
+        axes[2].set_title('Secondary Mask')
 
-# Plot the nominal mask
-axes[0].imshow(nominal_mask, origin='lower', extent=(0, 6, 0, 6), cmap='plasma')
-axes[0].plot(center_x, center_y, 'o', color='green', markersize=10, markeredgecolor='black')  # Center point
-for (x, y) in contaminants:
-    axes[0].plot(x, y, '^', color='cyan', markersize=10, markeredgecolor='black')  # Contaminants
-axes[0].grid(True)  # Add a simple grid
-axes[0].set_title('Nominal Mask')
+        plt.tight_layout()
+        plt.savefig(DIRout +'combined_masks_schematic.pdf')
+        plt.show()
+    else:
+        # Plot and save each mask individually
+        fig, ax = plt.subplots(figsize=(5, 5))
+        plot_single_mask(ax, nominal_mask, center_x, center_y, contaminants)
+        plt.tight_layout()
+        plt.savefig(DIRout +'nominal_mask_schematic.pdf')
+        plt.show()
 
-# Plot the secondary mask with nominal mask overlaid in a different color
-axes[1].imshow(secondary_mask + nominal_mask, origin='lower', extent=(0, 6, 0, 6), cmap='plasma')
-axes[1].plot(center_x, center_y, 'o', color='green', markersize=10, markeredgecolor='black')  # Center point
-for (x, y) in contaminants:
-    axes[1].plot(x, y, '^', color='cyan', markersize=10, markeredgecolor='black')  # Contaminants
-axes[1].grid(True)  # Add a simple grid
-axes[1].set_title('Secondary Mask  (and Nominal Mask)')
+        fig, ax = plt.subplots(figsize=(5, 5))
+        plot_single_mask(ax, extended_mask, center_x, center_y, contaminants)
+        plot_nominal_mask_contour(ax, nominal_mask)  # Add dashed lines
+        plt.tight_layout()
+        plt.savefig(DIRout+'extended_mask_schematic.pdf')
+        plt.show()
 
-# Plot the extended mask with nominal mask in dashed lines
-axes[2].imshow(extended_mask, origin='lower', extent=(0, 6, 0, 6), cmap='plasma')
-axes[2].plot(center_x, center_y, 'o', color='green', markersize=10, markeredgecolor='black')  # Center point
-for (x, y) in contaminants:
-    axes[2].plot(x, y, '^', color='cyan', markersize=10, markeredgecolor='black')  # Contaminants
+        fig, ax = plt.subplots(figsize=(5, 5))
+        plot_single_mask(ax, secondary_mask + nominal_mask, center_x, center_y, contaminants)
+        plt.tight_layout()
+        plt.savefig(DIRout+'secondary_mask_schematic.pdf')
+        plt.show()
 
+# Function to plot individual masks
+def plot_single_mask(ax, mask, center_x, center_y, contaminants):
+    ax.imshow(mask, origin='lower', extent=(0, 6, 0, 6), cmap='plasma')
+    ax.plot(center_x, center_y, 'o', color='green', markersize=10, markeredgecolor='black')  # Center point
+    for (x, y) in contaminants:
+        ax.plot(x, y, '^', color='cyan', markersize=10, markeredgecolor='black')  # Contaminants
+    ax.grid(True)
+    ax.set_xlabel('x [pixels]', fontsize=12)
+    ax.set_ylabel('y [pixels]', fontsize=12)
 
-axes[2].grid(True)  # Add a simple grid
-axes[2].set_title('Extended Mask with Dashed Nominal Mask')
+# Function to add dashed lines for the nominal mask
+def plot_nominal_mask_contour(ax, nominal_mask):
+    for j in range(6):
+        for i in range(6):
+            if nominal_mask[j, i] == 1:
+                ax.plot([i, i+1], [j, j], color='black', linestyle='--', lw=2)  # Bottom edge
+                ax.plot([i, i+1], [j+1, j+1], color='black', linestyle='--', lw=2)  # Top edge
+                ax.plot([i, i], [j, j+1], color='black', linestyle='--', lw=2)  # Left edge
+                ax.plot([i+1, i+1], [j, j+1], color='black', linestyle='--', lw=2)  # Right edge
 
-# Adjust layout and save the figure as a PDF
-plt.tight_layout()
-plt.savefig('corrected_masks_schematic.pdf')
-plt.show()
+# Call the function with desired option
+plot_masks(save_individual=True)  # Set to False to save combined plot
