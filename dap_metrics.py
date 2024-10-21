@@ -15,7 +15,7 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1_target_per_magnitude_bin_test_x_tar_y_tar/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/10_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_targets_with_FP/'
 
 
 # Parameters for the imagette and PSF decomposition
@@ -40,7 +40,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 500                            # number of targets per magnitude interval
+n_tar = 10                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -449,6 +449,7 @@ for i in range(nP):
         print('eta_10first are:', eta_10first)
         print('spr_sec[index_I_c_max]', sprk_sec[index_contaminant_highest_sprk])
         print('sprk_cob_c', sprk_cob_c)
+        print('IDs from the 10 first contaminants:', IDs_from_the_10first_contaminants)
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
         # Now we save the important metrics for every target w.r.t the nominal mask
