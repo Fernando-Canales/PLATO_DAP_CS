@@ -27,8 +27,8 @@ bsres = 20     # resolution of the b-spline decomposition of the PSF
 # Parameters for the NSR
 #sb = 0
 #sd = 0
-#sb = (45. * 21) # Background noise from zodiacal light in e-/px(poisson noise)times integration time (21 sec.)
-sb = (0. * 21)
+#sb = (0. * 21)
+sb = (45. * 21) # Background noise from zodiacal light in e-/px (poisson noise)times integration time (21 sec.)
 sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2       # Quantization noise in units of e-rms/px
 
