@@ -6,32 +6,37 @@ Fernando July 8.
 """
 import numpy as np # type: ignore
 
+results_dir = '/home/fercho/double-aperture-photometry/test_results/'
 
-Reza_results_dir = '/home/fercho/double-aperture-photometry-tests-directory/test_results_multiprocessing/'
-Fernando_results_dir = '/home/fercho/double-aperture-photometry/test_results/'
-
-reza_metrics_nominal_mask = np.load(Reza_results_dir+'targets_P5.npy')
-fernando_metrics_nominal_mask = np.load(Fernando_results_dir+'targets_P5.npy')
-reza_metrics_extended_mask = np.load(Reza_results_dir+'targets_P5_extended.npy')
-fernando_metrics_extended_mask = np.load(Fernando_results_dir+'targets_P5_extended.npy')
-fernando_metrics_secondary_mask = np.load(Fernando_results_dir+'targets_P5_secondary.npy')
-reza_metrics_eta_nominal_mask = np.load(Reza_results_dir+'eta_bt_24_cameras.npy')
-fernando_metrics_eta_nominal_mask = np.load(Fernando_results_dir+'eta_bt_24_cameras.npy')
-reza_metrics_eta_extended_mask = np.load(Reza_results_dir+'eta_ext_bt_24_cameras.npy')
-fernando_metrics_eta_extended_mask = np.load(Fernando_results_dir+'eta_ext_bt_24_cameras.npy')
-reza_metrics_eta_cob_nominal_mask = np.load(Reza_results_dir+'eta_cob_bt_24_cameras.npy')
-reza_metrics_eta_cob_extended_mask = np.load(Reza_results_dir+'eta_ext_cob_bt_24_cameras.npy')
+metrics_nominal_mask = np.load(results_dir+'targets_P5.npy')
+metrics_extended_mask = np.load(results_dir+'targets_P5_extended.npy')
+fernando_metrics_secondary_mask = np.load(results_dir+'targets_P5_secondary.npy')
+metrics_eta_nominal_mask = np.load(results_dir+'eta_bt_24_cameras.npy')
+metrics_eta_extended_mask = np.load(results_dir+'eta_ext_bt_24_cameras.npy')
 
 target_id = 1911666
-target_ids = fernando_metrics_nominal_mask[:, 0]
+target_ids = metrics_nominal_mask[:, 0]
 
-index_target_id = np.where(target_ids == target_id)[0]
+index_target_id = np.where(target_ids == target_id)[0][0]
 
-contaminant_stars_IDs = np.array([5561175061324980736, 5561178119344664192,  5561175061324982528, 5561175130047426944, 5561175164408520832, 5561175057030410624, 5561175061324982400, 5561175130044433152 , 5561175061327958400, 5561175095687700864])
+contaminant_stars_IDs = metrics_nominal_mask[index_target_id, 189:199]
+magnitude_10first_contaminants = metrics_nominal_mask[index_target_id, 169:179]
+delta_x_10first_contaminants = metrics_nominal_mask[index_target_id, 199:209]
+delta_y_10first_contaminants = metrics_nominal_mask[index_target_id, 209:219]
+
+sprk_nominal_mask_10first = metrics_nominal_mask[index_target_id, 17:27]*1000000
+eta_k_nominal_mask_10first = metrics_eta_nominal_mask[index_target_id, :]
+eta_k_cob_nominal_mask_10first = metrics_nominal_mask[index_target_id, 46:56]
+
+eta_k_extended_mask_10first = metrics_eta_extended_mask[index_target_id, :]
+eta_k_cob_extended_mask_10first = metrics_extended_mask[index_target_id, 45:55]
+
+# From gaia_crossmatcher.py
+contaminant_stars_GAIA_IDs = np.array([5552642370059981312, 5552642404418780928, 5552643121676968448, 5552643121676965504, 5552642365762705536, 5552643125970942208,  5552642400122460032, 5552643121676971392, 5552643125973284096, 5552642404418783488])
+
 
 # Function to format and write the important metrics to a LaTeX file for A&A template
-def write_important_metrics_to_tex(file_path, contaminant_stars_IDs, fernando_metrics_nominal_mask, fernando_metrics_ext_mask, 
-                                   fernando_metrics_secondary_mask, target_id, decimal_places=3):
+def write_important_metrics_to_tex(file_path, fernando_metrics_secondary_mask, target_id, decimal_places=3):
     format_str = f"{{:.{decimal_places}f}}" 
     with open(file_path, 'w') as file:
         file.write("\\documentclass{article}\n")
@@ -54,15 +59,11 @@ def write_important_metrics_to_tex(file_path, contaminant_stars_IDs, fernando_me
         file.write("\\toprule\n")
         file.write("\\multicolumn{11}{c}{\\textbf{Target GAIA ID DR3: 5561175130047431680}} \\\\\n")
         file.write("\\midrule\n")
-        file.write("\\multicolumn{11}{c}{\\textbf{R.A. and Decl. [deg]: 107.1353823470124 and -42.00714666593229}} \\\\\n")
+        file.write("\\multicolumn{11}{c}{\\textbf{R.A. and Decl. [deg]: 101.84629226792525 and -46.173084507722656}} \\\\\n")
         file.write("\\midrule\n")
-        file.write("\\multicolumn{11}{c}{\\textbf{Number of contaminants: 141}} \\\\\n")
+        file.write("\\multicolumn{11}{c}{\\textbf{Number of contaminants: 31}} \\\\\n")
         file.write("\\midrule\n")
-        file.write("\\multicolumn{11}{c}{\\textbf{Magnitude: 10.02}} \\\\\n")
-        file.write("\\midrule\n")
-        file.write("\\multicolumn{11}{c}{\\textbf{Units for $\\rm \Delta x_{\\rm CCD} and \Delta y_{\\rm CCD} $: px.}} \\\\\n")
-        file.write("\\midrule\n")
-        file.write("\\multicolumn{11}{c}{\\textbf{Units for $\\rm SPR_{\\rm k}$: ppm}} \\\\\n")
+        file.write("\\multicolumn{11}{c}{\\textbf{Magnitude: 12.08}} \\\\\n")
         file.write("\\midrule\n")
         
         
@@ -72,15 +73,16 @@ def write_important_metrics_to_tex(file_path, contaminant_stars_IDs, fernando_me
         
         # Contaminant rows with GAIA IDs
         for i in range(10):
-            cont_id = format_str.format(contaminant_stars_IDs[i])
-            mc = format_str.format(fernando_metrics_nominal_mask[target_id, 3].item())    # magnitude contaminant
-            xc = format_str.format(fernando_metrics_nominal_mask[target_id, 4].item())    # delta x contaminant
-            yc = format_str.format(fernando_metrics_nominal_mask[target_id, 5].item())    # delta y contaminant
-            sprk = format_str.format(fernando_metrics_nominal_mask[target_id, 6].item())  # SPR_k nominal
-            eta_k_nom = format_str.format(fernando_metrics_nominal_mask[target_id, 7].item())  # eta_k nominal
-            eta_k_ext = format_str.format(fernando_metrics_ext_mask[target_id, 7].item())  # eta_k extended
-            eta_k_nom_cob = format_str.format(fernando_metrics_nominal_mask[target_id, 8].item())  # eta_k nominal COB
-            eta_k_ext_cob = format_str.format(fernando_metrics_ext_mask[target_id, 8].item())  # eta_k extended COB
+            cont_id = format_str.format(contaminant_stars_GAIA_IDs[i])
+            mc = format_str.format(magnitude_10first_contaminants[i])    # magnitude contaminant
+            xc = format_str.format(delta_x_10first_contaminants[i])    # delta x contaminant
+            yc = format_str.format(delta_y_10first_contaminants[i])    # delta y contaminant
+            
+            sprk =format_str.format(sprk_nominal_mask_10first[i]) # SPR_k nominal
+            eta_k_nom = format_str.format(eta_k_nominal_mask_10first[i])  # eta_k nominal
+            eta_k_ext = format_str.format(eta_k_extended_mask_10first[i])  # eta_k extended
+            eta_k_nom_cob = format_str.format(eta_k_cob_nominal_mask_10first[i]) # eta_k nominal COB
+            eta_k_ext_cob = format_str.format(eta_k_cob_extended_mask_10first[i]) # eta_k extended COB
 
             # Add 'eta_sec' only for the first contaminant
             if i == 0:
@@ -100,6 +102,5 @@ def write_important_metrics_to_tex(file_path, contaminant_stars_IDs, fernando_me
         file.write("\\end{document}\n")
 
 # Call the function to write important metrics to a LaTeX file with rounding to 3 decimal places
-write_important_metrics_to_tex('important_metrics_comparison_artistic.tex', contaminant_stars_IDs, fernando_metrics_nominal_mask, 
-                               fernando_metrics_extended_mask, fernando_metrics_secondary_mask, target_id=index_target_id, decimal_places=3)
+write_important_metrics_to_tex('important_metrics_comparison_artistic.tex', fernando_metrics_secondary_mask, target_id=index_target_id, decimal_places=3)
 print("Table saved as important_metrics_comparison_artistic.tex")
