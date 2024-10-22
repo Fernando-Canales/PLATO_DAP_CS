@@ -12,10 +12,10 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 
 # Parameters relative to all the relevant paths
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Leopold7-02470.npz'
+PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Elfique-01694.npz'
 
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Elfique_PSF/'
 
 
 # Parameters for the imagette and PSF decomposition
