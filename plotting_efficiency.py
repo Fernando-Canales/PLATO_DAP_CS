@@ -634,15 +634,16 @@ Now we plot the statistical significance for every mask as a function of the tar
 """
 plt.figure(12)
 
-plt.plot(mag, eta_t_24_cameras, 'o', markersize=4,  label='Earth-like planets (24 cameras)', )
-#plt.plot(mag, eta_t_24_cameras_superearth, 'o', markersize=4,  label='Super-Earths (24 cameras)')
-plt.plot(mag, eta_t_6_cameras_earth_like, 'd', markersize=4, label='Jovian planets (6 cameras)')
-plt.plot(mag, eta_t_6_cameras_superearth, '*', markersize=4, label='Super-Earth (6 cameras)')
+plt.plot(mag, eta_t_6_cameras_earth_like, 'd', markersize=4, label='Jovian planets (6 cameras)')  # Diamond first
+plt.plot(mag, eta_t_6_cameras_superearth, '*', markersize=4, label='Super-Earth (6 cameras)')      # Star second
+plt.plot(mag, eta_t_24_cameras, 'o', markersize=4, label='Earth-like planets (24 cameras)')        # Circle third
+
+# Horizontal line and other settings
 plt.hlines(7.1, xmin=10, xmax=13, linestyles='dashed', colors='red')
-plt.legend()
 plt.semilogy()
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel(r'$ \eta $', fontsize=fsize)
+plt.legend()
 plt.xlim(10, 13)
 
 """
@@ -715,44 +716,6 @@ nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 
 nfp_highest_contaminant = (eta_nom_bt_24_cameras[:,0]>flux_thresh_nom_mask)
 nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
-
-print('++++++++++++ Some important computations ++++++++++++')
-eff_ext_flux = (nfp & nfp_ext_mask).sum()/nfp.sum()*100.
-print('extended flux efficiency: %f' % eff_ext_flux)
-
-eff_sec_flux = nfp_sec_mask.sum()/fp_single_contaminant_24_cameras.sum()*100
-print('secondary flux efficiency: %f' % eff_sec_flux)
-
-eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant).sum()/fp_single_contaminant_24_cameras.sum()*100.
-print('extended flux for a single contaminant efficiency: %f' % eff_ext_flux_single_contaminant)
-
-eff_ext_flux_without_significant_transit_depth_condition = (nfp & nfp_ext_flux_without_significant_transit_depth_condition).sum()/nfp.sum()*100.
-print('extended flux without the significant transit depth condition: %f' % eff_ext_flux_without_significant_transit_depth_condition)
-
-eff_nom_cob = ( nfp & nfp_nom_cob).sum()/nfp.sum()*100.
-print('nominal cob efficiency: %f' % eff_nom_cob)
-
-eff_ext_cob = ( nfp_ext_cob & nfp).sum()/nfp.sum()*100.
-print('extended cob efficiency: %f' % eff_ext_cob)
-
-eff_sec_cob = (secondary_mask_conditions_cob_24_cameras).sum()/fp_single_contaminant_24_cameras.sum()*100.
-print('secondary mask cob efficiency: %f' % eff_sec_cob)
-
-fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask==False) & nfp_ext_cob & nfp ).sum()/nfp.sum()
-print('fraction of false positives only detected by ECOB and not by EFX: %f' % fraction_fp_ext_cob_no_ext_flux)
-
-fraction_fp_ext_flux_no_ext_cob = ((nfp_ext_cob==False)& nfp_ext_mask & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by EFX and not by ECOB: %f' % fraction_fp_ext_flux_no_ext_cob)
-
-fraction_fp_nom_cob_no_ext_flux = ( (nfp_ext_mask==False)  & nfp_nom_cob & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by NCOB and not by EFX: %f' % fraction_fp_nom_cob_no_ext_flux)
-
-fraction_fp_ext_flux_no_nom_cob = ( (nfp_ext_mask)  & (nfp_nom_cob==False) & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by the EFX and not by NCOB: %f' % fraction_fp_ext_flux_no_nom_cob)
-
-fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob==False) & nfp_ext_cob & nfp).sum()/nfp.sum()
-print('fraction of false positives only detected by ECOB and not by NCOB: %f' % fraction_fp_ext_cob_no_nom_cob)
-
 
 magnitudes = mag  # Using the variable with all the magnitude values of the targets
 
