@@ -4,15 +4,8 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1_target_per_magnitude_bin_test_x_tar_y_tar/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_65/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_BACKGROUND_NOISE_equal_to_25/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_2_pixel_extended_mask/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_BACKGROUND_NOISE/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE_and_NO_BACKGROUND_NOISE/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_NO_READOUT_NOISE/'
+#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
