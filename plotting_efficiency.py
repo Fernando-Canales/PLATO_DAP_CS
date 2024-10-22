@@ -593,8 +593,8 @@ for i in range(nP):
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.fill_between([9, 11.7], [50, 50], [100, 100], color='aqua', alpha=0.1)
-    plt.fill_between([11, 13.4], [50, 50], [100, 100], color='plum', alpha=0.1)
+    plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1)
+    plt.fill_between([11, 13.4], [60, 60], [100, 100], color='plum', alpha=0.1)
 
     # Update label tracking
     labels_added['sec_24'] = True
@@ -615,18 +615,21 @@ for i in range(nP):
     prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
 
 # Additional plot settings
-plt.vlines(11.7, ymin=50, ymax=100, linestyles='dashed', colors='green')
-plt.vlines(11, ymin=50, ymax=100, linestyles='dashdot', colors='red')
-plt.ylim(50, 100)
-plt.xlim(9.9, 13.4)
-plt.text(10, 78.1,'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(11.2, 75, 'On-board light curve processing region', color='red',  weight='bold')
+plt.vlines(11.7, ymin=60, ymax=100, linestyles='dashed', colors='green')
+plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red')
+plt.ylim(60, 100)
+plt.xlim(9.9, 13.1)
+plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
+plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
 
-# Display legend
-plt.legend()
-plt.ylim(50,100)
+# Display legend below the plot
+plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
+plt.ylim(60, 100)
 plt.xlabel('P Magnitude', fontsize=fsize)
-plt.ylabel('Efficiency[%]', fontsize=fsize)
+plt.ylabel('Efficiency [%]', fontsize=fsize)
+
+# Adjust layout to accommodate the legend below
+plt.tight_layout(rect=[0, 0, 1, 0.88])
 #plt.title('Double-Aperture Photometry Comparison', fontsize=fsize)
 
 """
@@ -677,8 +680,8 @@ for i in range(nP):
     plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
-    plt.fill_between([9, 11.7], [50, 50], [100, 100], color='aqua', alpha=0.1)
-    plt.fill_between([11, 13.4], [50,50], [100, 100], color='plum', alpha=0.1)
+    plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1)
+    plt.fill_between([11, 13.4], [60,60], [100, 100], color='plum', alpha=0.1)
     
     # Plot lines connecting the points
     if i > 0:
@@ -693,17 +696,19 @@ for i in range(nP):
 
 
     #plt.legend(['Ext. Mask (10 contaminants)'], loc='best')
-    plt.vlines(11.7, ymin=50, ymax = 100, linestyles='dashed', colors='green')
-    plt.vlines(11, ymin=50, ymax=100, linestyles='dashdot', colors='red')
-    plt.ylim(50, 100)
-    plt.xlim(9.9, 13.4)
+    plt.vlines(11.7, ymin=60, ymax = 100, linestyles='dashed', colors='green')
+    plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red')
+    plt.ylim(60, 100)
+    plt.xlim(9.9, 13.1)
     plt.text(10, 76.1,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
     plt.text(11.2, 72, 'On-board light curve processing region', color='red', weight='bold')
        
-plt.legend()
+# Move the legend below the plot
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=2)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
-
+# Adjust layout to accommodate the legend below
+plt.tight_layout(rect=[0, 0, 1, 0.88])
 
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
