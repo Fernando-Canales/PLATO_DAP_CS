@@ -10,7 +10,7 @@ results_dir = '/home/fercho/double-aperture-photometry/test_results/'
 
 metrics_nominal_mask = np.load(results_dir+'targets_P5.npy')
 metrics_extended_mask = np.load(results_dir+'targets_P5_extended.npy')
-fernando_metrics_secondary_mask = np.load(results_dir+'targets_P5_secondary.npy')
+metrics_secondary_mask = np.load(results_dir+'targets_P5_secondary.npy')
 metrics_eta_nominal_mask = np.load(results_dir+'eta_bt_24_cameras.npy')
 metrics_eta_extended_mask = np.load(results_dir+'eta_ext_bt_24_cameras.npy')
 
@@ -24,12 +24,20 @@ magnitude_10first_contaminants = metrics_nominal_mask[index_target_id, 169:179]
 delta_x_10first_contaminants = metrics_nominal_mask[index_target_id, 199:209]
 delta_y_10first_contaminants = metrics_nominal_mask[index_target_id, 209:219]
 
+
 sprk_nominal_mask_10first = metrics_nominal_mask[index_target_id, 17:27]*1000000
 eta_k_nominal_mask_10first = metrics_eta_nominal_mask[index_target_id, :]
 eta_k_cob_nominal_mask_10first = metrics_nominal_mask[index_target_id, 46:56]
+nsr_1h_24_cameras_nominal_mask = metrics_nominal_mask[index_target_id, 7]
+print('nsr_1h_nom:', nsr_1h_24_cameras_nominal_mask)
 
 eta_k_extended_mask_10first = metrics_eta_extended_mask[index_target_id, :]
 eta_k_cob_extended_mask_10first = metrics_extended_mask[index_target_id, 45:55]
+nsr_1h_24_cameras_extended_mask = metrics_extended_mask[index_target_id, 4]
+print('nsr_1h_ext:', nsr_1h_24_cameras_extended_mask)
+
+nsr_1h_24_cameras_secondary_mask = metrics_secondary_mask[index_target_id, 4]
+print('nsr_1h_sec:', nsr_1h_24_cameras_secondary_mask)
 
 # From gaia_crossmatcher.py
 contaminant_stars_GAIA_IDs = np.array([5552642370059981312, 5552642404418780928, 5552643121676968448, 5552643121676965504, 5552642365762705536, 5552643125970942208,  5552642400122460032, 5552643121676971392, 5552643125973284096, 5552642404418783488])
@@ -102,5 +110,5 @@ def write_important_metrics_to_tex(file_path, fernando_metrics_secondary_mask, t
         file.write("\\end{document}\n")
 
 # Call the function to write important metrics to a LaTeX file with rounding to 3 decimal places
-write_important_metrics_to_tex('important_metrics_comparison_artistic.tex', fernando_metrics_secondary_mask, target_id=index_target_id, decimal_places=3)
+write_important_metrics_to_tex('important_metrics_comparison_artistic.tex', metrics_secondary_mask, target_id=index_target_id, decimal_places=3)
 print("Table saved as important_metrics_comparison_artistic.tex")
