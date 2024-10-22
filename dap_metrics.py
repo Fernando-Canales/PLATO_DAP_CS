@@ -22,7 +22,7 @@ DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_target
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
 subres = 128   # resolution of the PSF
-bsres = 20     # resolution of the b-spline decomposition of the PSF
+bsres = 5     # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
 #sb = 0
