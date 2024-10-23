@@ -1,7 +1,7 @@
 """
 Script that finds a target given specific conditions for the
 metrics values. The targets are in the .npy files saved from
-dap_metrics.py 
+dap_metrics.py and plotting_efficiency.py
 
 Fernando Oct. 23th 2024
 """
@@ -30,19 +30,35 @@ eta_nom_flux = data_eta_nominal_mask[:, :]
 # Let's get all the 10-element eta_k_nom_cob values coming from dap_metrics.py
 eta_nom_cob = data_nominal_mask[:, 46:56]
 
-print(target_IDs.shape)
-print(eta_ext_flux.shape)
-print(eta_nom_flux.shape)
-print(eta_nom_cob.shape)
+# Option to choose condition set: Set to 1 or 2 depending on what you want
+# Set 1 of conditions (ETFX but no NCOB) 
 
 # Now we have to find the index of targets for which:
 # 1. eta_nom_flux > flux_thrsh (7.1)
 # 2. eta_ext_flux > eta_cob_nom
 # 3. eta_ext_flux > ext_flux_thrsh (3)
-# 4. eta_cob_nom  < cob_thrsh (3)
+# 4. eta_nom_cob  < cob_thrsh (3)
 
-# Applying the conditions element-wise and finding the indices of the matching targets
-condition = (eta_nom_flux > flux_thrsh) & (eta_ext_flux > eta_nom_cob) & (eta_ext_flux > etx_flux_thrsh) & (eta_nom_cob < cob_thresh)
+# Set 2 for the new ones (NCOB but no ETFX)
+
+# Now we have to find the index of targets for which:
+# 1. eta_nom_flux > flux_thrsh (7.1)
+# 2. eta_nom_cob > eta_ext_flux
+# 3. eta_ext_flux < ext_flux_thresh (3)
+# 4. eta_nom_cob > cob_thrsh (3)
+
+# Set a condition
+condition_set = 2  
+
+if condition_set == 1:
+
+    # Applying the conditions element-wise and finding the indices of the matching targets
+    condition = (eta_nom_flux > flux_thrsh) & (eta_ext_flux > eta_nom_cob) & (eta_ext_flux > etx_flux_thrsh) & (eta_nom_cob < cob_thresh)
+
+elif condition_set == 2:
+
+    # Applying the conditions element-wise and finding the indices of the matching targets
+    condition = (eta_nom_flux > flux_thrsh) & (eta_nom_cob > eta_ext_flux)  & (eta_nom_cob > cob_thresh)
 
 # Now, find the target index and contaminant index where the condition holds true
 index_of_matching_targets = []
@@ -66,5 +82,3 @@ for i in range(len(index_of_matching_targets)):
 
 #Let's get a target that fulfills the conditons
 good_target_ID = target_IDs[index_of_matching_targets[0]]
-
-
