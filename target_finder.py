@@ -18,8 +18,9 @@ flux_thrsh = 7.1
 cob_thresh = 3
 etx_flux_thrsh = 3
 
-# Let's get all the target IDs
+# Let's get all the target IDs and magnitudes
 target_IDs = data_nominal_mask[:, 0]
+target_magnituddes = data_nominal_mask[:, 1]
 
 # Let's get all the 10-element eta_k_ext values coming from plottiing_efficiency.py
 eta_ext_flux = data_eta_extended_mask[:, :]
@@ -58,7 +59,7 @@ if condition_set == 1:
 elif condition_set == 2:
 
     # Applying the conditions element-wise and finding the indices of the matching targets
-    condition = (eta_nom_flux > flux_thrsh) & (eta_nom_cob > eta_ext_flux)  & (eta_nom_cob > cob_thresh)
+    condition = (eta_nom_flux > flux_thrsh) & (eta_nom_cob > eta_ext_flux)  & (eta_ext_flux < etx_flux_thrsh)
 
 # Now, find the target index and contaminant index where the condition holds true
 index_of_matching_targets = []
@@ -82,3 +83,4 @@ for i in range(len(index_of_matching_targets)):
 
 #Let's get a target that fulfills the conditons
 good_target_ID = target_IDs[index_of_matching_targets[0]]
+good_magnitude_ID = target_magnituddes[index_of_matching_targets[0]]
