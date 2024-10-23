@@ -39,10 +39,9 @@ print(eta_nom_cob.shape)
 # 1. eta_nom_flux > flux_thrsh (7.1)
 # 2. eta_ext_flux > eta_nom_cob
 # 3. eta_ext_flux > ext_flux_thrsh
-# 4. eta_nom_cob > cob_thrsh
 
 # Applying the conditions element-wise and finding the indices of the matching targets
-condition = (eta_nom_flux > flux_thrsh) & (eta_ext_flux > eta_nom_cob) & (eta_nom_cob > cob_thresh) & (eta_ext_flux > etx_flux_thrsh) 
+condition = (eta_nom_flux > flux_thrsh) & (eta_ext_flux > eta_nom_cob) & (eta_ext_flux > etx_flux_thrsh) & (eta_nom_cob < cob_thresh)
 
 # Now, find the target index and contaminant index where the condition holds true
 index_of_matching_targets = []
