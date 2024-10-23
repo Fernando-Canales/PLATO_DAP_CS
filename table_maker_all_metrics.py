@@ -14,7 +14,8 @@ metrics_secondary_mask = np.load(results_dir+'targets_P5_secondary.npy')
 metrics_eta_nominal_mask = np.load(results_dir+'eta_bt_24_cameras.npy')
 metrics_eta_extended_mask = np.load(results_dir+'eta_ext_bt_24_cameras.npy')
 
-target_id = 1911666
+#target_id = 1911666
+target_id = 1135002
 target_ids = metrics_nominal_mask[:, 0]
 
 index_target_id = np.where(target_ids == target_id)[0][0]
@@ -40,8 +41,8 @@ nsr_1h_24_cameras_secondary_mask = metrics_secondary_mask[index_target_id, 4]
 print('nsr_1h_sec:', nsr_1h_24_cameras_secondary_mask)
 
 # From gaia_crossmatcher.py
-contaminant_stars_GAIA_IDs = np.array([5552642370059981312, 5552642404418780928, 5552643121676968448, 5552643121676965504, 5552642365762705536, 5552643125970942208,  5552642400122460032, 5552643121676971392, 5552643125973284096, 5552642404418783488])
-
+#contaminant_stars_GAIA_IDs = np.array([5552642370059981312, 5552642404418780928, 5552643121676968448, 5552643121676965504, 5552642365762705536, 5552643125970942208,  5552642400122460032, 5552643121676971392, 5552643125973284096, 5552642404418783488])
+contaminant_stars_GAIA_IDs = np.array([491200766946790400,  5491200762648590848, 5490450178461270912, 5491200797008328832, 5491200801306529792, 5491200766943729280, 5491200831369388416, 5491200797008329088, 5490450178461271168, 5491200797008329344])
 
 # Function to format and write the important metrics to a LaTeX file for A&A template
 def write_important_metrics_to_tex(file_path, fernando_metrics_secondary_mask, target_id, decimal_places=3):

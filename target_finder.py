@@ -37,8 +37,9 @@ print(eta_nom_cob.shape)
 
 # Now we have to find the index of targets for which:
 # 1. eta_nom_flux > flux_thrsh (7.1)
-# 2. eta_ext_flux > eta_nom_cob
-# 3. eta_ext_flux > ext_flux_thrsh
+# 2. eta_ext_flux > eta_cob_nom
+# 3. eta_ext_flux > ext_flux_thrsh (3)
+# 4. eta_cob_nom  < cob_thrsh (3)
 
 # Applying the conditions element-wise and finding the indices of the matching targets
 condition = (eta_nom_flux > flux_thrsh) & (eta_ext_flux > eta_nom_cob) & (eta_ext_flux > etx_flux_thrsh) & (eta_nom_cob < cob_thresh)
@@ -64,6 +65,6 @@ for i in range(len(index_of_matching_targets)):
     print(f"Target Index: {index_of_matching_targets[i]}, Contaminant Index: {index_of_matching_contaminants[i]}")
 
 #Let's get a target that fulfills the conditons
-print(index_of_matching_targets[0])
-good_target = target_IDs[index_of_matching_targets[0]]
-print(good_target)
+good_target_ID = target_IDs[index_of_matching_targets[0]]
+
+

@@ -18,8 +18,8 @@ data_nominal_mask = np.load(simulation_results_path+'targets_P5.npy')
 target_ids = data_nominal_mask[:, 0]
 
 # Target ID to find
-target_id = 1911666
-
+#target_id = 1911666
+target_id = 1135002
 index_target_id = np.where(target_ids == target_id)[0]
 
 contaminant_ids = data_nominal_mask[index_target_id, 189:199].flatten().astype(int)  # Ensure 1-D and convert to int
