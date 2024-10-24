@@ -31,6 +31,12 @@ eta_nom_flux = data_eta_nominal_mask[:, :]
 # Let's get all the 10-element eta_k_nom_cob values coming from dap_metrics.py
 eta_nom_cob = data_nominal_mask[:, 46:56]
 
+# Let's get the centroid shift noise over 1h for the nominal mask
+centroid_shift_error_nom = data_nominal_mask[:, 56:66]
+
+# Let's get the NSR_1h for the extended mask
+nsr_1h_extended_mask = data_eta_extended_mask[:, 4]
+
 # Option to choose condition set: Set to 1 or 2 depending on what you want
 # Set 1 of conditions (ETFX but no NCOB) 
 
@@ -59,7 +65,7 @@ if condition_set == 1:
 elif condition_set == 2:
 
     # Applying the conditions element-wise and finding the indices of the matching targets
-    condition = (eta_nom_flux > flux_thrsh) & (eta_nom_cob > eta_ext_flux)  & (eta_ext_flux > etx_flux_thrsh)
+    condition = (eta_nom_flux > flux_thrsh) & (eta_nom_cob > eta_ext_flux)  & (eta_ext_flux < etx_flux_thrsh) & (eta_nom_cob > cob_thresh)
 
 # Now, find the target index and contaminant index where the condition holds true
 index_of_matching_targets = []
@@ -82,7 +88,8 @@ for i in range(len(index_of_matching_targets)):
     print(f"Target Index: {index_of_matching_targets[i]}, Contaminant Index: {index_of_matching_contaminants[i]}")
 
 #Let's get a target that fulfills the conditons
-good_target_ID = target_IDs[index_of_matching_targets[1]]
-good_target_magnitude = target_magnitudes[index_of_matching_targets[1]]
+good_target_ID = target_IDs[index_of_matching_targets[0]]
+good_target_magnitude = target_magnitudes[index_of_matching_targets[0]]
+
 print(good_target_ID)
 print(good_target_magnitude)
