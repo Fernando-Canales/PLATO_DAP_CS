@@ -10,6 +10,7 @@ import numpy as np # type: ignore
 # Load the targets.npy file
 file_path = '/home/fercho/double-aperture-photometry/test_results/'
 data_nominal_mask = np.load(file_path + 'targets_P5.npy')
+data_extended_mask = np.load(file_path + 'targets_P5_extended.npy')
 data_eta_nominal_mask = np.load(file_path + 'eta_bt_24_cameras.npy')
 data_eta_extended_mask = np.load(file_path + 'eta_ext_bt_24_cameras.npy')
 
@@ -21,6 +22,7 @@ etx_flux_thrsh = 3
 # Let's get all the target IDs and magnitudes
 target_IDs = data_nominal_mask[:, 0]
 target_magnitudes = data_nominal_mask[:, 1]
+target_magnitudes_ext = data_extended_mask[:, 1]
 
 # Let's get all the 10-element eta_k_ext values coming from plottiing_efficiency.py
 eta_ext_flux = data_eta_extended_mask[:, :]
@@ -33,9 +35,6 @@ eta_nom_cob = data_nominal_mask[:, 46:56]
 
 # Let's get the centroid shift noise over 1h for the nominal mask
 centroid_shift_error_nom = data_nominal_mask[:, 56:66]
-
-# Let's get the NSR_1h for the extended mask
-nsr_1h_extended_mask = data_eta_extended_mask[:, 4]
 
 # Option to choose condition set: Set to 1 or 2 depending on what you want
 # Set 1 of conditions (ETFX but no NCOB) 
@@ -90,6 +89,20 @@ for i in range(len(index_of_matching_targets)):
 #Let's get a target that fulfills the conditons
 good_target_ID = target_IDs[index_of_matching_targets[0]]
 good_target_magnitude = target_magnitudes[index_of_matching_targets[0]]
+good_target_centroid_shift_error_nom = centroid_shift_error_nom[index_of_matching_targets[0]]
 
-print(good_target_ID)
-print(good_target_magnitude)
+# Let's get the NSR_1h for the extended mask
+good_target_nsr_1h_extended_mask = data_extended_mask[index_of_matching_targets[0], 4]
+good_target_spr_tot_ext = data_extended_mask[index_of_matching_targets[0], 13]
+good_target_sprk_ext = data_extended_mask[index_of_matching_targets[0], 14:24]
+good_target_eta_nom_cob_error = data_nominal_mask[index_of_matching_targets[0], 56:66]
+good_target_eta_nom_cob_shifts = data_nominal_mask[index_of_matching_targets[0], 66:76]
+
+
+print('Target ID:', good_target_ID)
+print('Target NSR_ext_1h:', good_target_nsr_1h_extended_mask)
+print('Target (1 - SPRtot_ext):', 1 - good_target_spr_tot_ext)
+print('Target SPRk_ext', good_target_sprk_ext)
+print('Target magnitude:', good_target_magnitude)
+print('Target cob errors:', good_target_eta_nom_cob_error)
+print('Target cob shifts:', good_target_eta_nom_cob_shifts)
