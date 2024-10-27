@@ -63,9 +63,10 @@ def plot_masks(save_individual=False):
         # Manually add dashed lines for the nominal mask
         plot_nominal_mask_contour(axes[1], nominal_mask)
 
-        # Plot the secondary mask with nominal mask overlaid
+        # Plot the secondary mask with nominal mask in ddshed lines
         plot_single_mask(axes[2], secondary_mask + nominal_mask, center_x, center_y, contaminants)
         axes[2].set_title('Secondary Mask')
+        plot_nominal_mask_contour(axes[2], nominal_mask)
 
         plt.tight_layout()
         plt.savefig(DIRout +'combined_masks_schematic.pdf')
@@ -87,6 +88,7 @@ def plot_masks(save_individual=False):
 
         fig, ax = plt.subplots(figsize=(5, 5))
         plot_single_mask(ax, secondary_mask + nominal_mask, center_x, center_y, contaminants)
+        plot_nominal_mask_contour(ax, nominal_mask)
         plt.tight_layout()
         plt.savefig(DIRout+'secondary_mask_schematic.pdf')
         plt.show()
@@ -110,6 +112,7 @@ def plot_nominal_mask_contour(ax, nominal_mask):
                 ax.plot([i, i+1], [j+1, j+1], color='black', linestyle='--', lw=2)  # Top edge
                 ax.plot([i, i], [j, j+1], color='black', linestyle='--', lw=2)  # Left edge
                 ax.plot([i+1, i+1], [j, j+1], color='black', linestyle='--', lw=2)  # Right edge
+
 
 # Call the function with desired option
 plot_masks(save_individual=True)  # Set to False to save combined plot
