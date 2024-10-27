@@ -1,5 +1,5 @@
 """
-Scritp for making the schematics for the nominal, secondary and extended masks
+Script for making the schematics for the nominal, secondary and extended masks
 
 28th of August 2024
 Fernando Canales
@@ -81,14 +81,14 @@ def plot_masks(save_individual=False):
 
         fig, ax = plt.subplots(figsize=(5, 5))
         plot_single_mask(ax, extended_mask, center_x, center_y, contaminants)
-        plot_nominal_mask_contour(ax, nominal_mask)  # Add dashed lines
+        plot_nominal_mask_contour(ax=ax, nominal_mask=nominal_mask, plot_color='black')  # Add dashed lines
         plt.tight_layout()
         plt.savefig(DIRout+'extended_mask_schematic.pdf')
         plt.show()
 
         fig, ax = plt.subplots(figsize=(5, 5))
-        plot_single_mask(ax, secondary_mask + nominal_mask, center_x, center_y, contaminants)
-        plot_nominal_mask_contour(ax, nominal_mask)
+        plot_single_mask(ax, secondary_mask, center_x, center_y, contaminants)
+        plot_nominal_mask_contour(ax=ax, nominal_mask=nominal_mask, plot_color='white')
         plt.tight_layout()
         plt.savefig(DIRout+'secondary_mask_schematic.pdf')
         plt.show()
@@ -104,14 +104,14 @@ def plot_single_mask(ax, mask, center_x, center_y, contaminants):
     ax.set_ylabel('y [pixels]', fontsize=12)
 
 # Function to add dashed lines for the nominal mask
-def plot_nominal_mask_contour(ax, nominal_mask):
+def plot_nominal_mask_contour(ax, nominal_mask, plot_color):
     for j in range(6):
         for i in range(6):
             if nominal_mask[j, i] == 1:
-                ax.plot([i, i+1], [j, j], color='black', linestyle='--', lw=2)  # Bottom edge
-                ax.plot([i, i+1], [j+1, j+1], color='black', linestyle='--', lw=2)  # Top edge
-                ax.plot([i, i], [j, j+1], color='black', linestyle='--', lw=2)  # Left edge
-                ax.plot([i+1, i+1], [j, j+1], color='black', linestyle='--', lw=2)  # Right edge
+                ax.plot([i, i+1], [j, j], color=plot_color, linestyle='--', lw=2)  # Bottom edge
+                ax.plot([i, i+1], [j+1, j+1], color=plot_color, linestyle='--', lw=2)  # Top edge
+                ax.plot([i, i], [j, j+1], color=plot_color, linestyle='--', lw=2)  # Left edge
+                ax.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=2)  # Right edge
 
 
 # Call the function with desired option
