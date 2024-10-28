@@ -17,7 +17,6 @@ PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-
 #DIRout = 'test_results/'
 DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
 
-
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
