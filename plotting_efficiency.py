@@ -654,6 +654,7 @@ Now we plot the efficiency of the COB shift (all contaminants)
     
 """
 plt.figure(13)
+figsize=(12, 5)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
