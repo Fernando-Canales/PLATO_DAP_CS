@@ -167,8 +167,6 @@ plt.plot(((10 ** 6) / (12 * np.sqrt(24))) * nsr_agg_nominal, 'o-')
 # Add arrow and text indicating the minimum value
 plt.ylabel(r'$NSR_{agg}$ over 1h and 24 cameras $[ppm hr^{\frac{1}{2}}]$')
 plt.xlabel('Number of pixels composing the binary mask')
-# Use tight layout to avoid cropping
-#plt.tight_layout()
 # Manually adjust bottom margin to prevent x-label from being cropped
 plt.subplots_adjust(bottom=0.2)
 plt.savefig('NSR_agg_evolution.png', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as PNG
