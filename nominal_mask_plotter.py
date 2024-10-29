@@ -149,6 +149,9 @@ min_index = np.argmin(nsr_agg_nominal)
 min_value = nsr_agg_nominal[min_index]
 print('Target magnitude =', m_t)
 print('Size of the mask =', nominal_mask.sum())
+plt.imshow(It, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
+plt.grid(True, linewidth=2)
+plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
 plt.imshow(nominal_mask, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
 plt.grid(True, linewidth=2)
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
