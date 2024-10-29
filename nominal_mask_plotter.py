@@ -157,9 +157,6 @@ plt.grid(True, linewidth=2)
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
 # Flatten, sort, and reshape the array back to its original shape
 sorted_nsr = np.sort(nominal_nsr, axis=None).reshape(nominal_nsr.shape)
-
-# Reverse rows and columns to place the smallest element at the bottom left
-sorted_nsr = np.flipud(np.fliplr(sorted_nsr))
 plt.imshow(sorted_nsr, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
 plt.grid(True, linewidth=2)
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
