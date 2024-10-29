@@ -51,8 +51,6 @@ def barycenter(array,mask=None,x=None,y=None,subres=1):
         by= np.sum(array*y)/tmp
     return bx,by
 
-
-
 psf_10 = np.array(pyfits.open(dataDIR + '6000-10452-045000.fits')[0].data,dtype=float)
 psf_10 /= psf_10.sum()
 pxc_10,pyc_10 = barycenter(psf_10,subres=subres)
@@ -64,9 +62,6 @@ offy_10 = yc-pyc_10
 # Imagette characteristics
 sizex_imagette = 6
 sizey_imagette = 6
-
-
-
 
 mask = (data[:, 2] >= Pmin - binsize / 2.) & (data[:, 2] <= Pmax + binsize / 2.)
 
