@@ -11,3 +11,17 @@ Weighted fraction of FPs detected by ECOB but not by EFX: 27.38% ± 1.41%
 Weighted fraction of FPs detected by NCOB but not by EFX: 28.56% ± 1.43%
 Weighted fraction of FPs detected by EFX but not by NCOB: 0.61% ± 0.25%
 Weighted fraction of FPs detected by ECOB but not by NCOB: 1.07% ± 0.32%
+
+# Results for the Noblesse PSFs with a 0.2 pix width and a subpixel res of 5
+
+Weighted extended flux efficiency: 69.99% ± 1.45%
+Weighted secondary flux efficiency: 90.49% ± 0.93%
+Weighted extended flux for a single contaminant efficiency: 72.19% ± 1.42%
+Weighted extended flux withouth the significant transit condition: 84.39% ± 1.14%
+Weighted nominal COB efficiency: 97.65% ± 0.48%
+Weighted extended COB efficiency: 97.29% ± 0.51%
+Weighted secondary mask COB efficiency: 85.05% ± 1.13%
+Weighted fraction of FPs detected by ECOB but not by EFX: 27.31% ± 1.41%
+Weighted fraction of FPs detected by NCOB but not by EFX: 28.58% ± 1.43%
+Weighted fraction of FPs detected by EFX but not by NCOB: 0.92% ± 0.30%
+Weighted fraction of FPs detected by ECOB but not by NCOB: 1.43% ± 0.37%
