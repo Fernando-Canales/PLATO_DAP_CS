@@ -10,6 +10,9 @@ import spline2dbase # type: ignore
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues 
 dataDIR= '/home/fercho/double-aperture-photometry/psf_fits/'                                                # processed PSF files
 xc, yc = 3., 3.
+Pmin = 10                               # minimum magnitude
+Pmax = 11                               # maximum magnitude
+binsize = 0.5                           # binsize around every magnitude value
 
 # Target characteristics
 data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
@@ -64,55 +67,6 @@ sizey_imagette = 6
 
 
 
-def nominal_mask_computation(ft, fc, sb, sd, sq):
-    """ We are following the procedure described
-    in subsection 4.6.3. of Marchiori paper
-    (Binary mask)
-
-    Args:
-        ft (_float_): target flux
-        fc (_float_): contaminant flux
-        sb (_float_): background noise
-        sd (_float_): detector noise
-        sq (_float_): quantization noise
-    """
-    # First we compute the NSR of the system. Eq. (36) of Marchiori's paper
-    nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
-    
-    # Then we flatten the nsr and also the fluxes
-    nsr_1d = nsr.flatten()
-    ft_1d = ft.flatten()
-    #fc_1d = fc.flatten()
-    
-    # Then we sort the 1-D nsr in increasing order and obtain the index of the elements of the array before sorting them
-    nsr_1d_index = np.argsort(nsr_1d)
-    
-    # Then we obtain the target and contaminant flux for such indexes
-    ft_1d = ft_1d[nsr_1d_index]
-    #fc_1d = fc_1d[nsr_1d_index]
-    
-    # Then we compute the aggregat noise-to-signal ratio. Eq. (37) in Marchiori's paper
-    nsr_agg = np.zeros(len(ft_1d))
-    for i in range(1, len(ft_1d) + 1):
-        nsr_agg[i - 1] = np.sqrt(np.sum(ft_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
-    
-    # We create now a vector full with zeros
-    aperture = np.zeros(36)
-    
-    # Then we create a boolean mask
-    boolean_mask_for_the_aperture = nsr_1d_index[:np.argmin(nsr_agg) + 1]
-    
-    # Then we obtain the nominal mask
-    aperture[boolean_mask_for_the_aperture] = 1
-    
-    # Then we reshape the aperture
-    aperture = aperture.reshape((6,6))
-    
-    return aperture, nsr_agg
-
-Pmin = 10                               # minimum magnitude
-Pmax = 11                               # maximum magnitude
-binsize = 0.5                           # binsize around every magnitude value
 
 mask = (data[:, 2] >= Pmin - binsize / 2.) & (data[:, 2] <= Pmax + binsize / 2.)
 
@@ -133,8 +87,64 @@ imagette = spline2dbase.Spline2Imagette(psfbs_10, bsres, sizex_imagette, sizey_i
 f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2) # reference flux with vignetting after integration time for the TARGET
 It = f_ref_t * imagette    
 
+# First we define the function that computes the NSR
+def noise_to_signal_ratio(ft, fc, sb, sd, sq):
+    # First we compute the NSR of the system. Eq. (36) of Marchiori's paper
+    nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
+    return nsr
 
-nominal_mask, nsr_agg_nominal = nominal_mask_computation(ft=It, fc=0, sb=sb, sd=sd, sq=sq)
+# We ge the nsr for the nominal mask
+nominal_nsr = noise_to_signal_ratio(ft=It, fc=0, sb=sb, sd=sd, sq=sq)
+
+# Now we define the function that computes the nominal mask
+def nominal_mask_computation(x_size_imagette, y_size_imagette, nsr, ft):
+    """ We are following the procedure described
+    in subsection 4.6.3. of Marchiori paper
+    (Binary mask)
+
+    Args:
+        ft (_float_): target flux
+        fc (_float_): contaminant flux
+        sb (_float_): background noise
+        sd (_float_): detector noise
+        sq (_float_): quantization noise
+    """
+    
+    # Then we flatten the nsr and also the fluxes
+    nsr_1d = nsr.flatten()
+    ft_1d = ft.flatten()
+    #fc_1d = fc.flatten()
+    
+    # Then we sort the 1-D nsr in increasing order and obtain the index of the elements of the array before sorting them
+    nsr_1d_index = np.argsort(nsr_1d)
+    
+    # Then we obtain the target and contaminant flux for such indexes
+    ft_1d = ft_1d[nsr_1d_index]
+    #fc_1d = fc_1d[nsr_1d_index]
+
+    
+    # Then we compute the aggregate noise-to-signal ratio. Eq. (37) in Marchiori's paper
+    nsr_agg = np.zeros(len(ft_1d))
+    for i in range(1, len(ft_1d) + 1):
+        nsr_agg[i - 1] = np.sqrt(np.sum(ft_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
+    
+    # We create now a vector full with zeros
+    aperture = np.zeros(36)
+    
+    # Then we create a boolean mask
+    boolean_mask_for_the_aperture = nsr_1d_index[:np.argmin(nsr_agg) + 1]
+    
+    # Then we obtain the nominal mask
+    aperture[boolean_mask_for_the_aperture] = 1
+    
+    # Then we reshape the aperture
+    aperture = aperture.reshape((x_size_imagette, y_size_imagette))
+
+    
+    return aperture, nsr_agg
+
+
+nominal_mask, nsr_agg_nominal = nominal_mask_computation(x_size_imagette=sizex_imagette, y_size_imagette=sizey_imagette, nsr=nominal_nsr, ft=It)
 min_index = np.argmin(nsr_agg_nominal)
 min_value = nsr_agg_nominal[min_index]
 print('Target magnitude =', m_t)
@@ -142,6 +152,7 @@ print('Size of the mask =', nominal_mask.sum())
 plt.imshow(nominal_mask, origin='lower', extent=(0,6,0,6))
 plt.grid(True, linewidth=2)
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
+
 plt.plot(((10 ** 6) / (12 * np.sqrt(24))) * nsr_agg_nominal, 'o-')
 # Add arrow and text indicating the minimum value
 plt.ylabel(r'$NSR_{agg}$ over 1h and 24 cameras $[ppm hr^{\frac{1}{2}}]$')
