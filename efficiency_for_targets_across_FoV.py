@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt # type:ignore
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
 data_nominal_mask = np.load(dataDIR + 'targets_P5.npy')
 
+
 # We load the x and y positions of the targets across the FoV
 x_fp = data_nominal_mask[:, 219]
 y_fp = data_nominal_mask[:, 220]
@@ -28,6 +29,16 @@ plt.axvline(0, color='black',linewidth=1)  # vertical line
 
 # Show the plot
 plt.show()
+
+# Now we define the rings
+star_distances = np.sqrt(x_fp**2 + y_fp**2)  # Radial distances from the center
+
+# We now define a radius
+R = 1000
+
+# Filter stars to only include those within the disk radius
+stars_in_disk = star_distances <= R
+star_distances = star_distances[stars_in_disk]
 
 
 
