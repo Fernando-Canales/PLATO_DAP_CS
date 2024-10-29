@@ -1,0 +1,13 @@
+# Results for the case of simulated PSFs with a 0.1 pix width
+
+Weighted extended flux efficiency: 69.87% ± 1.45%
+Weighted secondary flux efficiency: 86.30% ± 1.08%
+Weighted extended flux for a single contaminant efficiency: 72.47% ± 1.41%
+Weighted extended flux withouth the significant transit condition: 85.73% ± 1.10%
+Weighted nominal COB efficiency: 97.82% ± 0.46%
+Weighted extended COB efficiency: 97.25% ± 0.52%
+Weighted secondary mask COB efficiency: 90.12% ± 0.94%
+Weighted fraction of FPs detected by ECOB but not by EFX: 27.38% ± 1.41%
+Weighted fraction of FPs detected by NCOB but not by EFX: 28.56% ± 1.43%
+Weighted fraction of FPs detected by EFX but not by NCOB: 0.61% ± 0.25%
+Weighted fraction of FPs detected by ECOB but not by NCOB: 1.07% ± 0.32%

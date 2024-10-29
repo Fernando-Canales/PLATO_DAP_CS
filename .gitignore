@@ -1,4 +1,3 @@
-/*.txt
 /*.pdf
 xpsf_pix.npy
 ypsf_pix.npy
@@ -51,3 +50,5 @@ text_files/index_important_values.txt
 text_files/reza_IDs.txt
 text_files/text_10.txt
 text_files/text.txt
+fer_IDs.txt
+dap_metrics_1000_targets.txt
