@@ -25,3 +25,17 @@ Weighted fraction of FPs detected by ECOB but not by EFX: 27.31% ± 1.41%
 Weighted fraction of FPs detected by NCOB but not by EFX: 28.58% ± 1.43%
 Weighted fraction of FPs detected by EFX but not by NCOB: 0.92% ± 0.30%
 Weighted fraction of FPs detected by ECOB but not by NCOB: 1.43% ± 0.37%
+
+# Results for the Elfique PSFs with a 0.2 pix width and a subpixel res of 5
+
+Weighted extended flux efficiency: 71.47% ± 1.43%
+Weighted secondary flux efficiency: 91.53% ± 0.88%
+Weighted extended flux for a single contaminant efficiency: 74.27% ± 1.38%
+Weighted extended flux withouth the significant transit condition: 85.86% ± 1.10%
+Weighted nominal COB efficiency: 98.65% ± 0.36%
+Weighted extended COB efficiency: 97.36% ± 0.51%
+Weighted secondary mask COB efficiency: 88.85% ± 0.99%
+Weighted fraction of FPs detected by ECOB but not by EFX: 25.90% ± 1.38%
+Weighted fraction of FPs detected by NCOB but not by EFX: 27.45% ± 1.41%
+Weighted fraction of FPs detected by EFX but not by NCOB: 0.26% ± 0.16%
+Weighted fraction of FPs detected by ECOB but not by NCOB: 0.46% ± 0.21%
