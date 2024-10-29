@@ -35,11 +35,13 @@ star_distances = np.sqrt(x_fp**2 + y_fp**2)  # Radial distances from the center
 
 # We now define a radius
 R = 1000
+N = 100
 
 # Filter stars to only include those within the disk radius
 stars_in_disk = star_distances <= R
 star_distances = star_distances[stars_in_disk]
 
-
-
-
+# Calculate the boundaries for each ring and select stars within them
+for i in range(N):
+    r_i = np.sqrt(i / N) * R
+    r_next = np.sqrt((i + 1) / N) * R
