@@ -50,7 +50,7 @@ def barycenter(array,mask=None,x=None,y=None,subres=1):
 
 
 
-psf_10 = np.array(pyfits.open(dataDIR + '6000-10452-045000.fits')[0].data,dtype=np.float)
+psf_10 = np.array(pyfits.open(dataDIR + '6000-10452-045000.fits')[0].data,dtype=float)
 psf_10 /= psf_10.sum()
 pxc_10,pyc_10 = barycenter(psf_10,subres=subres)
 lx_10 = bsres*sizex_psf
