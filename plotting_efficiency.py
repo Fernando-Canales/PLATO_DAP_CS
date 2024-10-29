@@ -4,8 +4,8 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
+#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_0_1pixdif_PSF/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -213,9 +213,9 @@ spr_crit = data[:, 8]
 nsr1h_ext = data_ext[:, 4]
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
-eta_cob_ext_2_pix = data_ext[:, 244]
-sigma_1_24_ext_2_pix = data_ext[:, 245]
-delta_cob_ext_2_pix = data_ext[:, 246]
+#eta_cob_ext_2_pix = data_ext[:, 244]
+#sigma_1_24_ext_2_pix = data_ext[:, 245]
+#delta_cob_ext_2_pix = data_ext[:, 246]
 
 # We also obtain the shape and size of every mask
 key_nom = data[:, 5]
@@ -264,16 +264,16 @@ eta_cob_ext_10first_6_cameras = data_ext[:, 75:85]
 sigma_cob_ext_10first_6_cameras = data_ext[:, 85:95]
 delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
 gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
-SPRK10_first_ext_2_pix = data_ext[:,126:136]
-eta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 157:167]
-sigma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 167:177]
-delta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 177:187]
-eta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 187:197]
-sigma_cob_ext_2_pix_10first_6_cameras = data_ext[:, 197:207]
-delta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 207:217]
-gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 217:227]
-gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 227:237]
-gamma_ext_2_pix = data_ext[:, 237]
+#SPRK10_first_ext_2_pix = data_ext[:,126:136]
+#eta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 157:167]
+#sigma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 167:177]
+#delta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 177:187]
+#eta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 187:197]
+#sigma_cob_ext_2_pix_10first_6_cameras = data_ext[:, 197:207]
+#delta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 207:217]
+#gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 217:227]
+#gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 227:237]
+#gamma_ext_2_pix = data_ext[:, 237]
 
 
 
@@ -338,14 +338,14 @@ for i in range(n):
     eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
     eta_ext_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
-    eta_ext_2_pix_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 238] * (1 - data_ext[i, 248]))
-    eta_ext_2_pix_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 156] * (1 - data_ext[i, 248]))
+    #eta_ext_2_pix_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 238] * (1 - data_ext[i, 248]))
+    #eta_ext_2_pix_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 156] * (1 - data_ext[i, 248]))
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
-    delta_obs_ext_2_pix_24_cameras[i, :] = dback*data_ext[i, 126:136]
-    delta_obs_ext_2_pix_6_cameras[i, :] = dback*data_ext[i, 126:136]
+    #delta_obs_ext_2_pix_24_cameras[i, :] = dback*data_ext[i, 126:136]
+    #delta_obs_ext_2_pix_6_cameras[i, :] = dback*data_ext[i, 126:136]
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
     nbad_sp[i] = np.sum( (eta_nom_bt_24_cameras[i,:]>7.1) & (delta_int<4*84. ))
 
