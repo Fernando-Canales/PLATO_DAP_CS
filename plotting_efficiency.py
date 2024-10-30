@@ -5,8 +5,8 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
+#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_4000K_PSF'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -654,19 +654,35 @@ plt.xlim(10, 13)
 Now we plot the efficiency of the COB shift (all contaminants)
     
 """
+# Initialize lists to store data points for the inset
+Pi_values = []
+eff_ext_cob_overall_values = []
+eff_ext_cob_overall_6_cameras_values = []
+eff_cob_values = []
+eff_cob_6_cameras_values = []
+
 plt.figure(13, figsize=(8, 5), dpi=150)
+
 for i in range(nP):
     Pi = Pmin + i * binsize
+    Pi_values.append(Pi)  # Store Pi for later
+
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    s_24_cameras = (eta_nom_bt_24_cameras>flux_thresh_nom_mask)[m,:].sum()
-    s_6_cameras = (eta_nom_bt_6_cameras>flux_thresh_nom_mask)[m,:].sum()
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras>flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
-    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras>flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras>flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
-    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras>flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
+    s_24_cameras = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[m,:].sum()
+    s_6_cameras = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[m,:].sum()
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
+    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
     eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
-    
+
+    # Store values for the inset plot
+    eff_ext_cob_overall_values.append(eff_ext_cob_overall)
+    eff_ext_cob_overall_6_cameras_values.append(eff_ext_cob_overall_6_cameras)
+    eff_cob_values.append(eff_cob)
+    eff_cob_6_cameras_values.append(eff_cob_6_cameras)
+        
     #Computing the errors:
     error_ext_cob = np.sqrt(eff_ext_cob_overall * (100 - eff_ext_cob_overall) / m.sum())
     error_ext_cob_6_cameras = np.sqrt(eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras) / m.sum())
@@ -701,35 +717,50 @@ for i in range(nP):
     plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red')
     plt.ylim(60, 100)
     plt.xlim(9.9, 13.1)
-    plt.text(10, 76.1,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(11.2, 72, 'On-board light curve processing region', color='red', weight='bold')
-       
-# Move the legend below the plot
+    # Move text down a bit to make room for inset if inside plot
+    plt.text(10, 61,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
+    plt.text(11.2, 61, 'On-board light curve processing region', color='red', weight='bold')
+           
+# Finalize the main plot
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
-
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
-# Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-# Fine-tune tick intervals for clarity on the top part
-# Fine-tuned zoomed inset properties
-ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="upper right")
-ax_inset.plot(Pi, eff_ext_cob_overall, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
-ax_inset.plot(Pi, eff_ext_cob_overall_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
-ax_inset.plot(Pi, eff_cob, color='orange', linewidth=1.5, label='Nom. Mask (24 cameras)')
-ax_inset.plot(Pi, eff_cob_6_cameras, color='olive', linewidth=1.5, label='Nom. Mask (6 cameras)')
-ax_inset.set_ylim(96, 100)  # Narrower y-limits for better focus on the data
-ax_inset.set_xlim(9.8, 13.2)  # Adjust x-limits to match main plot's range
-ax_inset.set_yticks([96, 97, 98, 99, 100])
-ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 
-# Improved inset zoom indicator
+# After loop: plot inset with accumulated data
+#ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="center")
+ax_inset = inset_axes(
+    plt.gca(), 
+    width=2.5,    # Width in inches
+    height=1.1,   # Height in inches
+    loc="center", 
+    bbox_to_anchor=(0.5, 0.4),  # Center it horizontally (0.5) and position lower vertically (0.3)
+    bbox_transform=plt.gca().transAxes
+)
+ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
+ax_inset.errorbar(Pi_values, eff_ext_cob_overall_6_cameras_values, fmt='s', yerr=error_ext_cob_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
+ax_inset.errorbar(Pi_values, eff_cob_values, color='orange', fmt='*', yerr=error_cob, linewidth=1.5, label='Nom. Mask (24 cameras)')
+ax_inset.errorbar(Pi_values, eff_cob_6_cameras_values, color='olive', fmt='*', yerr=error_cob_6_cameras,  linewidth=1.5, label='Nom. Mask (6 cameras)')
+
+# Connect the dots
+ax_inset.plot(Pi_values, eff_ext_cob_overall_values, color='blue', linestyle='-')
+ax_inset.plot(Pi_values, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
+ax_inset.plot(Pi_values, eff_cob_values, color='orange', linestyle='-')
+ax_inset.plot(Pi_values, eff_cob_6_cameras_values, color='olive', linestyle='-')
+
+# Add shaded areas and vertical lines to the inset plot
+ax_inset.fill_between([9, 11.7], [95, 95], [100, 100], color='aqua', alpha=0.5)
+ax_inset.fill_between([11, 13.4], [95, 95], [100, 100], color='plum', alpha=0.5)
+ax_inset.vlines(11.7, ymin=95, ymax=100, linestyles='dashed', colors='green')
+ax_inset.vlines(11, ymin=95, ymax=100, linestyles='dashdot', colors='red')
+
+# Set inset plot limits and appearance
+ax_inset.set_ylim(95, 100)
+ax_inset.set_xlim(9.9, 13.1)
+ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
+ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 
-# Adjust the inset y-axis for the zoom
-ax_inset.set_ylim(95, 100)  # Focuses on the range of interest
-ax_inset.set_xlim(9.9, 13.1)
-ax_inset.set_yticks([95, 96, 97, 98, 99, 100])  # Only showing the range we’re zooming in on for clarity
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
