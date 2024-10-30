@@ -1,11 +1,12 @@
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.ticker import PercentFormatter # type: ignore
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
 
 from imagette import ran_unique_int
 
-#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
+dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Leopold_PSF/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -558,7 +559,7 @@ plt.title('Efficieny Comparison for the two types of DAP', fontsize=fsize)
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
-plt.figure(11)
+plt.figure(11, figsize=(8, 5), dpi=150)
 # To store whether a label has been added for each type
 labels_added = {
     'sec_24': False,
@@ -653,8 +654,7 @@ plt.xlim(10, 13)
 Now we plot the efficiency of the COB shift (all contaminants)
     
 """
-plt.figure(13)
-figsize=(12, 5)
+plt.figure(13, figsize=(8, 5), dpi=150)
 for i in range(nP):
     Pi = Pmin + i * binsize
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
@@ -705,12 +705,31 @@ for i in range(nP):
     plt.text(11.2, 72, 'On-board light curve processing region', color='red', weight='bold')
        
 # Move the legend below the plot
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=2)
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
+
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
+# Fine-tune tick intervals for clarity on the top part
+# Fine-tuned zoomed inset properties
+ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="upper right")
+ax_inset.plot(Pi, eff_ext_cob_overall, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
+ax_inset.plot(Pi, eff_ext_cob_overall_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
+ax_inset.plot(Pi, eff_cob, color='orange', linewidth=1.5, label='Nom. Mask (24 cameras)')
+ax_inset.plot(Pi, eff_cob_6_cameras, color='olive', linewidth=1.5, label='Nom. Mask (6 cameras)')
+ax_inset.set_ylim(96, 100)  # Narrower y-limits for better focus on the data
+ax_inset.set_xlim(9.8, 13.2)  # Adjust x-limits to match main plot's range
+ax_inset.set_yticks([96, 97, 98, 99, 100])
+ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 
+# Improved inset zoom indicator
+plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
+
+# Adjust the inset y-axis for the zoom
+ax_inset.set_ylim(95, 100)  # Focuses on the range of interest
+ax_inset.set_xlim(9.9, 13.1)
+ax_inset.set_yticks([95, 96, 97, 98, 99, 100])  # Only showing the range we’re zooming in on for clarity
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
