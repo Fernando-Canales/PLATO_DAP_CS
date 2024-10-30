@@ -13,9 +13,9 @@ from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_b
 # Parameters relative to all the relevant paths
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
 #PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Noblesse-02760.npz'
-PSFfile = 'PSF_Focus_0mu_0.2pxdif_N4000K.npz'
+PSFfile = 'PSF_Focus_0mu_0.2pxdif_N6500K.npz'
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_4000K_PSF'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
 
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
