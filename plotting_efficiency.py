@@ -2,6 +2,7 @@ import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.ticker import PercentFormatter # type: ignore
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
+from matplotlib.patches import ConnectionPatch #type: ignore
 
 from imagette import ran_unique_int
 
@@ -718,7 +719,7 @@ for i in range(nP):
     plt.ylim(60, 100)
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
-    plt.text(10, 61,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
+    plt.text(10., 61,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
     plt.text(11.2, 61, 'On-board light curve processing region', color='red', weight='bold')
            
 # Finalize the main plot
@@ -732,9 +733,9 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 ax_inset = inset_axes(
     plt.gca(), 
     width=2.5,    # Width in inches
-    height=1.1,   # Height in inches
+    height=0.9,   # Height in inches
     loc="center", 
-    bbox_to_anchor=(0.5, 0.4),  # Center it horizontally (0.5) and position lower vertically (0.3)
+    bbox_to_anchor=(0.48, 0.4),  # Center it horizontally (0.5) and position lower vertically (0.3)
     bbox_transform=plt.gca().transAxes
 )
 ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
