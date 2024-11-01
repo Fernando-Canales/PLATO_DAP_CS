@@ -54,3 +54,12 @@ Weighted fraction of FPs detected by ECOB but not by EFX: 27.31% ± 1.41%
 Weighted fraction of FPs detected by NCOB but not by EFX: 28.58% ± 1.43%
 Weighted fraction of FPs detected by EFX but not by NCOB: 0.92% ± 0.30%
 Weighted fraction of FPs detected by ECOB but not by NCOB: 1.43% ± 0.37%
+
+# Results for the 6500K with a 0.2pix width and a subpixl res of 20
+Weighted extended flux efficiency: 70.06% ± 1.45%
+Weighted secondary flux efficiency: 90.99% ± 0.90%
+Weighted extended flux for a single contaminant efficiency: 73.18% ± 1.40%
+Weighted extended flux withouth the significant transit condition: 85.45% ± 1.11%
+Weighted nominal COB efficiency: 98.16% ± 0.42%
+Weighted extended COB efficiency: 97.02% ± 0.54%
+Weighted secondary mask COB efficiency: 87.64% ± 1.04%
