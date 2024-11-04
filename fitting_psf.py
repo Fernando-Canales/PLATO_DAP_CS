@@ -1,7 +1,7 @@
 # This module will find the closest PSF to every random selected target from the GAIA Catalogue.
 
 # Let's import the main libraries
-import numpy as np
+import numpy as np # type:ignore
 
 # I know that 1 pixel = 18 micro meters.
 
