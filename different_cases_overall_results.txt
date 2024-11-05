@@ -65,6 +65,17 @@ Weighted extended COB efficiency: 97.02% ± 0.54%
 Weighted secondary mask COB efficiency: 87.64% ± 1.04%
 
 # Results for n_min = 6
+Weighted extended flux efficiency: 69.24% ± 1.46%
+Weighted secondary flux efficiency: 90.88% ± 0.91%
+Weighted extended flux for a single contaminant efficiency: 72.37% ± 1.41%
+Weighted extended flux withouth the significant transit condition: 86.04% ± 1.09%
+Weighted nominal COB efficiency: 97.67% ± 0.48%
+Weighted extended COB efficiency: 96.76% ± 0.56%
+Weighted secondary mask COB efficiency: 87.82% ± 1.03%
+Weighted fraction of FPs detected by ECOB but not by EFX: 27.52% ± 1.41%
+Weighted fraction of FPs detected by NCOB but not by EFX: 28.87% ± 1.43%
+Weighted fraction of FPs detected by EFX but not by NCOB: 0.44% ± 0.21%
+Weighted fraction of FPs detected by ECOB but not by NCOB: 0.91% ± 0.30%
 
 
 # Results for n_min = 15
