@@ -126,7 +126,7 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
     # Now we define the total gamma factor
     gamma = np.sqrt(gamma_x ** 2 + gamma_y ** 2)
     # Now we make sure to deal with the correct units for the C.O.B shift (no ppm) and define the Lambda factor
-    Lambda = dback*1e-6 / (1 - dback*1e-6*sprk)
+    Lambda = dback*1e-6 / (1 + dback*1e-6*sprk)
     # Now we define the centroid shift along the X-direction
     #cs_x = l * gamma_x
     # Now we define the centroid shift along the Y-direction

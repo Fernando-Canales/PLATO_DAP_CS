@@ -15,8 +15,8 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 #PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Noblesse-02760.npz'
 PSFfile = 'PSF_Focus_0mu_0.2pxdif_N6500K.npz'
 #DIRout = 'test_results/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
-
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/tests_plus_sign'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)

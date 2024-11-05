@@ -6,7 +6,7 @@ from matplotlib.patches import ConnectionPatch #type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/tests_plus_sign/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_4000K_PSF'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
