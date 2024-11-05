@@ -6,7 +6,7 @@ from matplotlib.patches import ConnectionPatch #type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/tests_plus_sign/'
+dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_4000K_PSF'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
@@ -15,7 +15,7 @@ Pmax = 13
 binsize = 0.5
 nP = int((Pmax - Pmin) / binsize + 1)
 fsize = 14
-flux_thresh_nom_mask, cob_thresh = 7.1, 3
+flux_thresh_nom_mask, cob_thresh = 15, 3
 flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
 n_tar = 1000
 depth_sig_scaling = 3
