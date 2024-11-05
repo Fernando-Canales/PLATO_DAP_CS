@@ -39,7 +39,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 1000                            # number of targets per magnitude interval
+n_tar = 50                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
