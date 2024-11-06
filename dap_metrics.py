@@ -48,7 +48,6 @@ nP = int((Pmax - Pmin) / binsize + 1)   # number of bins
 
 # ------------------------------------------------
 # MORE CONFIGURATION PARAMETERS
-
 data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
 psfdata = np.load(PSFfile)                       # processed PSFs 
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue

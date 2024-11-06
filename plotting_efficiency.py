@@ -128,30 +128,6 @@ data_ext = np.load(dataDIR + 'targets_P5_extended.npy')
 #105-114: gamma_ext_10first
 #115-124: gamma_ext_10first_6_cameras
 #125: gamma_ext
-#126-135: SPRK_ext_2_pix_10first
-#136-145: eta_ext_2_pix_10first
-#146-155: eta_ext_2_pix_10first_6_cameras
-#156: NSR_ext_2_pix_1h_6_cameras
-#157-166: eta_cob_ext_2_pix_10first
-#167-176: sigma_cob_ext_2_pix_10first
-#177-186: abs_cob_shift_ext_2_pix_10first
-#187-196: eta_cob_ext_2_pix_10first_6_cameras
-#197-206: sigma_cob_ext_2_pix_10first_6_cameras
-#207-216: abs_cob_shift_ext_2_pix_10first_6_cameras
-#217-226: gamma_ext_2_pix_10first
-#227-236: gamma_ext_2_pix_10first_6_cameras
-#237: gamma_ext_2_pix
-#238: NSR_ext_2_pix_1h_24_cameras
-#239: extended_mask_key_2_pix
-#240: extended_mask_size_2_pix
-#241: delta_obs_ext_2_pix
-#242: eta_ext_2_pix
-#243: n_bad_ext_2_pix
-#244: eta_cob_ext_2_pix
-#245: sigma_1_24_ext_2_pix
-#246: abs_cob_ext_2_pix
-#247: SPR_crit_ext_2_pix
-#248: SPR_to_ext_2_pix
 
 data_bray = np.load(dataDIR + 'targets_P5_bray.npy')
 #0: ID_t
@@ -215,9 +191,6 @@ spr_crit = data[:, 8]
 nsr1h_ext = data_ext[:, 4]
 n_bad_bray = data_bray[:, 4]
 nsr1h_bray = data_bray[:, 3]
-#eta_cob_ext_2_pix = data_ext[:, 244]
-#sigma_1_24_ext_2_pix = data_ext[:, 245]
-#delta_cob_ext_2_pix = data_ext[:, 246]
 
 # We also obtain the shape and size of every mask
 key_nom = data[:, 5]
@@ -266,17 +239,6 @@ eta_cob_ext_10first_6_cameras = data_ext[:, 75:85]
 sigma_cob_ext_10first_6_cameras = data_ext[:, 85:95]
 delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
 gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
-#SPRK10_first_ext_2_pix = data_ext[:,126:136]
-#eta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 157:167]
-#sigma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 167:177]
-#delta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 177:187]
-#eta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 187:197]
-#sigma_cob_ext_2_pix_10first_6_cameras = data_ext[:, 197:207]
-#delta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 207:217]
-#gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 217:227]
-#gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 227:237]
-#gamma_ext_2_pix = data_ext[:, 237]
-
 
 
 # We get now the new varaibles for the significant transit depth
@@ -327,11 +289,7 @@ eta_nom_bt_6_cameras = np.zeros((n,10))
 delta_obs = np.zeros((n,10))
 delta_obs_ext = np.zeros((n,10))
 delta_obs_ext_6_cameras = np.zeros((n, 10))
-delta_obs_ext_2_pix_24_cameras = np.zeros((n, 10))
-delta_obs_ext_2_pix_6_cameras = np.zeros((n, 10))
 mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
-eta_ext_2_pix_bt_24_cameras = np.zeros((n, 10))
-eta_ext_2_pix_bt_6_cameras = np.zeros((n, 10))
 
 for i in range(n):
     dback = np.ones(10)*dback_ref
@@ -340,14 +298,10 @@ for i in range(n):
     eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
     eta_ext_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
-    #eta_ext_2_pix_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 238] * (1 - data_ext[i, 248]))
-    #eta_ext_2_pix_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 156] * (1 - data_ext[i, 248]))
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
-    #delta_obs_ext_2_pix_24_cameras[i, :] = dback*data_ext[i, 126:136]
-    #delta_obs_ext_2_pix_6_cameras[i, :] = dback*data_ext[i, 126:136]
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
     nbad_sp[i] = np.sum( (eta_nom_bt_24_cameras[i,:]>7.1) & (delta_int<4*84. ))
 
