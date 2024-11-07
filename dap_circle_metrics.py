@@ -46,8 +46,8 @@ radius_focal_plane = 92  # Radius of the focal plane disk in mm
 number_of_circles = 6   # Number of circles                          # binsize around every magnitude value
 
 # First values
-ID = np.arange(0, data.shape[0]) # ID for every star in the catalogue
-
+#ID = np.arange(0, data.shape[0]) # ID for every star in the catalogue
+ID = data_nominal_mask[:, 0]
 
 x_star = data[:, 3]              # x-coordinate on the focal plane for every star in the catalogue
 y_star = data[:, 4]              # y-coordinate on the focal plane for every star in the catalogue
@@ -67,7 +67,12 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 # Now we use a seed for obtaining the same number of targets and dback and td values
 np.random.seed(300)
 star_distances = np.sqrt(x_tar_fp_mm**2 + y_tar_fp_mm**2)
+save_info_nominal_mask = np.zeros((n_tar * number_of_circles, 221))     # numpy arr. to store the metrics for the nominal mask
+save_info_secondary_mask = np.zeros((n_tar * number_of_circles, 20))  # numpy arr. to store the metrics for the secondary mask
+save_info_extended_mask = np.zeros((n_tar * number_of_circles, 249)) # numpy arr. to store the metrics for the extended mask
+save_info_bray_mask = np.zeros((n_tar * number_of_circles, 8))  # numpy arr. to store the metrics for Bray's 2 x 2 mask
 
+counter = 0
 
 # Loop over each circle and process stars within it
 for i in range(number_of_circles):
@@ -77,7 +82,9 @@ for i in range(number_of_circles):
     targets_in_circle = data[stars_in_circle]
 
         
-    def process_target(target):    
+    def process_target(target):
+        ID_t = ID[target]
+        m_t = data_nominal_mask[:, 1]     
         alpha = np.arctan(np.sqrt(x_tar_fp_mm ** 2 + y_tar_fp_mm ** 2) / 247.732)
         f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2)
 
@@ -89,16 +96,38 @@ for i in range(number_of_circles):
         
         # Imagette and intensity calculations
         imagette = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx, offy=offy)
+        Delta_P = data[:, 2] - m_t
         It = f_ref_t * imagette
 
+         # Now we find all the contaminants surrounding each TARGET. We put a distance condition (10 pixels)
+        dist = np.sqrt((x_star - x_tar_fp_pix[target]) ** 2 + (y_star - y_tar_fp_pix[target]) ** 2)
         m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max) & (data[:, 2] > 0) # mask containing the distance condition for contaminants
         n = np.where(m)[0]             # index of the contaminants
         m_c = data[:, 2][n]            # magnitude of each contaminant star for a given TARGET
         x_c = x_star[n]                # x-coordinate of a given contaminant in the focal plane
         y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane
         n_c = len(x_c)                 # number of contaminants for a given TARGET
+        ID_contaminants = ID[m] # IDs of the contaminant stars
+        x_c_im = x_c - i0              # x-coordinate of a given contaminant inside the imagette (window)
+        y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
+        offx_c = x_c_im - pxc[psf_idx] # x-coordinate of the offset between the center of each contaminant and each PSF
+        offy_c = y_c_im - pyc[psf_idx] # y-coord
+
+        # Now we have to build an 'imagette' for every contaminant
+        Ic = np.zeros((n_c, 6, 6))
+        for o in range(1, n_c + 1):
+            # Now we make sure to deal only with stars with positive magnitudes
+            if m_c[o - 1] > 0:
+                # Then we compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
+                Ic[o - 1, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx_c[o - 1], offy=offy_c[o - 1])
+                # Let's obtain the value of the reference flux for every contaminant star
+                f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o - 1], m_t)
+                # Let's calculate the Intensity per pixel of the imagette of every contaminant star
+                Ic[o - 1, :, :] = f_ref_c * Ic[o - 1]
+        
         Ic_acc = np.sum(Ic, axis=0)                                                  # numpy array containing the contribution from all contaminants
         f_tot = It + Ic_acc                                                          # total flux of an imagette (TARGET + all contaminants)
+        
         nominal_mask = aperture_computation(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
         nominal_mask_key = mask_to_bitmask(nominal_mask)
         nominal_mask_size = np.count_nonzero(nominal_mask)
@@ -175,13 +204,7 @@ for i in range(number_of_circles):
         eta_t_6_cameras = sprk[index_contaminant_highest_sprk] * np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr/ (nsr_1h_6_cameras_nominal_mask * (1 - SPR_tot)) # signal statistical significance in the nominal mask
         eta_c = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_24_cameras_secondary_mask # signal statistical significance in the secondary mask
         eta_c_6_cameras = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_6_cameras_secondary_mask
-    
-        
-        eta_true_positive_24_cameras_earth_like = 84 * np.sqrt(13 * 3) / nsr_1h_24_cameras_nominal_mask
-        eta_true_positive_6_cameras_jovian_planet =  10100 * np.sqrt(29.6 * 3) / nsr_1h_6_cameras_nominal_mask
-        eta_true_positive_24_cameras_super_earth = 522 * np.sqrt(42 * 3) / nsr_1h_24_cameras_nominal_mask
-        eta_true_positive_6_cameras_super_earth = 522 * np.sqrt(42 * 3) / nsr_1h_6_cameras_nominal_mask
-        
+            
         nsprmax = min(10, n_c)
         eta_10first = np.zeros(10)
         sprk_10first = np.zeros(10)
@@ -257,7 +280,7 @@ for i in range(number_of_circles):
         extended_mask_2_pix = extended_binary_mask(nominal_mask, W=2) # extended mask (1 pixel ring around the nominal mask)
         extended_mask_key_2_pix = mask_to_bitmask(extended_mask_2_pix)     # mask key for the extended mask
         extended_mask_size_2_pix = np.count_nonzero(extended_mask_2_pix)   # mask size for the extended mask
-        
+
         # Now we compute all the metrics associated with every extended mask.
         NSR_ext = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * extended_mask)) / np.sum(It * extended_mask) # E1. 11 in Marchiori paper
         NSR_ext_1h_24_cameras = ((10 ** 6) / (12 * np.sqrt(24))) * NSR_ext
@@ -359,7 +382,6 @@ for i in range(number_of_circles):
         # n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[index_contaminant_highest_sprk] > SPR_crit) & (sprk_ext > sprk[index_contaminant_highest_sprk])
         # )[0])
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-        print('Target ID = ', ID_target[k])
         print('P magnitude of the target=', m_t)
         print('Total number of contaminant stars for this target = ', n_c)
         print('Nbad for this target = ', n_bad)
@@ -369,28 +391,119 @@ for i in range(number_of_circles):
               m_c[index_contaminant_highest_sprk] - m_t)
         print('Distance between the target and the contaminant with the highest sprk = ',
               (x_t_im - x_c_im[index_contaminant_highest_sprk]) ** 2 + (y_t_im - y_c_im[index_contaminant_highest_sprk]) ** 2)
-        print('Secondary mask size =', secondary_mask_size)
-        print('sprk_tot_24_cameras:', SPR_tot)
-        print('sprk_tot_6_cameras', SPR_tot_6_cameras)
-        print('Spr_crit =', SPR_crit_24_cameras)
-        print('NSR_T is:', nsr_1h_24_cameras_nominal_mask)
-        print('min(nsr_agg_1h_24_cameras)', nsr_1h_24_cameras_nominal_mask)
-        print('nsr', nsr_1h_24_cameras_nominal_mask)
-        print('nsr_6_cameras', nsr_1h_6_cameras_nominal_mask)
-        print('NSR_ext', NSR_ext)
-        print('NSR_c is:',  nsr_1h_24_cameras_secondary_mask)
-        print('eta_t is:', eta_t)
-        print('eta_c_6_cameras is:', eta_c_6_cameras)
-        print('NSR1H_6_C',  nsr_1h_6_cameras_secondary_mask)
-        print('spr_tot_c', spr_tot_secondary_mask)
-        print('spr_tot_c_6_cameras', SPR_tot_sec)
-        print('spr_t is:', sprk[index_contaminant_highest_sprk])
-        print('SPRk_10_first_ext are:', SPRK_ext_10first)
-        print('eta_10first_ext are:', eta_ext_10first)
-        print('eta_10first are:', eta_10first)
-        print('spr_sec[index_I_c_max]', sprk_sec[index_contaminant_highest_sprk])
-        print('sprk_cob_c', sprk_cob_c)
         print('IDs from the 10 first contaminants:', IDs_from_the_10first_contaminants)
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
+        # Now we save the important metrics for every target w.r.t the nominal mask
+        save_info = np.array([ID_t, m_t, n_c, m_c_bad, dist_bad, nominal_mask_key, nominal_mask_size, nsr_1h_24_cameras_nominal_mask, n_bad, SPR_crit_24_cameras, sprk[index_contaminant_highest_sprk], SPR_tot, eta_t, delta_obs_nominal_mask, abs_cob, eta_cob, 
+                              sigma_1_24])
+        
+        save_info = np.append(save_info, sprk_10first)
+        save_info = np.append(save_info, eta_10first)
+        save_info = np.append(save_info, eta_cob_6_cameras)
+        save_info = np.append(save_info, abs_cob_6_cameras)
+        save_info = np.append(save_info, sigma_1_6_cameras)
+        save_info = np.append(save_info, SPR_crit_6_cameras)
+        save_info = np.append(save_info, eta_t_6_cameras)
+        save_info = np.append(save_info, eta_cob_10first)
+        save_info = np.append(save_info, sigma_cob_10first)
+        save_info = np.append(save_info, abs_cob_shift_10first)
+        save_info = np.append(save_info, eta_cob_10first_6_cameras)
+        save_info = np.append(save_info, sigma_cob_10first_6_cameras)
+        save_info = np.append(save_info, abs_cob_shift_10first_6_cameras)
+        save_info = np.append(save_info, gamma_nom_10first)
+        save_info = np.append(save_info, gamma_nom_10first_6cameras)
+        save_info = np.append(save_info, td_10first)
+        save_info = np.append(save_info, dback_10first)
+        save_info = np.append(save_info, gamma_nom)
+        save_info = np.append(save_info, gamma_nom_6cameras)
+        save_info = np.append(save_info, nsr_1h_6_cameras_nominal_mask)
+        save_info = np.append(save_info, x_coordinate_in_the_imagette_for_a_contaminant_10first)
+        save_info = np.append(save_info, y_coordinate_in_the_imagette_for_a_contaminant_10first)
+        save_info = np.append(save_info, magnitude_contaminant_10first)
+        save_info = np.append(save_info, dist_from_target_to_10first_contaminants)
+        save_info = np.append(save_info, IDs_from_the_10first_contaminants)
+        save_info = np.append(save_info, delta_x_from_target_to_10first_contaminants)
+        save_info = np.append(save_info, delta_y_from_target_to_10first_contaminants)
 
+
+        # Now we save the important metrics w.r.t the secondary mask
+        save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
+        save_info_contaminant = np.append(save_info_contaminant, eta_c_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, eta_cob_c_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, abs_cob_c_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, sigma_1_6_cameras_c)
+        save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, SPR_tot_sec)
+        save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c)
+        save_info_contaminant = np.append(save_info_contaminant, nsr_1h_6_cameras_secondary_mask)
+        save_info_contaminant = np.append(save_info_contaminant, ID_contaminant_highest_sprk)
+
+        # Now we save the important metrics w.r.t the extended mask
+        save_info_ext = np.array([ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[index_contaminant_highest_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
+                                  sigma_1_24_ext, n_bad_ext, SPR_tot_ext])
+        
+        save_info_ext = np.append(save_info_ext, SPRK_ext_10first)
+        save_info_ext = np.append(save_info_ext, eta_ext_10first)
+        save_info_ext = np.append(save_info_ext, eta_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, NSR_ext_1h_6_cameras)
+        save_info_ext = np.append(save_info_ext, eta_cob_ext_10first)
+        save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first)
+        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first)
+        save_info_ext = np.append(save_info_ext, eta_cob_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext_10first)
+        save_info_ext = np.append(save_info_ext, gamma_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext)
+        save_info_ext = np.append(save_info_ext, SPRK_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, eta_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, eta_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, NSR_ext_2_pix_1h_6_cameras)
+        save_info_ext = np.append(save_info_ext, eta_cob_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, sigma_cob_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, eta_cob_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, sigma_cob_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, gamma_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, gamma_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, NSR_ext_2_pix_1h_24_cameras)
+        save_info_ext = np.append(save_info_ext, extended_mask_key_2_pix)
+        save_info_ext = np.append(save_info_ext, extended_mask_size_2_pix)
+        save_info_ext = np.append(save_info_ext, delta_obs_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, eta_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, n_bad_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, eta_cob_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, sigma_1_24_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, abs_cob_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, SPR_crit_ext_2_pix)
+        save_info_ext = np.append(save_info_ext, SPR_tot_ext_2_pix)
+
+
+        # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
+        save_info_bray = np.array([m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[index_contaminant_highest_sprk], SPR_tot_bray])
+        return save_info, save_info_contaminant, save_info_ext, save_info_bray
+    
+    for target in range(len(ID)):
+        results = process_target(target)
+        save_info_nominal_mask[counter] = results[0]
+        save_info_secondary_mask[counter] = results[1]
+        save_info_extended_mask[counter] = results[2]
+        save_info_bray_mask[counter] = results[3]
+        counter = counter +1
+    
+    print("NUMBER OF PROCESSED TARGETS: %i" % counter)
+
+
+save_info_nominal_mask = save_info_nominal_mask[0:counter]
+save_info_secondary_mask = save_info_secondary_mask[0:counter]
+save_info_extended_mask = save_info_extended_mask[0:counter]
+save_info_bray_mask = save_info_bray_mask[0:counter]
+
+# Now it is time to save the metrics into several .npy files, each file for each mask
+np.save(DIRout + 'targets_P5.npy', save_info_nominal_mask)
+np.save(DIRout + 'targets_P5_secondary.npy', save_info_secondary_mask)
+np.save(DIRout + 'targets_P5_extended.npy', save_info_extended_mask)
+np.save(DIRout + 'targets_P5_bray.npy', save_info_bray_mask)
