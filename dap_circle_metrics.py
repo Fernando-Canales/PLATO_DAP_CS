@@ -8,14 +8,14 @@ Fernando Nov. 6th 2024
 import numpy as np #type:ignore
 import spline2dbase #type:ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
-from imagette import window, ran_unique_int, centroid_shift
+from imagette import window, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
 
 #CONFIGURATION PARAMETERS
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 DIRout =  '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
 data_nominal_mask = np.load(dataDIR + 'targets_P5.npy')
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
@@ -38,15 +38,15 @@ data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
 psfdata = np.load(PSFfile)                       # processed PSFs 
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue
 # Parameters for the magnitude intervals
-n_tar = 50                            # number of targets per magnitude interval
+n_tar = 1                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 #binsize = 0.5 
 radius_focal_plane = 92  # Radius of the focal plane disk in mm
-number_of_circles = 6   # Number of circles                          # binsize around every magnitude value
+number_of_circles = 7   # Number of circles                          # binsize around every magnitude value
 
 # First values
-#ID = np.arange(0, data.shape[0]) # ID for every star in the catalogue
+ID_cts = np.arange(0, data.shape[0]) # ID for every star in the catalogue
 ID = data_nominal_mask[:, 0]
 
 x_star = data[:, 3]              # x-coordinate on the focal plane for every star in the catalogue
@@ -66,48 +66,46 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 
 # Now we use a seed for obtaining the same number of targets and dback and td values
 np.random.seed(300)
+
+# Initialize output arrays with expected total size
+total_targets = n_tar * number_of_circles  # Total number of targets expected
+
+save_info_nominal_mask = np.zeros((total_targets, 219))     # numpy arr. to store metrics for nominal mask
+save_info_secondary_mask = np.zeros((total_targets, 20))    # numpy arr. to store metrics for secondary mask
+save_info_extended_mask = np.zeros((total_targets, 249))    # numpy arr. to store metrics for extended mask
+save_info_bray_mask = np.zeros((total_targets, 8))          # numpy arr. to store metrics for Bray's mask
+
+
+# Compute distances for filtering stars within each circle
 star_distances = np.sqrt(x_tar_fp_mm**2 + y_tar_fp_mm**2)
-save_info_nominal_mask = np.zeros((n_tar * number_of_circles, 221))     # numpy arr. to store the metrics for the nominal mask
-save_info_secondary_mask = np.zeros((n_tar * number_of_circles, 20))  # numpy arr. to store the metrics for the secondary mask
-save_info_extended_mask = np.zeros((n_tar * number_of_circles, 249)) # numpy arr. to store the metrics for the extended mask
-save_info_bray_mask = np.zeros((n_tar * number_of_circles, 8))  # numpy arr. to store the metrics for Bray's 2 x 2 mask
 
-counter = 0
-
-# Loop over each circle and process stars within it
-for i in range(number_of_circles):
-    r_i = np.sqrt(i / number_of_circles) * radius_focal_plane
-    r_next = np.sqrt((i + 1) / number_of_circles) * radius_focal_plane
-    stars_in_circle = (star_distances >= r_i) & (star_distances < r_next)
-    targets_in_circle = data[stars_in_circle]
-
-        
-    def process_target(target):
-        ID_t = ID[target]
-        m_t = data_nominal_mask[:, 1]     
-        alpha = np.arctan(np.sqrt(x_tar_fp_mm ** 2 + y_tar_fp_mm ** 2) / 247.732)
-        f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2)
+def process_target(target_index):
+        ID_t = ID[target_index]
+        m_t = data_nominal_mask[:, 1][target_index]     
+        alpha = np.arctan(np.sqrt(x_tar_fp_mm[target_index] ** 2 + y_tar_fp_mm[target_index] ** 2) / 247.732)
 
         # Compute distance to PSF and find closest PSF
-        s_d = (xpsf_pix - x_tar_fp_pix) ** 2 + (ypsf_pix - y_tar_fp_pix) ** 2
+        s_d = (xpsf_pix - x_tar_fp_pix[target_index]) ** 2 + (ypsf_pix - y_tar_fp_pix[target_index]) ** 2
         psf_idx = np.argmin(s_d)
-        x_t_im, y_t_im, i0, j0 = window(x_tar_fp_pix, y_tar_fp_pix, size_im_x, size_im_y)
+        x_t_im, y_t_im, i0, j0 = window(x_tar_fp_pix[target_index], y_tar_fp_pix[target_index], size_im_x, size_im_y)
         offx, offy = x_t_im - pxc[psf_idx], y_t_im - pyc[psf_idx]
         
         # Imagette and intensity calculations
         imagette = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx, offy=offy)
         Delta_P = data[:, 2] - m_t
+        f_ref_t = reference_flux_target(m_t) * (np.cos(alpha) ** 2)
         It = f_ref_t * imagette
 
          # Now we find all the contaminants surrounding each TARGET. We put a distance condition (10 pixels)
-        dist = np.sqrt((x_star - x_tar_fp_pix[target]) ** 2 + (y_star - y_tar_fp_pix[target]) ** 2)
-        m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max) & (data[:, 2] > 0) # mask containing the distance condition for contaminants
+        dist = np.sqrt((x_star - x_tar_fp_pix[target_index]) ** 2 + (y_star - y_tar_fp_pix[target_index]) ** 2)
+        m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max)  & (data[:, 2] > 0)# mask containing the distance condition for contaminants
+        print(len(m))
         n = np.where(m)[0]             # index of the contaminants
         m_c = data[:, 2][n]            # magnitude of each contaminant star for a given TARGET
         x_c = x_star[n]                # x-coordinate of a given contaminant in the focal plane
         y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane
         n_c = len(x_c)                 # number of contaminants for a given TARGET
-        ID_contaminants = ID[m] # IDs of the contaminant stars
+        ID_contaminants = ID_cts[m] # IDs of the contaminant stars
         x_c_im = x_c - i0              # x-coordinate of a given contaminant inside the imagette (window)
         y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
         offx_c = x_c_im - pxc[psf_idx] # x-coordinate of the offset between the center of each contaminant and each PSF
@@ -205,6 +203,12 @@ for i in range(number_of_circles):
         eta_c = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_24_cameras_secondary_mask # signal statistical significance in the secondary mask
         eta_c_6_cameras = np.sqrt(td_contaminant_highest_spr * ntr) * dback_contaminant_highest_spr / nsr_1h_6_cameras_secondary_mask
             
+        eta_true_positive_24_cameras_earth_like = 84 * np.sqrt(13 * 3) / nsr_1h_24_cameras_nominal_mask
+        eta_true_positive_6_cameras_jovian_planet =  10100 * np.sqrt(29.6 * 3) / nsr_1h_6_cameras_nominal_mask
+        eta_true_positive_24_cameras_super_earth = 522 * np.sqrt(42 * 3) / nsr_1h_24_cameras_nominal_mask
+        eta_true_positive_6_cameras_super_earth = 522 * np.sqrt(42 * 3) / nsr_1h_6_cameras_nominal_mask
+        
+        
         nsprmax = min(10, n_c)
         eta_10first = np.zeros(10)
         sprk_10first = np.zeros(10)
@@ -400,6 +404,10 @@ for i in range(number_of_circles):
         
         save_info = np.append(save_info, sprk_10first)
         save_info = np.append(save_info, eta_10first)
+        save_info = np.append(save_info, eta_true_positive_24_cameras_earth_like)
+        save_info = np.append(save_info, eta_true_positive_6_cameras_jovian_planet)
+        save_info = np.append(save_info, eta_true_positive_24_cameras_super_earth)
+        save_info = np.append(save_info, eta_true_positive_6_cameras_super_earth)
         save_info = np.append(save_info, eta_cob_6_cameras)
         save_info = np.append(save_info, abs_cob_6_cameras)
         save_info = np.append(save_info, sigma_1_6_cameras)
@@ -483,11 +491,39 @@ for i in range(number_of_circles):
 
 
         # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
-        save_info_bray = np.array([m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[index_contaminant_highest_sprk], SPR_tot_bray])
+        save_info_bray = np.array([ID_t, m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[index_contaminant_highest_sprk], SPR_tot_bray])
         return save_info, save_info_contaminant, save_info_ext, save_info_bray
-    
-    for target in range(len(ID)):
-        results = process_target(target)
+
+counter = 0
+# Loop over each circle and process stars within it
+for i in range(number_of_circles):
+    r_i = np.sqrt(i / number_of_circles) * radius_focal_plane
+    r_next = np.sqrt((i + 1) / number_of_circles) * radius_focal_plane
+
+    # Mask for stars within the current ring
+    stars_in_circle = (star_distances >= r_i) & (star_distances < r_next)
+
+    # Check if there are any targets within this ring
+    if not np.any(stars_in_circle):
+        print(f"No targets found within ring {i+1}: Radius range {r_i} to {r_next}")
+        continue
+
+    x_targets_in_circle = x_tar_fp_mm[stars_in_circle]
+    y_targets_in_circle = y_tar_fp_mm[stars_in_circle]
+    ID_targets_in_circle = ID[stars_in_circle]
+    global_indices = np.where(stars_in_circle)[0]  # Get global indices of stars in this circle
+
+    print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+    print(f'Calculations for Targets within Ring: {r_i} to {r_next}')
+    print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
+
+    # Process each target within the current circle
+    # Process each target within the current circle
+    for global_idx in global_indices:
+    # Call process_target using the global index
+        results = process_target(target_index=global_idx)
+
+        # Store results for each  mask type
         save_info_nominal_mask[counter] = results[0]
         save_info_secondary_mask[counter] = results[1]
         save_info_extended_mask[counter] = results[2]
@@ -497,10 +533,10 @@ for i in range(number_of_circles):
     print("NUMBER OF PROCESSED TARGETS: %i" % counter)
 
 
-save_info_nominal_mask = save_info_nominal_mask[0:counter]
-save_info_secondary_mask = save_info_secondary_mask[0:counter]
-save_info_extended_mask = save_info_extended_mask[0:counter]
-save_info_bray_mask = save_info_bray_mask[0:counter]
+save_info_nominal_mask = save_info_nominal_mask[:counter]
+save_info_secondary_mask = save_info_secondary_mask[:counter]
+save_info_extended_mask = save_info_extended_mask[:counter]
+save_info_bray_mask = save_info_bray_mask[:counter]
 
 # Now it is time to save the metrics into several .npy files, each file for each mask
 np.save(DIRout + 'targets_P5.npy', save_info_nominal_mask)
