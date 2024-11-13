@@ -514,7 +514,7 @@ plt.title('Efficieny Comparison for the two types of DAP', fontsize=fsize)
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
-plt.figure(11, figsize=(8, 10), dpi=150)
+plt.figure(11, figsize=(8, 12), dpi=150)
 # To store whether a label has been added for each type
 labels_added = {
     'sec_24': False,
@@ -616,7 +616,7 @@ eff_ext_cob_overall_6_cameras_values = []
 eff_cob_values = []
 eff_cob_6_cameras_values = []
 
-plt.figure(13, figsize=(8, 10), dpi=150)
+plt.figure(13, figsize=(8, 12), dpi=150)
 
 for i in range(nP):
     Pi = Pmin + i * binsize
