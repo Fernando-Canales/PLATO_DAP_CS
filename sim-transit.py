@@ -11,8 +11,7 @@ PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
 
 nexp = 1500 #  number of exposures
-fted = 'TED_1px_10d_XYaxis.txt' # TED file name
-tedsf = 1. #  # TED scaling factor
+driftamplitude = 1. # amplitude of the drif in pix/90 days
 
 ron = 52.  # readout noise [e-]
 zero_point = 20.62 # camera zero point
@@ -21,8 +20,8 @@ fl = 247.5 # focal length [mm]
 gain = 25. # full gain [e-/ADU]
 Nc = 24 # number of cameras
 addnoise = True # add random noise or not (photon noise + detector noise)
-bg = 2500. # background level e-/pix background
-bgerr = 100. # background residual error
+bg = 2500. # background level [e-/pix]
+bgerr = 100. # background residual error [e-/pix]
 
 Mpx = 6 # size of the imagette
 Mag = 11 # PLATO magnitude , target
@@ -171,11 +170,6 @@ angradius = math.atan2(r,fl) # angular radius [rad]
 print('PSF angular radius = %f [deg]' % (angradius*180./math.pi))
 
 
-# TED drift
-TED = np.loadtxt(fted)
-TED[:,1] *= (tedsf/15.) #  re-scaled
-TED[:,2] *= (tedsf/15.)
-
 # stellar variability (here a transità
 fluxvar = h5py.File(ffluxvar)['Variation']
 
@@ -223,7 +217,8 @@ print('SNRe = %f' % (1./NSRe))
 MagTC = Mag + 2.5*(math.log10(fxT) - math.log10(fxC+fxT) )
 
 for t in range(nexp):
-    dx,dy = TED[t,1],TED[t,2]
+    dx = t*25./(86400.*90)* driftamplitude /math.sqrt(2.)
+    dy = dx
 
     IT0 = spline2dbase.Spline2Imagette(psfbs, bsres, sizex, sizey, offx=x0+dx - pxc, offy=y0+dy - pyc)
     IC0 = spline2dbase.Spline2Imagette(psfbs, bsres, sizex, sizey, offx=x0C+dx - pxc, offy=y0C+dy - pyc)
