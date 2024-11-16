@@ -14,27 +14,26 @@ nexp = 1500 #  number of exposures
 fted = 'TED_1px_10d_XYaxis.txt' # TED file name
 tedsf = 1. #  # TED scaling factor
 
-ron = 52.  # e-
-zero_point = 20.62
-integration_time = 21.
-fl = 247.5 # focal length
-gain = 25.
+ron = 52.  # readout noise [e-]
+zero_point = 20.62 # camera zero point
+integration_time = 21. # integration time [s]
+fl = 247.5 # focal length [mm]
+gain = 25. # full gain [e-/ADU]
 Nc = 24 # number of cameras
-addnoise = True
-bg = 2500. # e-/pix background
-bgerr = 100. #
+addnoise = True # add random noise or not (photon noise + detector noise)
+bg = 2500. # background level e-/pix background
+bgerr = 100. # background residual error
 
-Mpx = 6
+Mpx = 6 # size of the imagette
 Mag = 11 # PLATO magnitude , target
-#MagC = Mag + 5 # magnitude contaminant
 MagC = Mag + 2 # magnitude contaminant
-DistC = 1. # distance contaminant
-x0,y0 = 3.1, 2.9 # target postion in the imagette
+DistC = 1. # distance of the contaminant from the target
+x0,y0 = 3.1, 2.9 # target position in the imagette
 
 # stellar variability
 ffluxvar = 'fluxtransitcorot7b_90d.hdf5' # Corot 7b depth=3.958e-4
-fluxvarsf = 0.5/(3.958e-4) # false transit scaling factor
-fluxvarsftf = 0. # true transit scaling factor
+fluxvarsf = 0.5/(3.958e-4) #  scaling factor for the false transit (transit in the contaminant)
+fluxvarsftf = 0. # scaling factor for the true transit (transit in the target)
 
 
 # fname= 'sim-transit-oem' #  distance 1pix MagC=16, OEM
@@ -42,8 +41,7 @@ fluxvarsftf = 0. # true transit scaling factor
 # fname= 'sim-transit-1px' # distance 1pix MagC=13
 # fname= 'sim-transit-4.5px' # distance 4.5pix MagC=13
 # fname= 'sim-transit-oem-m13' # distance 1pix MagC=13, OEM
-fname= 'test'
-
+fname= 'test' # name of the output file
 
 
 def add_poisson_noise(image):
@@ -173,19 +171,22 @@ angradius = math.atan2(r,fl) # angular radius [rad]
 print('PSF angular radius = %f [deg]' % (angradius*180./math.pi))
 
 
-TED = np.loadtxt(fted) # drift
+# TED drift
+TED = np.loadtxt(fted)
 TED[:,1] *= (tedsf/15.) #  re-scaled
 TED[:,2] *= (tedsf/15.)
 
+# stellar variability (here a transità
 fluxvar = h5py.File(ffluxvar)['Variation']
 
+# postion of the contaminant in the imagette
 x0C, y0C = x0+DistC/sqrt(2.),y0+DistC/sqrt(2.)
 
-
+# reference flux (at P=0) in e-/exposure
 flux_m0_ref = 10.**(0.4*zero_point)*integration_time*(math.cos(angradius))**2
 
-fxT = flux_m0_ref*10.**( -(Mag/2.5) )
-fxC = flux_m0_ref*10.**( -(MagC/2.5) )
+fxT = flux_m0_ref*10.**( -(Mag/2.5) ) # target flux [e-/exposure]
+fxC = flux_m0_ref*10.**( -(MagC/2.5) ) # contaminant flux [e-/exposure]
 
 print('target flux = %f [ke-] = %f [ke-/s] (single camera)' % (fxT*1e-3,fxT*1e-3/integration_time))
 
@@ -199,10 +200,6 @@ IC = spline2dbase.Spline2Imagette(psfbs,bsres,sizex,sizey,offx=x0C-pxc,offy=y0C-
 IT *= fxT
 IC *= fxC
 
-
-# np.save(fname+'_IhrC.npy',IhrC)
-# np.save(fname+'_Ihr.npy',Ihr*fxT+IhrC*fxC+bg)
-
 data = np.zeros((nexp,3+6*6))
 
 i0 = int(round(x0-Mpx/2.))
@@ -212,25 +209,18 @@ DxC = np.array([x0C-x0])
 DyC = np.array([y0C-y0])
 MagC = np.array([MagC])
 
-# calculation of an optimal nominalmask
+# calculation of the nominal mask (optimal binary mask)
 sq = gain/math.sqrt(12.) # quantification noise
 bm = aperture_computation(IT, IC, bg, ron,sq)
 NSRn = NSR(bm,bg,ron, sq, IT, IC)
 print('SNRn = %f' % (1./NSRn))
 
-
-# calculation of a simple extended mask
+# calculation of the corresponding extended mask
 em = extended_binary_mask(bm,1)
 NSRe = NSR(em,bg,ron, sq, IT, IC)
 print('SNRe = %f' % (1./NSRe))
 
 MagTC = Mag + 2.5*(math.log10(fxT) - math.log10(fxC+fxT) )
-
-
-# np.save(fname+'_cm.npy',cm)
-# np.save(fname+'_em.npy',em)
-# np.save(fname+'_bm.npy',bm)
-# np.savez(fname+'_param',x0=x0,x0C=x0C,y0=y0,y0C=y0C,i0=i0,j0=j0,bg=bg)
 
 for t in range(nexp):
     dx,dy = TED[t,1],TED[t,2]
@@ -296,7 +286,8 @@ for t in range(nexp):
     # print((("%i %f %f") %  (t,dx,dy)))
     
     
-    
+
+# saving data
 np.save(fname+'.npy',data)
 
 figure(0)
