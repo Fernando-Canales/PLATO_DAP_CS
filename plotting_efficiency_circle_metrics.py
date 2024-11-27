@@ -180,4 +180,3 @@ plt.title("Efficiencies across Rings")
 plt.legend()
 plt.grid(True)
 plt.show()                          
-
