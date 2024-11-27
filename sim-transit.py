@@ -1,7 +1,8 @@
-from pylab import *
-import h5py
-import spline2dbase
+from pylab import * # type: ignore
+import h5py # type: ignore
+import spline2dbase # type: ignore
 import math
+import numpy as np #type:ignore
 
 fpsf = 'PSF_Focus_0mu_0.2pxdif.npz'
 psfidx = 100 # index of the PSF to be used
@@ -174,7 +175,7 @@ print('PSF angular radius = %f [deg]' % (angradius*180./math.pi))
 fluxvar = h5py.File(ffluxvar)['Variation']
 
 # postion of the contaminant in the imagette
-x0C, y0C = x0+DistC/sqrt(2.),y0+DistC/sqrt(2.)
+x0C, y0C = x0+DistC/np.sqrt(2.),y0+DistC/np.sqrt(2.)
 
 # reference flux (at P=0) in e-/exposure
 flux_m0_ref = 10.**(0.4*zero_point)*integration_time*(math.cos(angradius))**2
@@ -278,19 +279,19 @@ for t in range(nexp):
     data[t,2+s:4+s] = barycenter(Itot0,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot0,mask=em)
 
-    # print((("%i %f %f") %  (t,dx,dy)))
+    #print((("%i %f %f") %  (t,dx,dy)))
     
     
 
 # saving data
 np.save(fname+'.npy',data)
 
-figure(0)
-clf()
-plot(data[:,0],data[:,33],'k')
-plot(data[:,0],data[:,3],'r')
+figure(0) # type: ignore
+clf() # type: ignore
+plot(data[:,0],data[:,33],'k') # type: ignore
+plot(data[:,0],data[:,3],'r') # type: ignore
 
-show()
+show() # type: ignore
 
 # data[:,i]
 # 0 : time
