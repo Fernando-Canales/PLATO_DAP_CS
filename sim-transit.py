@@ -191,9 +191,14 @@ sizey = Mpx
 # imagette obtained by integrating the b-spline decomposition of the PSF
 IT = spline2dbase.Spline2Imagette(psfbs,bsres,sizex,sizey,offx=x0-pxc,offy=y0-pyc)
 IC = spline2dbase.Spline2Imagette(psfbs,bsres,sizex,sizey,offx=x0C-pxc,offy=y0C-pyc)
-
 IT *= fxT
 IC *= fxC
+
+IhrT = spline2dbase.Spline2Imagette(psfbs,bsres,sizex,sizey,offx=x0-pxc,offy=y0-pyc,subres=subres)
+IhrC = spline2dbase.Spline2Imagette(psfbs,bsres,sizex,sizey,offx=x0C-pxc,offy=y0C-pyc,subres=subres)
+IhrT *= fxT
+IhrC *= fxC
+
 
 data = np.zeros((nexp,3+6*6))
 
@@ -285,6 +290,11 @@ for t in range(nexp):
 
 # saving data
 np.save(fname+'.npy',data)
+np.save(fname+'_bm.npy',bm)
+np.save(fname+'_em.npy',em)
+np.save(fname+'_IhrC.npy',IhrC)
+np.save(fname+'_IhrT.npy',IhrT)
+np.savez(fname+'_param',x0=x0,x0C=x0C,y0=y0,y0C=y0C,i0=0,j0=0,bg=bg)
 
 figure(0) # type: ignore
 clf() # type: ignore
