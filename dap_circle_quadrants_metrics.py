@@ -9,6 +9,7 @@ import spline2dbase # type:ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 from imagette import window, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
+from tqdm import tqdm # type:ignore
 
 #CONFIGURATION PARAMETERS
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
@@ -527,17 +528,18 @@ for idx, mask in enumerate(quadrant_masks):
     if n_targets_quadrant == 0:
         print(f"No targets in {quadrant_name}")
         continue
-    
+    print(f'Processing Quadrant {quadrant_name} with {n_targets_quadrant} targets.')
     print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     print(f'Calculations for Targets within Quadrant: {quadrant_name}')
     print(f'Number of targets: {n_targets_quadrant}')
     print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
     
-    # Process each target within the current quadrant
-    for k in targets_in_quadrant:
+
+        # Process each target with a progress bar
+    for k in tqdm(targets_in_quadrant, desc=f"Quadrant {quadrant_name}", unit="target"):
         results = process_target(target_index=k)
         
-        # Append results to the current quadrant's result lists
+        # Append results
         quadrant_results_nominal[idx].append(results[0])
         quadrant_results_secondary[idx].append(results[1])
         quadrant_results_extended[idx].append(results[2])
