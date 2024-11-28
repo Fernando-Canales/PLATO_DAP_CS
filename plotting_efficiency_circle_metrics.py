@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt # type:ignore
 
 # Some files parameters
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
-# Initialize variables for storing ring-based results
 eta_ext_bt_24_cameras_ring = []
 eta_ext_bt_6_cameras_ring = []
 eta_nom_bt_24_cameras_ring = []
