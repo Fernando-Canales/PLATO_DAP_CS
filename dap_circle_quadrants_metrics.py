@@ -506,11 +506,11 @@ circle_mask = distances_from_center <= circle_radius
 
 # Quadrant masks according to your schematic
 quadrant_masks = [
-    # Quadrant Q1 (Upper Left)
-    ((x_coords <= 0) & (x_coords >= min_x) & (y_coords >= 0) & (y_coords <= max_y) & circle_mask),
-    
-    # Quadrant Q2 (Upper Right)
+    # Quadrant Q1 (Upper Right)
     ((x_coords >= 0) & (x_coords <= max_x) & (y_coords >= 0) & (y_coords <= max_y) & circle_mask),
+    
+    # Quadrant Q2 (Upper Left)
+    ((x_coords <= 0) & (x_coords >= min_x) & (y_coords >= 0) & (y_coords <= max_y) & circle_mask),
     
     # Quadrant Q3 (Lower Left)
     ((x_coords <= 0) & (x_coords >= min_x) & (y_coords <= 0) & (y_coords >= min_y) & circle_mask),
