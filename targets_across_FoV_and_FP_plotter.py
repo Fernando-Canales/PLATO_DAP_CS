@@ -38,8 +38,8 @@ plt.axhline(0, color='black', linewidth=1)
 plt.axvline(0, color='black', linewidth=1)
 
 # Define parameters for the rings
-R = 92  # Total radius of the disk in mm
-N = 6   # Number of circles
+R = 86  # Total radius of the disk in mm
+N = 7   # Number of circles
 
 # Create six circles labeled from Circle=1 to Circle=6
 for i in range(N):
