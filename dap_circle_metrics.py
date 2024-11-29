@@ -10,6 +10,7 @@ import spline2dbase #type:ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 from imagette import window, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
+from tqdm import tqdm # type:ignore
 
 #CONFIGURATION PARAMETERS
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
@@ -42,8 +43,8 @@ n_tar = 1                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 #binsize = 0.5 
-radius_focal_plane = 92  # Radius of the focal plane disk in mm
-number_of_circles = 6   # Number of circles                          # binsize around every magnitude value
+radius_focal_plane = 86  # Radius of the focal plane disk in mm
+number_of_circles = 7   # Number of circles                          # binsize around every magnitude value
 
 # First values
 ID_cts = np.arange(0, data.shape[0]) # ID for every star in the catalogue
@@ -510,9 +511,10 @@ for i in range(number_of_circles):
     print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     print(f'Calculations for Targets within Ring: {r_i} to {r_next}')
     print(f'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
-    # Process each target within the current circle
-    for k in np.where(stars_in_circle)[0]:
-    # Call process_target using the global index
+
+    # Process each target within the current circle with tqdm progress bar
+    for k in tqdm(targets_in_circle, desc=f"Ring {i+1}/{number_of_circles}", unit="target"):
+        # Call process_target using the global index
         results = process_target(target_index=k)
 
         # Append results to the current ring's result lists
@@ -520,7 +522,7 @@ for i in range(number_of_circles):
         ring_secondary_mask_results.append(results[1])
         ring_extended_mask_results.append(results[2])
         ring_bray_mask_results.append(results[3])
-        #counter = counter +1
+        # counter = counter +1
 
     # Convert the lists to arrays and store them in the main list for each ring
     ring_results_nominal.append(np.array(ring_nominal_mask_results))

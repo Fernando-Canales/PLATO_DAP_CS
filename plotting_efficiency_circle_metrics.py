@@ -19,7 +19,7 @@ eff_nom_cob_ring = []
 eff_ext_cob_ring = []
 
 
-number_of_circles = 6  # Adjust as needed
+number_of_circles = 7  # Adjust as needed
 ntr = 3  # Number of transits in one hour
 dback_ref = 132000  # Example reference value for transit depth (ppm)
 td_ref = 6.72 * 0.46**2  # Example transit duration in hours
