@@ -11,6 +11,9 @@ from fitting_psf import from_pix_2_mm
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
 data_nominal_mask = np.load(dataDIR + 'targets_P5.npy')
 fsize=10
+# Define parameters for the rings
+R = 86  # Total radius of the disk in mm
+N = 7   # Number of circles
 
 # Load the x and y positions of the targets across the FoV
 x_fp = data_nominal_mask[:, 219]
@@ -24,12 +27,19 @@ plt.figure(figsize=(6, 6), dpi=120)  # Square plot for focal plane targets
 plt.plot(x_fp_mm, y_fp_mm, 'o', markersize=2, label='Target stars')
 plt.axhline(0, color='black', linewidth=2)
 plt.axvline(0, color='black', linewidth=2)
+#Add Roman numerals for the quadrants
+offset = 5  # Offset to position the text comfortably
+plt.text(R/2, R/2, 'I', fontsize=24, fontweight='bold', ha='center', va='center')    # Quadrant I
+plt.text(-R/2, R/2, 'II', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant II
+plt.text(-R/2, -R/2, 'III', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant III
+plt.text(R/2, -R/2, 'IV', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant IV
+
 plt.xlabel("mm", fontsize=fsize)
 plt.ylabel("mm", fontsize=fsize)
 #plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
 plt.gca().set_aspect('equal', adjustable='box')
-plt.show()
+
 
 # Simplified concentric circles plot with circles on top of the target points
 plt.figure(figsize=(6, 12), dpi=120)  # Taller figure for the circles plot
@@ -37,9 +47,6 @@ plt.plot(x_fp_mm, y_fp_mm, 'o', markersize=2, label='Target stars', zorder=1)  #
 plt.axhline(0, color='black', linewidth=1, zorder=2)  # Horizontal axis
 plt.axvline(0, color='black', linewidth=1, zorder=2)  # Vertical axis
 
-# Define parameters for the rings
-R = 86  # Total radius of the disk in mm
-N = 7   # Number of circles
 
 # Create dashed circumferences with thicker lines
 for i in range(N):
