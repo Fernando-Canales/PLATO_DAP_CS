@@ -17,6 +17,7 @@ eff_secondary_ring = []
 
 eff_nom_cob_ring = []
 eff_ext_cob_ring = []
+eff_sec_cob_ring = []
 
 
 number_of_circles = 7  # Adjust as needed
@@ -57,6 +58,9 @@ for i in range(number_of_circles):
     nfp_ext_cob = np.zeros((n_targets_ring, 10), dtype=bool)
     fp_single_contaminant_24_cameras = np.zeros((n_targets_ring, 10), dtype=bool)
     secondary_mask_conditions_24_cameras = np.zeros((n_targets_ring, 10), dtype=bool)
+    secondary_mask_cob_conditions_24_cameras = np.zeros((n_targets_ring, 10), dtype=bool)
+
+
 
      # Initialize variables to count metrics satisfying conditions for efficiency
     count_nominal = 0
@@ -112,6 +116,7 @@ for i in range(number_of_circles):
         # COB-related variables
         eta_cob_nom_10first_24_cameras = ring_nominal[j, 46:56]
         eta_cob_ext_10first_24_cameras = ring_extended[j, 45:55]
+        eta_cob_sec = ring_secondary[j, 9]
 
         # False Positive detection conditions
         nfp[j, :] = eta_nom_bt_24_cameras[j, :] > flux_thresh_nom_mask
@@ -137,12 +142,17 @@ for i in range(number_of_circles):
             fp_single_contaminant_24_cameras[j, :]
         )
 
+        # Secondary mask COB conditions
+        eta_cob_sec = ring_secondary[j, 9]
+        secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :] # type: ignore
+
     # Compute efficiencies as per your method
     nfp_total = nfp.sum()
     if nfp_total > 0:
         eff_ext_flux = (nfp & nfp_ext_mask).sum() / nfp_total * 100.
         eff_nom_cob = (nfp & nfp_nom_cob).sum() / nfp_total * 100.
         eff_ext_cob = (nfp & nfp_ext_cob).sum() / nfp_total * 100.
+        
     else:
         eff_ext_flux = 0
         eff_nom_cob = 0
@@ -152,6 +162,7 @@ for i in range(number_of_circles):
     fp_single_total = fp_single_contaminant_24_cameras.sum()
     if fp_single_total > 0:
         eff_secondary = secondary_mask_conditions_24_cameras.sum() / fp_single_total * 100.
+        eff_sec_cob = secondary_mask_cob_conditions_24_cameras.sum() / fp_single_total * 100. # type: ignore
     else:
         eff_secondary = 0
 
@@ -160,22 +171,27 @@ for i in range(number_of_circles):
     eff_secondary_ring.append(eff_secondary)
     eff_nom_cob_ring.append(eff_nom_cob)
     eff_ext_cob_ring.append(eff_ext_cob)
+    eff_sec_cob_ring.append(eff_sec_cob)
 
     # Print efficiencies for the current ring
     print(f"Ring {i} Extended Flux Efficiency: {eff_ext_flux:.2f}%")
     print(f"Ring {i} Secondary Mask Efficiency: {eff_secondary:.2f}%")
     print(f"Ring {i} Nominal COB Efficiency: {eff_nom_cob:.2f}%")
     print(f"Ring {i} Extended COB Efficiency: {eff_ext_cob:.2f}%")
+    print(f"Ring {i} Secondary COB Efficiency: {eff_sec_cob:.2f}%")
 
 # Plotting efficiencies across rings with 'o-' format
 plt.figure(figsize=(10, 6))
-plt.plot(range(number_of_circles), eff_nom_cob_ring, 'o-', color='blue', label="Nominal COB Efficiency")
-plt.plot(range(number_of_circles), eff_ext_cob_ring, 's-', color='green', label="Extended COB Efficiency")
-plt.plot(range(number_of_circles), eff_secondary_ring, '^-', color='red', label="Secondary Flux Efficiency")
-plt.plot(range(number_of_circles), eff_extended_ring, 'd-', color='purple', label="Extended Flux Efficiency")
-plt.xlabel("Ring Index")
-plt.ylabel("Efficiency (%)")
-plt.title("Efficiencies across Rings")
+plt.plot(range(number_of_circles), eff_nom_cob_ring, 'o-', color='brown', label="Nominal COB Efficiency")
+plt.plot(range(number_of_circles), eff_ext_cob_ring, 's-', color='blue', label="Extended COB Efficiency")
+plt.plot(range(number_of_circles), eff_sec_cob_ring, 's-', color='purple', label="Secondary COB Efficiency")
+plt.plot(range(number_of_circles), eff_secondary_ring, '^-', color='green', label="Secondary Flux Efficiency")
+plt.plot(range(number_of_circles), eff_extended_ring, 'd-', color='red', label="Extended Flux Efficiency")
+# Adjust x-axis labels
+circle_labels = [f"Ring {i}" for i in range(1, number_of_circles + 1)]  # Circle 1 to Circle 7
+plt.xticks(ticks=range(number_of_circles), labels=circle_labels, fontsize=10)
+
+plt.ylabel("Efficiency (%)", fontsize=14)
 plt.legend()
 plt.grid(True)
 plt.show()                          

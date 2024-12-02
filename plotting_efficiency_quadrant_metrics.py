@@ -14,6 +14,7 @@ eff_extended_quadrant = []
 eff_secondary_quadrant = []
 eff_nom_cob_quadrant = []
 eff_ext_cob_quadrant = []
+eff_sec_cob_quadrant = []
 
 quadrant_names = ['Q1', 'Q2', 'Q3', 'Q4']  # List of quadrants
 ntr = 3  # Number of transits in one hour
@@ -49,6 +50,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
     nfp_ext_cob = np.zeros((n_targets_quadrant, 10), dtype=bool)
     fp_single_contaminant_24_cameras = np.zeros((n_targets_quadrant, 10), dtype=bool)
     secondary_mask_conditions_24_cameras = np.zeros((n_targets_quadrant, 10), dtype=bool)
+    secondary_mask_cob_conditions_24_cameras = np.zeros((n_targets_quadrant, 10), dtype=bool)
 
     # Compute metrics for each target in the quadrant
     for j in range(n_targets_quadrant):
@@ -99,6 +101,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
         # COB-related variables
         eta_cob_nom_10first_24_cameras = quadrant_nominal[j, 46:56]
         eta_cob_ext_10first_24_cameras = quadrant_extended[j, 45:55]
+        eta_cob_sec = quadrant_secondary[j, 9]
 
         # False Positive detection conditions
         nfp[j, :] = eta_nom_bt_24_cameras[j, :] > flux_thresh_nom_mask
@@ -125,6 +128,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
             (delta_obs_c > delta_obs_t + depth_sig_scaling * sig_depth_sec_nom_quad[j, :]) &
             fp_single_contaminant_24_cameras[j, :]
         )
+        secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
 
     # Compute efficiencies
     nfp_total = nfp.sum()
@@ -141,6 +145,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
     fp_single_total = fp_single_contaminant_24_cameras.sum()
     if fp_single_total > 0:
         eff_secondary = secondary_mask_conditions_24_cameras.sum() / fp_single_total * 100.0
+        eff_secondary_cob = secondary_mask_cob_conditions_24_cameras.sum() / fp_single_total * 100.0
     else:
         eff_secondary = 0
 
@@ -149,6 +154,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
     eff_secondary_quadrant.append(eff_secondary)
     eff_nom_cob_quadrant.append(eff_nom_cob)
     eff_ext_cob_quadrant.append(eff_ext_cob)
+    eff_sec_cob_quadrant.append(eff_ext_cob)
 
     # Print efficiencies for the current quadrant
     print(f"Quadrant {quadrant_name} Extended Flux Efficiency: {eff_ext_flux:.2f}%")
@@ -160,18 +166,24 @@ for idx, quadrant_name in enumerate(quadrant_names):
 plt.figure(figsize=(10, 6))
 x = np.arange(len(quadrant_names))  # the label locations
 width = 0.2  # the width of the bars
+# Add padding between groups by increasing the x positions
+x = np.arange(len(quadrant_names)) * 1.5  # Add spacing between groups
+width = 0.15  # The width of the bars
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
-rects1 = ax.bar(x - 1.5*width, eff_nom_cob_quadrant, width, label='Nominal COB Efficiency', color='blue')
-rects2 = ax.bar(x - 0.5*width, eff_ext_cob_quadrant, width, label='Extended COB Efficiency', color='green')
-rects3 = ax.bar(x + 0.5*width, eff_secondary_quadrant, width, label='Secondary Flux Efficiency', color='red')
-rects4 = ax.bar(x + 1.5*width, eff_extended_quadrant, width, label='Extended Flux Efficiency', color='purple')
+fig, ax = plt.subplots(figsize=(10, 6))
+
+rects1 = ax.bar(x - 2*width, eff_nom_cob_quadrant, width, label='Nominal COB Efficiency', color='brown')
+rects2 = ax.bar(x - width, eff_ext_cob_quadrant, width, label='Extended COB Efficiency', color='blue')
+rects3 = ax.bar(x, eff_sec_cob_quadrant, width, label='Secondary COB Efficiency', color='purple')
+rects4 = ax.bar(x + width, eff_secondary_quadrant, width, label='Secondary Flux Efficiency', color='green')
+rects5 = ax.bar(x + 2*width, eff_extended_quadrant, width, label='Extended Flux Efficiency', color='red')
+
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_xlabel('Quadrant')
-ax.set_ylabel('Efficiency (%)')
-ax.set_title('Efficiencies across Quadrants')
+ax.set_xlabel('Quadrant', fontsize=14)
+ax.set_ylabel('Efficiency (%)', fontsize=14)
 ax.set_xticks(x)
 ax.set_xticklabels(quadrant_names)
 ax.legend()
