@@ -14,53 +14,114 @@ fsize=10
 # Define parameters for the rings
 R = 86  # Total radius of the disk in mm
 N = 7   # Number of circles
+# Parameters
+n = data_nominal_mask.shape[0]  # Number of targets
+ntr = 3  # Number of transits
+gamma_factor_significance = 1
+td_ref = 6.72 * 0.46**2
+dback_ref = 132000
 
 # Load the x and y positions of the targets across the FoV
-x_fp = data_nominal_mask[:, 219]
-y_fp = data_nominal_mask[:, 220]
+x_fp = data_nominal_mask[:, 219]  # Adjust index if necessary
+y_fp = data_nominal_mask[:, 220]  # Adjust index if necessary
 
 # Convert the values from pixels to mm
 x_fp_mm, y_fp_mm = from_pix_2_mm(x_star=x_fp, y_star=y_fp)
 
-# First Plot: Only the target stars in the focal plane
-plt.figure(figsize=(6, 6), dpi=120)  # Square plot for focal plane targets
-plt.plot(x_fp_mm, y_fp_mm, 'o', markersize=2, label='Target stars')
-plt.axhline(0, color='black', linewidth=2)
-plt.axvline(0, color='black', linewidth=2)
-#Add Roman numerals for the quadrants
-offset = 5  # Offset to position the text comfortably
-plt.text(R/2, R/2, 'I', fontsize=24, fontweight='bold', ha='center', va='center')    # Quadrant I
-plt.text(-R/2, R/2, 'II', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant II
-plt.text(-R/2, -R/2, 'III', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant III
-plt.text(R/2, -R/2, 'IV', fontsize=24, fontweight='bold', ha='center', va='center')  # Quadrant IV
+# Compute eta_nom_bt_24_cameras
+eta_nom_bt_24_cameras = np.zeros((n, 10))
 
-plt.xlabel("mm", fontsize=fsize)
-plt.ylabel("mm", fontsize=fsize)
-#plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend()
-plt.gca().set_aspect('equal', adjustable='box')
+for i in range(n):
+    dback = np.ones(10) * dback_ref
+    td = np.ones(10) * td_ref
+    # Ensure indices correspond to your data structure
+    sprk_10first = data_nominal_mask[i, 17:27]   # Adjust indices if necessary
+    nsr_1h_24_cameras_nominal_mask = data_nominal_mask[i, 7]  # Adjust index if necessary
+    SPR_tot = data_nominal_mask[i, 11]  # Adjust index if necessary
 
+    eta_nom_bt_24_cameras[i, :] = (
+        gamma_factor_significance * dback * sprk_10first * np.sqrt(td * ntr)
+        / (nsr_1h_24_cameras_nominal_mask * (1 - SPR_tot))
+    )
 
-# Simplified concentric circles plot with circles on top of the target points
-plt.figure(figsize=(6, 12), dpi=120)  # Taller figure for the circles plot
-plt.plot(x_fp_mm, y_fp_mm, 'o', markersize=2, label='Target stars', zorder=1)  # Target stars, lower zorder
-plt.axhline(0, color='black', linewidth=1, zorder=2)  # Horizontal axis
-plt.axvline(0, color='black', linewidth=1, zorder=2)  # Vertical axis
+# Identify targets where any eta_nom_bt_24_cameras > 7.1
+eta_nom_above_threshold = eta_nom_bt_24_cameras > 7.1
+targets_above_threshold = np.any(eta_nom_above_threshold, axis=1)
+num_targets_above_threshold = np.sum(targets_above_threshold)
+print(f"Number of targets where any eta_nom_bt_24_cameras > 7.1: {num_targets_above_threshold}")
 
+# Get the x and y coordinates of all targets
+x_all = x_fp_mm
+y_all = y_fp_mm
 
-# Create dashed circumferences with thicker lines
-for i in range(N):
-    r_i = (i + 1) / N * R  # Linear spacing for circle radii
-    dashed_circle = plt.Circle((0, 0), r_i, color='darkorange', linestyle='--', fill=False, linewidth=3, zorder=3)  # Higher zorder
-    plt.gca().add_artist(dashed_circle)
+# Get the x and y coordinates of the selected targets
+x_selected = x_fp_mm[targets_above_threshold]
+y_selected = y_fp_mm[targets_above_threshold]
 
-# Set plot limits to fit the circles and targets comfortably
-plt.xlim(-(R +5), R +5)
-plt.ylim(-(R+5), R +5)
+# Get the SPR_tot values for all targets
+spr_tot_all = data_nominal_mask[:, 11]  # Adjust index if necessary
 
-# Add labels and title
-plt.xlabel("mm", fontsize=fsize)
-plt.ylabel("mm", fontsize=fsize)
-plt.legend()
-plt.gca().set_aspect('equal', adjustable='box')
+# For selected targets, get SPR_tot values
+spr_tot_selected = spr_tot_all[targets_above_threshold]
+
+# Define the concentric circles parameters
+R = 86  # Total radius of the disk in mm
+N = 7   # Number of circles
+
+# Function to add concentric circles to the plot
+def add_concentric_circles(ax, R, N):
+    for i in range(N):
+        r_i = (i + 1) / N * R  # Linear spacing for circle radii
+        circle = plt.Circle((0, 0), r_i, color='darkorange', linestyle='--', fill=False, linewidth=2, zorder=3)
+        ax.add_artist(circle)
+
+# Plotting all targets, colored by SPR_tot, with concentric circles
+fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
+
+# Add concentric circles
+add_concentric_circles(ax, R, N)
+
+# Plot the targets
+sc_all = ax.scatter(x_all, y_all, c=spr_tot_all, cmap='viridis', s=20, zorder=2)
+
+# Add horizontal and vertical axes
+ax.axhline(0, color='black', linewidth=2)
+ax.axvline(0, color='black', linewidth=2)
+
+ax.set_xlim(-(R + 5), R + 5)
+ax.set_ylim(-(R + 5), R + 5)
+
+ax.set_xlabel("X Position (mm)", fontsize=fsize)
+ax.set_ylabel("Y Position (mm)", fontsize=fsize)
+ax.set_title('All Targets Colored by SPR_tot')
+ax.set_aspect('equal', adjustable='box')
+
+cbar = plt.colorbar(sc_all, ax=ax)
+cbar.set_label('SPR_tot')
+
+plt.show()
+
+# Plotting only targets where any eta_nom_bt_24_cameras > 7.1, colored by SPR_tot, with concentric circles
+fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
+
+# Add concentric circles
+add_concentric_circles(ax, R, N)
+
+# Plot the selected targets
+sc_selected = ax.scatter(x_selected, y_selected, c=spr_tot_selected, cmap='viridis', s=20, zorder=2)
+
+# Add horizontal and vertical axes
+ax.axhline(0, color='black', linewidth=2)
+ax.axvline(0, color='black', linewidth=2)
+
+ax.set_xlim(-(R + 5), R + 5)
+ax.set_ylim(-(R + 5), R + 5)
+
+ax.set_xlabel("X Position (mm)", fontsize=fsize)
+ax.set_ylabel("Y Position (mm)", fontsize=fsize)
+ax.set_aspect('equal', adjustable='box')
+
+cbar = plt.colorbar(sc_selected, ax=ax)
+cbar.set_label('SPR_tot')
+
 plt.show()
