@@ -1,7 +1,7 @@
-import numpy as np #type:ignore
-import matplotlib.pyplot as plt # type:ignore
+import numpy as np  # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 
-# Some files parameters
+# Some file parameters
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 eta_ext_bt_24_cameras_ring = []
 eta_ext_bt_6_cameras_ring = []
@@ -14,21 +14,29 @@ delta_obs_ext_6_cameras_ring = []
 # Initialize lists to store efficiencies for each ring
 eff_extended_ring = []
 eff_secondary_ring = []
-
 eff_nom_cob_ring = []
 eff_ext_cob_ring = []
 eff_sec_cob_ring = []
 
+# Lists to store efficiencies for masked targets
+eff_extended_ring_masked = []
+eff_secondary_ring_masked = []
+eff_nom_cob_ring_masked = []
+eff_ext_cob_ring_masked = []
+eff_sec_cob_ring_masked = []
 
 number_of_circles = 7  # Adjust as needed
 ntr = 3  # Number of transits in one hour
-dback_ref = 132000  # Example reference value for transit depth (ppm)
-td_ref = 6.72 * 0.46**2  # Example transit duration in hours
+dback_ref = 132000  # Reference value for transit depth (ppm)
+td_ref = 6.72 * 0.46**2  # Transit duration in hours
 seed = 123434434
 depth_sig_scaling = 3
-gamma_factor_significance = 1 ## other 0.46
+gamma_factor_significance = 1  # Other possible value: 0.46
 flux_thresh_nom_mask, cob_thresh = 6, 3
 flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
+
+# Threshold for eta_nom_bt_24_cameras
+eta_nom_threshold = 7.1
 
 # Loop through each ring, load corresponding .npy files, and compute metrics
 for i in range(number_of_circles):
@@ -36,7 +44,6 @@ for i in range(number_of_circles):
     ring_nominal = np.load(f"{dataDIR}ring_{i}_nominal.npy")
     ring_secondary = np.load(f"{dataDIR}ring_{i}_secondary.npy")
     ring_extended = np.load(f"{dataDIR}ring_{i}_extended.npy")
-
 
     # Number of targets in this ring
     n_targets_ring = ring_nominal.shape[0]
@@ -60,23 +67,12 @@ for i in range(number_of_circles):
     secondary_mask_conditions_24_cameras = np.zeros((n_targets_ring, 10), dtype=bool)
     secondary_mask_cob_conditions_24_cameras = np.zeros((n_targets_ring, 10), dtype=bool)
 
-
-
-     # Initialize variables to count metrics satisfying conditions for efficiency
-    count_nominal = 0
-    count_extended = 0
-    count_secondary = 0
-
-    # Initialize counts for COB efficiencies
-    count_nom_cob = 0
-    count_ext_cob = 0
-
-     # Compute metrics for each target in the ring
+    # Compute metrics for each target in the ring
     for j in range(n_targets_ring):
         dback = np.ones(10) * dback_ref  # Reference transit depth
         td = np.ones(10) * td_ref  # Reference transit duration
 
-        # Flux significance for nominal mask (assuming columns 17-27 and 7, 11 are correct for nominal data)
+        # Flux significance for nominal mask
         eta_nom_bt_24_cameras[j, :] = gamma_factor_significance * dback * ring_nominal[j, 17:27] * np.sqrt(td * ntr) / \
                                       (ring_nominal[j, 7] * (1 - ring_nominal[j, 11]))
         eta_nom_bt_6_cameras[j, :] = gamma_factor_significance * dback * ring_nominal[j, 17:27] * np.sqrt(td * ntr) / \
@@ -144,54 +140,129 @@ for i in range(number_of_circles):
 
         # Secondary mask COB conditions
         eta_cob_sec = ring_secondary[j, 9]
-        secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :] # type: ignore
+        secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
 
-    # Compute efficiencies as per your method
-    nfp_total = nfp.sum()
-    if nfp_total > 0:
-        eff_ext_flux = (nfp & nfp_ext_mask).sum() / nfp_total * 100.
-        eff_nom_cob = (nfp & nfp_nom_cob).sum() / nfp_total * 100.
-        eff_ext_cob = (nfp & nfp_ext_cob).sum() / nfp_total * 100.
-        
+    # --- New Code Starts Here ---
+
+    # Create a boolean mask for targets where any eta_nom_bt_24_cameras > threshold
+    eta_nom_above_threshold = np.any(eta_nom_bt_24_cameras > eta_nom_threshold, axis=1)  # Shape (n_targets_ring,)
+
+    # Compute efficiencies for all targets (as before)
+
+    # Total number of False Positives (FP) for all targets
+    nfp_total_all = nfp.sum()
+
+    if nfp_total_all > 0:
+        eff_ext_flux_all = (nfp & nfp_ext_mask).sum() / nfp_total_all * 100.
+        eff_nom_cob_all = (nfp & nfp_nom_cob).sum() / nfp_total_all * 100.
+        eff_ext_cob_all = (nfp & nfp_ext_cob).sum() / nfp_total_all * 100.
     else:
-        eff_ext_flux = 0
-        eff_nom_cob = 0
-        eff_ext_cob = 0
+        eff_ext_flux_all = 0
+        eff_nom_cob_all = 0
+        eff_ext_cob_all = 0
 
-    # Secondary mask efficiency
-    fp_single_total = fp_single_contaminant_24_cameras.sum()
-    if fp_single_total > 0:
-        eff_secondary = secondary_mask_conditions_24_cameras.sum() / fp_single_total * 100.
-        eff_sec_cob = secondary_mask_cob_conditions_24_cameras.sum() / fp_single_total * 100. # type: ignore
+    # Secondary mask efficiency for all targets
+    fp_single_total_all = fp_single_contaminant_24_cameras.sum()
+    if fp_single_total_all > 0:
+        eff_secondary_all = secondary_mask_conditions_24_cameras.sum() / fp_single_total_all * 100.
+        eff_sec_cob_all = secondary_mask_cob_conditions_24_cameras.sum() / fp_single_total_all * 100.
     else:
-        eff_secondary = 0
+        eff_secondary_all = 0
+        eff_sec_cob_all = 0
 
-    # Store efficiencies for each ring
-    eff_extended_ring.append(eff_ext_flux)
-    eff_secondary_ring.append(eff_secondary)
-    eff_nom_cob_ring.append(eff_nom_cob)
-    eff_ext_cob_ring.append(eff_ext_cob)
-    eff_sec_cob_ring.append(eff_sec_cob)
+    # Store efficiencies for all targets
+    eff_extended_ring.append(eff_ext_flux_all)
+    eff_secondary_ring.append(eff_secondary_all)
+    eff_nom_cob_ring.append(eff_nom_cob_all)
+    eff_ext_cob_ring.append(eff_ext_cob_all)
+    eff_sec_cob_ring.append(eff_sec_cob_all)
+
+    # Now compute efficiencies only for targets where eta_nom_bt_24_cameras > threshold
+
+    # Create masked versions of the arrays based on eta_nom_above_threshold
+    nfp_masked = nfp[eta_nom_above_threshold, :]
+    nfp_ext_mask_masked = nfp_ext_mask[eta_nom_above_threshold, :]
+    nfp_nom_cob_masked = nfp_nom_cob[eta_nom_above_threshold, :]
+    nfp_ext_cob_masked = nfp_ext_cob[eta_nom_above_threshold, :]
+    fp_single_contaminant_masked = fp_single_contaminant_24_cameras[eta_nom_above_threshold, :]
+    secondary_mask_conditions_masked = secondary_mask_conditions_24_cameras[eta_nom_above_threshold, :]
+    secondary_mask_cob_conditions_masked = secondary_mask_cob_conditions_24_cameras[eta_nom_above_threshold, :]
+
+    # Total number of False Positives (FP) for masked targets
+    nfp_total_masked = nfp_masked.sum()
+
+    if nfp_total_masked > 0:
+        eff_ext_flux_masked = (nfp_masked & nfp_ext_mask_masked).sum() / nfp_total_masked * 100.
+        eff_nom_cob_masked = (nfp_masked & nfp_nom_cob_masked).sum() / nfp_total_masked * 100.
+        eff_ext_cob_masked = (nfp_masked & nfp_ext_cob_masked).sum() / nfp_total_masked * 100.
+    else:
+        eff_ext_flux_masked = 0
+        eff_nom_cob_masked = 0
+        eff_ext_cob_masked = 0
+
+    # Secondary mask efficiency for masked targets
+    fp_single_total_masked = fp_single_contaminant_masked.sum()
+    if fp_single_total_masked > 0:
+        eff_secondary_masked = secondary_mask_conditions_masked.sum() / fp_single_total_masked * 100.
+        eff_sec_cob_masked = secondary_mask_cob_conditions_masked.sum() / fp_single_total_masked * 100.
+    else:
+        eff_secondary_masked = 0
+        eff_sec_cob_masked = 0
+
+    # Store efficiencies for masked targets
+    eff_extended_ring_masked.append(eff_ext_flux_masked)
+    eff_secondary_ring_masked.append(eff_secondary_masked)
+    eff_nom_cob_ring_masked.append(eff_nom_cob_masked)
+    eff_ext_cob_ring_masked.append(eff_ext_cob_masked)
+    eff_sec_cob_ring_masked.append(eff_sec_cob_masked)
 
     # Print efficiencies for the current ring
-    print(f"Ring {i} Extended Flux Efficiency: {eff_ext_flux:.2f}%")
-    print(f"Ring {i} Secondary Mask Efficiency: {eff_secondary:.2f}%")
-    print(f"Ring {i} Nominal COB Efficiency: {eff_nom_cob:.2f}%")
-    print(f"Ring {i} Extended COB Efficiency: {eff_ext_cob:.2f}%")
-    print(f"Ring {i} Secondary COB Efficiency: {eff_sec_cob:.2f}%")
+    print(f"Ring {i} Efficiencies for All Targets:")
+    print(f"  Extended Flux Efficiency: {eff_ext_flux_all:.2f}%")
+    print(f"  Secondary Mask Efficiency: {eff_secondary_all:.2f}%")
+    print(f"  Nominal COB Efficiency: {eff_nom_cob_all:.2f}%")
+    print(f"  Extended COB Efficiency: {eff_ext_cob_all:.2f}%")
+    print(f"  Secondary COB Efficiency: {eff_sec_cob_all:.2f}%")
+
+    print(f"Ring {i} Efficiencies for Targets with eta_nom_bt_24_cameras > {eta_nom_threshold}:")
+    print(f"  Extended Flux Efficiency: {eff_ext_flux_masked:.2f}%")
+    print(f"  Secondary Mask Efficiency: {eff_secondary_masked:.2f}%")
+    print(f"  Nominal COB Efficiency: {eff_nom_cob_masked:.2f}%")
+    print(f"  Extended COB Efficiency: {eff_ext_cob_masked:.2f}%")
+    print(f"  Secondary COB Efficiency: {eff_sec_cob_masked:.2f}%")
+    print("-----------------------------------------------------")
 
 # Plotting efficiencies across rings with 'o-' format
+# For All Targets
 plt.figure(figsize=(10, 6))
-plt.plot(range(number_of_circles), eff_nom_cob_ring, 'o-', color='brown', label="Nominal COB Efficiency")
-plt.plot(range(number_of_circles), eff_ext_cob_ring, 's-', color='blue', label="Extended COB Efficiency")
-plt.plot(range(number_of_circles), eff_sec_cob_ring, 's-', color='purple', label="Secondary COB Efficiency")
-plt.plot(range(number_of_circles), eff_secondary_ring, '^-', color='green', label="Secondary Flux Efficiency")
-plt.plot(range(number_of_circles), eff_extended_ring, 'd-', color='red', label="Extended Flux Efficiency")
+plt.plot(range(number_of_circles), eff_nom_cob_ring, 'o-', color='brown', label="Nominal COB Efficiency (All Targets)")
+plt.plot(range(number_of_circles), eff_ext_cob_ring, 's-', color='blue', label="Extended COB Efficiency (All Targets)")
+plt.plot(range(number_of_circles), eff_sec_cob_ring, 's-', color='purple', label="Secondary COB Efficiency (All Targets)")
+plt.plot(range(number_of_circles), eff_secondary_ring, '^-', color='green', label="Secondary Flux Efficiency (All Targets)")
+plt.plot(range(number_of_circles), eff_extended_ring, 'd-', color='red', label="Extended Flux Efficiency (All Targets)")
 # Adjust x-axis labels
 circle_labels = [f"Ring {i}" for i in range(1, number_of_circles + 1)]  # Circle 1 to Circle 7
 plt.xticks(ticks=range(number_of_circles), labels=circle_labels, fontsize=10)
 
 plt.ylabel("Efficiency (%)", fontsize=14)
+plt.title("Efficiencies Across Rings (All Targets)")
 plt.legend()
 plt.grid(True)
-plt.show()                          
+plt.show()
+
+# Plotting efficiencies across rings with 'o-' format
+# For Targets with eta_nom_bt_24_cameras > threshold
+plt.figure(figsize=(10, 6))
+plt.plot(range(number_of_circles), eff_nom_cob_ring_masked, 'o-', color='brown', label=f"Nominal COB Efficiency (eta_nom > {eta_nom_threshold})")
+plt.plot(range(number_of_circles), eff_ext_cob_ring_masked, 's-', color='blue', label=f"Extended COB Efficiency (eta_nom > {eta_nom_threshold})")
+plt.plot(range(number_of_circles), eff_sec_cob_ring_masked, 's-', color='purple', label=f"Secondary COB Efficiency (eta_nom > {eta_nom_threshold})")
+plt.plot(range(number_of_circles), eff_secondary_ring_masked, '^-', color='green', label=f"Secondary Flux Efficiency (eta_nom > {eta_nom_threshold})")
+plt.plot(range(number_of_circles), eff_extended_ring_masked, 'd-', color='red', label=f"Extended Flux Efficiency (eta_nom > {eta_nom_threshold})")
+# Adjust x-axis labels
+plt.xticks(ticks=range(number_of_circles), labels=circle_labels, fontsize=10)
+
+plt.ylabel("Efficiency (%)", fontsize=14)
+plt.title(f"Efficiencies Across Rings (eta_nom_bt_24_cameras > {eta_nom_threshold})")
+plt.legend()
+plt.grid(True)
+plt.show()                   
