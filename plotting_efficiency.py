@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt # type: ignore
 from matplotlib.ticker import PercentFormatter # type: ignore
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
 from matplotlib.patches import ConnectionPatch #type: ignore
+from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
@@ -145,11 +146,6 @@ n = data.shape[0]
 td = data[:, 126:136]
 dback = data[:, 136:146]
 seed = 123434434
-
-plt.figure(0)
-plt.plot(mag_value, star_count, 'o')
-plt.xlabel('P magnitude', fontsize=fsize)
-plt.ylabel('Numb. of stars', fontsize=fsize)
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
 mag = data[:, 1]
@@ -317,11 +313,21 @@ amount of false positives detected by our Nominal mask
 """
 n_bad_bray_p5 = n_bad_bray[mask_p5]
 
+# Custom function to format y-axis ticks
+def percentage_formatter(x, _):
+    return f"{int(x * 100)}%"
+
 plt.figure(0)
 plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8)
-plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-plt.xlabel('Number of potential N_bad', fontsize=fsize)
-plt.ylabel('Fraction of targets [%] ', fontsize=fsize)
+
+# Apply the custom formatter to the y-axis
+plt.gca().yaxis.set_major_formatter(FuncFormatter(percentage_formatter))
+
+plt.xlabel('Number of FPs', fontsize=fsize)
+plt.ylabel('Fraction of targets [%]', fontsize=fsize)
+
+# Save as a PDF
+plt.savefig("false_positives.pdf", format='pdf', bbox_inches='tight')
 
 plt.figure(1)
 # Now we plot a percentage histogram like the one presented by Marchiori
@@ -330,7 +336,7 @@ plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgec
 plt.hist(n_bad_bray_p5, bins=bins, weights=[1 / len(n_bad_bray_p5)] * len(n_bad_bray_p5), edgecolor='black', rwidth=0.8,
          label='Bray 2 x 2 Mask', alpha=0.5)
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-plt.xlabel('Number of potential N_bad', fontsize=fsize)
+plt.xlabel('Number of FPs', fontsize=fsize)
 plt.ylabel('Fraction of targets [%]', fontsize=fsize)
 plt.legend()
 
@@ -364,11 +370,12 @@ for i in range(nP):
     plt.plot(Pi, size_nominal_mask, 'ko', markersize=8)
     plt.plot(Pi, size_secondary_mask, 'rP', markersize=8)
     plt.plot(Pi, size_extended_mask, 'b^', markersize=8)
-    plt.legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask'])
+    plt.legend(['Nominal Mask', 'Secondary Mask', 'Extended Mask', ])
 
 plt.xlabel(" P Magnitude", fontsize=fsize)
 plt.ylabel(r"Average mask size [pixels]", fontsize=fsize)
 #plt.title("Average mask size")
+plt.savefig("masks_average_size.pdf", format='pdf', bbox_inches='tight')
 
 """
 Now we plot the size of every mask as a function of the target P magnitude
@@ -412,8 +419,9 @@ for i in range(nP):
     P_values.append(Pi)
     
     # Plot individual mask shapes (use their lengths to plot counts)
-    plt.plot(Pi, len(unique_nominal), 'ko', label='Nominal Mask' if i == 0 else "")
+    
     plt.plot(Pi, len(unique_sec), 'rP', label='Secondary Mask' if i == 0 else "")
+    plt.plot(Pi, len(unique_nominal), 'ko', label='Nominal Mask' if i == 0 else "")
     plt.plot(Pi, len(unique_ext), 'b^', label='Extended Mask' if i == 0 else "")
 
 # Plot the cumulative total without connecting the dots
@@ -423,6 +431,7 @@ plt.plot(P_values, cumulative_total, marker='s', linestyle='', color='orange', l
 plt.legend(loc='best')
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Cum. count of mask shapes', fontsize=fsize)
+plt.savefig("cumulative_number_of_masks.pdf", format='pdf', bbox_inches='tight')
 print('Cumulative count of unique mask shapes:', cumulative_total)
 
 """
@@ -514,7 +523,7 @@ plt.title('Efficieny Comparison for the two types of DAP', fontsize=fsize)
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
-plt.figure(11, figsize=(8, 12), dpi=150)
+plt.figure(11)
 # To store whether a label has been added for each type
 labels_added = {
     'sec_24': False,
@@ -586,6 +595,8 @@ plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
+plt.savefig("DAP_Flux_efficiency.pdf", format='pdf', bbox_inches='tight')
+
 #plt.title('Double-Aperture Photometry Comparison', fontsize=fsize)
 
 """
@@ -604,6 +615,9 @@ plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel(r'$ \eta $', fontsize=fsize)
 plt.legend()
 plt.xlim(10, 13)
+plt.savefig("etas_different_planets.pdf", format='pdf', bbox_inches='tight')
+
+
 
 """
 Now we plot the efficiency of the COB shift (all contaminants)
@@ -616,7 +630,7 @@ eff_ext_cob_overall_6_cameras_values = []
 eff_cob_values = []
 eff_cob_6_cameras_values = []
 
-plt.figure(13, figsize=(8, 12), dpi=150)
+plt.figure(13)
 
 for i in range(nP):
     Pi = Pmin + i * binsize
@@ -674,7 +688,7 @@ for i in range(nP):
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
     plt.text(10., 61,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(11.2, 61, 'On-board light curve processing region', color='red', weight='bold')
+    plt.text(11.1, 61, 'On-board light curve process. region', color='red', weight='bold')
            
 # Finalize the main plot
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
@@ -715,6 +729,8 @@ ax_inset.set_xlim(9.9, 13.1)
 ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
 ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
+
+plt.savefig("DAP_CS_efficiency.pdf", format='pdf', bbox_inches='tight')
 
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
@@ -1369,6 +1385,7 @@ plt.xlabel('P Magnitude', fontsize=fsize)
 plt.plot([], [], 'b^', label='Ext. mask')
 plt.plot([], [], 'ko', label='Nom. mask')
 plt.legend()
+plt.savefig("cob_noise.pdf", format='pdf', bbox_inches='tight')
 
 
 plt.figure(29)

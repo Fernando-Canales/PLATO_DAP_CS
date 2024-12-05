@@ -1,4 +1,5 @@
 /*.pdf
+*.png
 xpsf_pix.npy
 ypsf_pix.npy
 pxc.npy
