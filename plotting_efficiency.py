@@ -140,6 +140,11 @@ data_bray = np.load(dataDIR + 'targets_P5_bray.npy')
 #6: sprk_bray[ind_sprk]
 #7: SPR_tot_bray
 
+eta_cob_ext_2_pix = data_ext[:, 244]
+sigma_1_24_ext_2_pix = data_ext[:, 245]
+delta_cob_ext_2_pix = data_ext[:, 246]
+
+
 mag_value, star_count = np.loadtxt(dataDIR + 'star_count.txt', unpack=True, usecols=[0, 1])
 ntr = 3        # number of transits in one hour
 n = data.shape[0]
@@ -224,6 +229,17 @@ delta_cob_ext = data_ext[:, 10]
 eta_cob_ext = data_ext[:, 11]
 sigma_cob_ext = data_ext[:, 12]
 gamma_cob_nom_10first_24_cameras = data[:, 106:116]
+SPRK10_first_ext_2_pix = data_ext[:,126:136]
+eta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 157:167]
+sigma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 167:177]
+delta_cob_ext_2_pix_10first_24_cameras = data_ext[:, 177:187]
+eta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 187:197]
+sigma_cob_ext_2_pix_10first_6_cameras = data_ext[:, 197:207]
+delta_cob_ext_2_pix_10first_6_cameras = data_ext[:, 207:217]
+gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 217:227]
+gamma_cob_ext_2_pix_10first_24_cameras = data_ext[:, 227:237]
+gamma_ext_2_pix = data_ext[:, 237]
+
 # We get now the 10 first values for each param. of the nominal cob shift
 
 # We get now the 10 first values for each param. of the extended cob shift
@@ -242,12 +258,16 @@ sig_depth_secondary_mask_24_cameras = nsr1h_sec*(1 - data_sec[:, 5])/np.sqrt(td_
 sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
 sig_depth_extended_mask_24_cameras = data_ext[:, 4]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
 sig_depth_extended_mask_6_cameras = data_ext[:, 44]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
+sig_depth_extended_mask_2_pix_24_cameras = data_ext[:, 238]*(1 - data_ext[:, 248])/np.sqrt(td_ref*ntr)# NSR_1h^ext(2pix)*(1 - SPR_tot^ext(2pix)) / sqrt(td ntr) [24 cameras]
+sig_depth_extended_mask_2_pix_6_cameras = data_ext[:, 156]*(1 - data_ext[:, 248])/np.sqrt(td_ref*ntr)# NSR_1h^ext(2pix)*(1 - SPR_tot^ext(2pix)) / sqrt(td ntr) [6 cameras]
 sig_depth_nominal_mask_24_cameras = data[:, 7]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
 sig_depth_nominal_mask_6_cameras = data[:, 148]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
 
 # We obtainn the value of the quadratic sum of the noises (Eq. (38) of the paper)
 sig_depth_24_cameras = np.sqrt(sig_depth_nominal_mask_24_cameras**2 + sig_depth_extended_mask_24_cameras**2)
 sig_depth_6_cameras = np.sqrt(sig_depth_nominal_mask_6_cameras**2 + sig_depth_extended_mask_6_cameras**2)
+sig_depth_24_cameras_2_pix = np.sqrt(sig_depth_nominal_mask_24_cameras**2 + sig_depth_extended_mask_2_pix_24_cameras**2)
+sig_depth_6_cameras_2_pix = np.sqrt(sig_depth_nominal_mask_6_cameras**2 + sig_depth_extended_mask_2_pix_6_cameras**2)
 
 # First, the expressions for the efficiency false positives detections for the different masks
 fp_single_contaminant_24_cameras = (eta_t > flux_thresh_nom_mask)  # false positive
@@ -267,15 +287,23 @@ sig_depth_extended_mask_24_cameras_10first = np.reshape(sig_depth_extended_mask_
 sig_depth_extended_mask_24_cameras_10first = np.repeat(sig_depth_extended_mask_24_cameras_10first, 10, axis=1)
 sig_depth_nominal_mask_24_cameras_10first = np.reshape(sig_depth_nominal_mask_24_cameras, (n, 1))
 sig_depth_nominal_mask_24_cameras_10first = np.repeat(sig_depth_nominal_mask_24_cameras_10first, 10, axis=1)
+sig_depth_extended_mask_24_cameras_2_pix_10first = np.reshape(sig_depth_extended_mask_2_pix_24_cameras, (n,1))
+sig_depth_extended_mask_24_cameras_2_pix_10first = np.repeat(sig_depth_extended_mask_24_cameras_2_pix_10first, 10, axis=1)
+
+
 
 # We reshape some of them for 6 cameras
 sig_depth_extended_mask_6_cameras_10first = np.reshape(sig_depth_extended_mask_6_cameras, (n, 1))
 sig_depth_extended_mask_6_cameras_10first = np.repeat(sig_depth_extended_mask_6_cameras_10first, 10, axis=1)
 sig_depth_nominal_mask_6_cameras_10first = np.reshape(sig_depth_nominal_mask_6_cameras, (n, 1))
 sig_depth_nominal_mask_6_cameras_10first = np.repeat(sig_depth_nominal_mask_6_cameras_10first, 10, axis=1)
+sig_depth_extended_mask_6_cameras_2_pix_10first = np.reshape(sig_depth_extended_mask_2_pix_6_cameras, (n,1))
+sig_depth_extended_mask_6_cameras_2_pix_10first = np.repeat(sig_depth_extended_mask_6_cameras_2_pix_10first, 10, axis=1)
 
 sig_depth_24_cameras_10first = np.sqrt(sig_depth_nominal_mask_24_cameras_10first**2 + sig_depth_extended_mask_24_cameras_10first**2)
 sig_depth_6_cameras_10first = np.sqrt(sig_depth_nominal_mask_6_cameras_10first**2 + sig_depth_extended_mask_6_cameras_10first**2)
+sig_depth_24_cameras_10first_2_pix = np.sqrt(sig_depth_nominal_mask_24_cameras_10first**2 + sig_depth_extended_mask_24_cameras_2_pix_10first**2)
+sig_depth_6_cameras_10first_2_pix = np.sqrt(sig_depth_nominal_mask_24_cameras_10first**2 + sig_depth_extended_mask_6_cameras_2_pix_10first**2)
 
 nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
 eta_ext_bt_24_cameras= np.zeros((n, 10))
@@ -285,6 +313,11 @@ eta_nom_bt_6_cameras = np.zeros((n,10))
 delta_obs = np.zeros((n,10))
 delta_obs_ext = np.zeros((n,10))
 delta_obs_ext_6_cameras = np.zeros((n, 10))
+delta_obs_ext_2_pix_24_cameras = np.zeros((n, 10))
+delta_obs_ext_2_pix_6_cameras = np.zeros((n, 10))
+eta_ext_2_pix_bt_24_cameras = np.zeros((n, 10))
+eta_ext_2_pix_bt_6_cameras = np.zeros((n, 10))
+
 mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
 
 for i in range(n):
@@ -294,10 +327,17 @@ for i in range(n):
     eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
     eta_ext_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 44] * (1 - data_ext[i, 13]))
+    eta_ext_2_pix_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 238] * (1 - data_ext[i, 248]))
+    eta_ext_2_pix_bt_6_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 126:136]*np.sqrt(td*ntr)/(data_ext[i, 156] * (1 - data_ext[i, 248]))
+    delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
+
     delta_obs[i,:] = dback*SPRK10_first[i,:] # observed transit depth
     #delta_int = delta_obs[i,:]/(1. -data_nommask[i,9] ) # inferred intrinsic transit depth
     delta_obs_ext[i,:] = dback*data_ext[i,14:24] # observed transit depth
     delta_obs_ext_6_cameras[i, :] = dback*data_ext[i,14:24] # observed transit depth with 6 cameras
+    delta_obs_ext_2_pix_24_cameras[i, :] = dback*data_ext[i, 126:136]
+    delta_obs_ext_2_pix_6_cameras[i, :] = dback*data_ext[i, 126:136]
+
     delta_int = delta_obs_t[i]/ (1 - data[i, 11])
     nbad_sp[i] = np.sum( (eta_nom_bt_24_cameras[i,:]>7.1) & (delta_int<4*84. ))
 
@@ -544,12 +584,16 @@ for i in range(nP):
     
     eff_ext_overall_24_cameras = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
     eff_ext_overall_6_cameras = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
+    eff_ext_overall_24_cameras_2_pix = ((eta_ext_2_pix_bt_24_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_24_cameras > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first_2_pix) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_24_cameras * 100
+    eff_ext_overall_6_cameras_2_pix = ((eta_ext_2_pix_bt_6_cameras > flux_thresh_ext_mask) & (delta_obs_ext_2_pix_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first_2_pix) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m, :].sum() / fp_ext_overall_6_cameras * 100
     eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
     eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
 
     # Errors
     error = np.sqrt(eff_ext_overall_24_cameras * (100 - eff_ext_overall_24_cameras) / m.sum())
     error_6_cameras = np.sqrt(eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras) / m.sum())
+    error_ext_2_pix_24_cameras = np.sqrt(eff_ext_overall_24_cameras_2_pix * (100 - eff_ext_overall_24_cameras_2_pix) / m.sum())
+    error_ext_2_pix_6_cameras = np.sqrt(eff_ext_overall_6_cameras_2_pix * (100 - eff_ext_overall_6_cameras_2_pix) / m.sum())
     error_sec_6_cameras = np.sqrt(eff_sec_6_cameras * (100 - eff_sec_6_cameras) / m.sum())
     error_sec = np.sqrt(eff_sec * (100 - eff_sec) / m.sum())
 
@@ -558,8 +602,10 @@ for i in range(nP):
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1)
-    plt.fill_between([11, 13.4], [60, 60], [100, 100], color='plum', alpha=0.1)
+    plt.errorbar(Pi, eff_ext_overall_24_cameras_2_pix, yerr=error_ext_2_pix_24_cameras, fmt='^', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
+    plt.errorbar(Pi, eff_ext_overall_6_cameras_2_pix, yerr=error_ext_2_pix_6_cameras, fmt='^', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
+    plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1)
+    plt.fill_between([11, 13.4], [55, 55], [100, 100], color='plum', alpha=0.1)
 
     # Update label tracking
     labels_added['sec_24'] = True
@@ -575,27 +621,29 @@ for i in range(nP):
         plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix, eff_ext_overall_24_cameras_2_pix], color='yellow', linestyle='-', markersize=0)
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix_6_cameras, eff_ext_overall_6_cameras_2_pix], color='orange', linestyle='-', markersize=0)
     
     # Update previous values
-    prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
+    prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras, prev_eff_ext_overall_2_pix, prev_eff_ext_overall_2_pix_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras, eff_ext_overall_24_cameras_2_pix, eff_ext_overall_6_cameras_2_pix
 
 # Additional plot settings
-plt.vlines(11.7, ymin=60, ymax=100, linestyles='dashed', colors='green')
-plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red')
-plt.ylim(60, 100)
+plt.vlines(11.7, ymin=55, ymax=100, linestyles='dashed', colors='green')
+plt.vlines(11, ymin=55, ymax=100, linestyles='dashdot', colors='red')
+plt.ylim(55, 100)
 plt.xlim(9.9, 13.1)
 plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
 plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
-plt.ylim(60, 100)
+plt.ylim(55, 100)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-plt.savefig("DAP_Flux_efficiency.pdf", format='pdf', bbox_inches='tight')
+plt.savefig("DAP_Flux_efficiency_2_pix.pdf", format='pdf', bbox_inches='tight')
 
 #plt.title('Double-Aperture Photometry Comparison', fontsize=fsize)
 
