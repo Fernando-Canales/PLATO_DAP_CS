@@ -1,9 +1,11 @@
 import numpy as np # type: ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 import matplotlib.pyplot as plt # type: ignore
+from matplotlib.colors import LogNorm #type: ignore
 from astropy.io import fits # type: ignore
 from astropy.io import fits as pyfits # type: ignore
 import spline2dbase # type: ignore
+
 
 
 # CONFIGURATION PARAMETERS
@@ -13,7 +15,8 @@ xc, yc = 3., 3.
 Pmin = 10                               # minimum magnitude
 Pmax = 11                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
-
+cmap = 'viridis'
+fsize=14
 # Target characteristics
 data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
 #fits_file_10 = fits.open(dataDIR + '6000-10452-045000.fits')
@@ -145,25 +148,34 @@ min_index = np.argmin(nsr_agg_nominal)
 min_value = nsr_agg_nominal[min_index]
 print('Target magnitude =', m_t)
 print('Size of the mask =', nominal_mask.sum())
-plt.imshow(It, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
-plt.grid(True, linewidth=2)
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
-plt.imshow(nominal_mask, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
+plt.imshow(It, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette),  cmap=cmap, norm=LogNorm())
 plt.grid(True, linewidth=2)
+plt.scatter(3, 3, s=30, c='magenta', zorder=5)  # 'c' sets the face color of the marker
+plt.savefig('It.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as pdf
+# Add the circle
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
-plt.imshow(nominal_nsr, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
+plt.imshow(nominal_mask, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette),  cmap=cmap)
 plt.grid(True, linewidth=2)
+plt.savefig('Nominal_mask.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as pdf
+plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
+plt.imshow(nominal_nsr, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette),  cmap=cmap, norm=LogNorm())
+plt.grid(True, linewidth=2)
+plt.scatter(3, 3, s=30, c='magenta', zorder=5)  # 'c' sets the face color of the marker
+plt.savefig('It_NSR.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as pdf
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
 # Flatten, sort, and reshape the array back to its original shape
 sorted_nsr = np.sort(nominal_nsr, axis=None).reshape(nominal_nsr.shape)
-plt.imshow(sorted_nsr, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette))
+plt.imshow(sorted_nsr, origin='lower', extent=(0,sizex_imagette,0,sizey_imagette),  cmap=cmap, norm=LogNorm())
 plt.grid(True, linewidth=2)
+plt.savefig('It_sorted_nsr.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as pdf
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
 plt.plot(((10 ** 6) / (12 * np.sqrt(24))) * nsr_agg_nominal, 'o-')
 # Add arrow and text indicating the minimum value
-plt.ylabel(r'$NSR_{agg}$ over 1h and 24 cameras $[ppm hr^{\frac{1}{2}}]$')
-plt.xlabel('Number of pixels composing the binary mask')
+plt.vlines(7, linestyles='--', ymin=52, ymax=80, colors='darkorange')
+plt.ylabel(r'$NSR_{agg}$ over 1h and 24 cam.$[ppm hr^{\frac{1}{2}}]$', fontsize=fsize-3)
+plt.xlabel('Pixels', fontsize=fsize)
+plt.ylim(52, 78)
 # Manually adjust bottom margin to prevent x-label from being cropped
 plt.subplots_adjust(bottom=0.2)
 plt.savefig('NSR_agg_evolution.png', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as PNG
-plt.show()
