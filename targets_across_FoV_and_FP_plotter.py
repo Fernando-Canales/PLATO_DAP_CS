@@ -6,6 +6,7 @@ Fernando 28th October 2024
 import numpy as np              # type:ignore
 import matplotlib.pyplot as plt # type:ignore
 from fitting_psf import from_pix_2_mm 
+import matplotlib.patheffects as PathEffects # type: ignore
 
 # Load the data file
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_Noblesse_PSF/'
@@ -79,7 +80,7 @@ def add_concentric_circles(ax, R, N):
 fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
 
 # Add concentric circles
-add_concentric_circles(ax, R, N)
+#add_concentric_circles(ax, R, N)
 
 # Plot the targets
 sc_all = ax.scatter(x_all, y_all, c=spr_tot_all, cmap='viridis', s=20, zorder=2)
@@ -88,17 +89,31 @@ sc_all = ax.scatter(x_all, y_all, c=spr_tot_all, cmap='viridis', s=20, zorder=2)
 ax.axhline(0, color='black', linewidth=2)
 ax.axvline(0, color='black', linewidth=2)
 
+# Add Roman numerals for the quadrants with a white font and black outline
+txt_I = plt.text(R/2, R/2, 'I', color='white', fontsize=24, fontweight='bold', 
+                 ha='center', va='center')
+txt_II = plt.text(-R/2, R/2, 'II', color='white', fontsize=24, fontweight='bold', 
+                  ha='center', va='center')
+txt_III = plt.text(-R/2, -R/2, 'III', color='white', fontsize=24, fontweight='bold', 
+                   ha='center', va='center')
+txt_IV = plt.text(R/2, -R/2, 'IV', color='white', fontsize=24, fontweight='bold', 
+                  ha='center', va='center')
+
+# Apply path effects to outline the text in black
+for txt in [txt_I, txt_II, txt_III, txt_IV]:
+    txt.set_path_effects([PathEffects.withStroke(linewidth=3, foreground='black')])
+
 ax.set_xlim(-(R + 5), R + 5)
 ax.set_ylim(-(R + 5), R + 5)
 
 ax.set_xlabel("X Position (mm)", fontsize=fsize)
 ax.set_ylabel("Y Position (mm)", fontsize=fsize)
-ax.set_title('All Targets Colored by SPR_tot')
 ax.set_aspect('equal', adjustable='box')
 
 cbar = plt.colorbar(sc_all, ax=ax)
-cbar.set_label('SPR_tot')
+cbar.set_label(r'$\rm SPR_{tot}$')
 
+plt.savefig("targets_SPR_tot.pdf", format='pdf', bbox_inches='tight')
 plt.show()
 
 # Plotting only targets where any eta_nom_bt_24_cameras > 7.1, colored by SPR_tot, with concentric circles
@@ -122,6 +137,7 @@ ax.set_ylabel("Y Position (mm)", fontsize=fsize)
 ax.set_aspect('equal', adjustable='box')
 
 cbar = plt.colorbar(sc_selected, ax=ax)
-cbar.set_label('SPR_tot')
+cbar.set_label(r'$\rm SPR_{tot}$')
+plt.savefig("targets_mask_SPR_tot.pdf", format='pdf', bbox_inches='tight')
 
 plt.show()
