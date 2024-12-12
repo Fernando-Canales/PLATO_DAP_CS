@@ -25,6 +25,15 @@ eff_nom_cob_ring_masked = []
 eff_ext_cob_ring_masked = []
 eff_sec_cob_ring_masked = []
 
+# Initialize lists to store SPR_tot metrics for each ring
+spr_tot_nom_all = []        # For all targets
+spr_tot_ext_all = []
+spr_tot_sec_all = []
+
+spr_tot_nom_masked = []     # For masked targets (eta_nom > 7.1)
+spr_tot_ext_masked = []
+spr_tot_sec_masked = []
+
 number_of_circles = 7  # Adjust as needed
 ntr = 3  # Number of transits in one hour
 dback_ref = 132000  # Reference value for transit depth (ppm)
@@ -142,7 +151,29 @@ for i in range(number_of_circles):
         eta_cob_sec = ring_secondary[j, 9]
         secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
 
-    # --- New Code Starts Here ---
+    # --- New Code for SPR_tot Accumulation Starts Here ---
+
+    # Extract SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec for all targets in this ring
+    SPR_tot_nom = ring_nominal[:, 11]   # Adjust index if necessary
+    SPR_tot_ext = ring_extended[:, 13]  # Adjust index if necessary
+    SPR_tot_sec = ring_secondary[:, 9]  # Adjust index if necessary
+
+    # Append to all targets lists
+    spr_tot_nom_all.append(SPR_tot_nom)
+    spr_tot_ext_all.append(SPR_tot_ext)
+    spr_tot_sec_all.append(SPR_tot_sec)
+
+    # Extract SPR_tot for masked targets
+    eta_nom_above_threshold = np.any(eta_nom_bt_24_cameras > eta_nom_threshold, axis=1)  # Shape (n_targets_ring,)
+    SPR_tot_nom_masked = SPR_tot_nom[eta_nom_above_threshold]
+    SPR_tot_ext_masked = SPR_tot_ext[eta_nom_above_threshold]
+    SPR_tot_sec_masked = SPR_tot_sec[eta_nom_above_threshold]
+
+    # Append to masked targets lists
+    spr_tot_nom_masked.append(SPR_tot_nom_masked)
+    spr_tot_ext_masked.append(SPR_tot_ext_masked)
+    spr_tot_sec_masked.append(SPR_tot_sec_masked)
+
 
     # Create a boolean mask for targets where any eta_nom_bt_24_cameras > threshold
     eta_nom_above_threshold = np.any(eta_nom_bt_24_cameras > eta_nom_threshold, axis=1)  # Shape (n_targets_ring,)
@@ -265,4 +296,106 @@ plt.ylabel("Efficiency (%)", fontsize=14)
 plt.title(f"Efficiencies Across Rings (eta_nom_bt_24_cameras > {eta_nom_threshold})")
 plt.legend()
 plt.grid(True)
-plt.show()                   
+plt.show()
+
+# After the ring loop
+
+# Compute median SPR_tot for all targets per ring
+median_spr_tot_nom_all = [np.median(spr_tot_nom_all[ring]) for ring in range(number_of_circles)]
+median_spr_tot_ext_all = [np.median(spr_tot_ext_all[ring]) for ring in range(number_of_circles)]
+median_spr_tot_sec_all = [np.median(spr_tot_sec_all[ring]) for ring in range(number_of_circles)]
+
+# Compute median SPR_tot for masked targets per ring
+median_spr_tot_nom_masked = [
+    np.median(spr_tot_nom_masked[ring]) if len(spr_tot_nom_masked[ring]) > 0 else np.nan 
+    for ring in range(number_of_circles)
+]
+median_spr_tot_ext_masked = [
+    np.median(spr_tot_ext_masked[ring]) if len(spr_tot_ext_masked[ring]) > 0 else np.nan 
+    for ring in range(number_of_circles)
+]
+median_spr_tot_sec_masked = [
+    np.median(spr_tot_sec_masked[ring]) if len(spr_tot_sec_masked[ring]) > 0 else np.nan 
+    for ring in range(number_of_circles)
+]
+
+# Define ring numbers for x-axis (1 to number_of_circles)
+ring_numbers = np.arange(1, number_of_circles + 1)
+
+# ----- Plot 1: Median SPR_tot vs Ring Number for All Targets -----
+plt.figure(figsize=(10, 6), dpi=120)
+
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_nom_all, 
+    marker='o', 
+    linestyle='-', 
+    color='brown', 
+    label='SPR_tot_nom (All Targets)'
+)
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_ext_all, 
+    marker='s', 
+    linestyle='-', 
+    color='blue', 
+    label='SPR_tot_ext (All Targets)'
+)
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_sec_all, 
+    marker='^', 
+    linestyle='-', 
+    color='green', 
+    label='SPR_tot_sec (All Targets)'
+)
+
+plt.xlabel("Ring Number", fontsize=14)
+plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.title("Median SPR_tot as a Function of Ring Number (All Targets)", fontsize=16)
+plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
+plt.legend(fontsize=12)
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig("Median_SPR_tot_vs_Ring_All_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ----- Plot 2: Median SPR_tot vs Ring Number for Masked Targets -----
+plt.figure(figsize=(10, 6), dpi=120)
+
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_nom_masked, 
+    marker='o', 
+    linestyle='-', 
+    color='red', 
+    label=f'SPR_tot_nom (eta_nom > {eta_nom_threshold})'
+)
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_ext_masked, 
+    marker='s', 
+    linestyle='-', 
+    color='purple', 
+    label=f'SPR_tot_ext (eta_nom > {eta_nom_threshold})'
+)
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_sec_masked, 
+    marker='^', 
+    linestyle='-', 
+    color='orange', 
+    label=f'SPR_tot_sec (eta_nom > {eta_nom_threshold})'
+)
+
+plt.xlabel("Ring Number", fontsize=14)
+plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.title(f"Median SPR_tot as a Function of Ring Number (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
+plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
+plt.legend(fontsize=12)
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig("Median_SPR_tot_vs_Ring_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.show()
