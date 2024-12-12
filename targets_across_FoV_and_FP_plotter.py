@@ -5,6 +5,7 @@ Fernando 28th October 2024
 """
 import numpy as np              # type:ignore
 import matplotlib.pyplot as plt # type:ignore
+from matplotlib.colors import LogNorm #type: ignore
 from fitting_psf import from_pix_2_mm 
 import matplotlib.patheffects as PathEffects # type: ignore
 
@@ -80,10 +81,10 @@ def add_concentric_circles(ax, R, N):
 fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
 
 # Add concentric circles
-#add_concentric_circles(ax, R, N)
+add_concentric_circles(ax, R, N)
 
 # Plot the targets
-sc_all = ax.scatter(x_all, y_all, c=spr_tot_all, cmap='viridis', s=20, zorder=2)
+sc_all = ax.scatter(x_all, y_all, c=spr_tot_all, cmap='viridis', s=20, zorder=2, norm=LogNorm())
 
 # Add horizontal and vertical axes
 ax.axhline(0, color='black', linewidth=2)
@@ -123,7 +124,7 @@ fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
 add_concentric_circles(ax, R, N)
 
 # Plot the selected targets
-sc_selected = ax.scatter(x_selected, y_selected, c=spr_tot_selected, cmap='viridis', s=20, zorder=2)
+sc_selected = ax.scatter(x_selected, y_selected, c=spr_tot_selected, cmap='viridis', s=20, zorder=2, norm=LogNorm())
 
 # Add horizontal and vertical axes
 ax.axhline(0, color='black', linewidth=2)
