@@ -469,29 +469,20 @@ plt.plot(
     median_spr_tot_nom_masked, 
     marker='o', 
     linestyle='-', 
-    color='red', 
-    label=f'SPR_tot_nom (eta_nom > {eta_nom_threshold})'
+    color='brown', 
+    label=f'Nominal mask'
 )
 plt.plot(
     ring_numbers, 
     median_spr_tot_ext_masked, 
     marker='s', 
     linestyle='-', 
-    color='purple', 
-    label=f'SPR_tot_ext (eta_nom > {eta_nom_threshold})'
-)
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_sec_masked, 
-    marker='^', 
-    linestyle='-', 
-    color='orange', 
-    label=f'SPR_tot_sec (eta_nom > {eta_nom_threshold})'
+    color='red', 
+    label=f'Extended mask'
 )
 
 plt.xlabel("Ring Number", fontsize=14)
 plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
-plt.title(f"Median SPR_tot as a Function of Ring Number (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
 plt.grid(True)
@@ -570,34 +561,17 @@ plt.errorbar(
     yerr=eff_nom_cob_ring_masked_error, 
     fmt='o-', 
     color='brown', 
-    label=f"Nominal COB Efficiency (eta_nom > {eta_nom_threshold})",
+    label=f"Nominal Centroids",
     capsize=5
 )
-plt.errorbar(
-    ring_numbers, 
-    eff_ext_cob_ring_masked, 
-    yerr=eff_ext_cob_ring_masked_error, 
-    fmt='s-', 
-    color='blue', 
-    label=f"Extended COB Efficiency (eta_nom > {eta_nom_threshold})",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_sec_cob_ring_masked, 
-    yerr=eff_sec_cob_ring_masked_error, 
-    fmt='^-', 
-    color='purple', 
-    label=f"Secondary COB Efficiency (eta_nom > {eta_nom_threshold})",
-    capsize=5
-)
+
 plt.errorbar(
     ring_numbers, 
     eff_secondary_ring_masked, 
     yerr=eff_secondary_ring_masked_error, 
     fmt='^-', 
     color='green', 
-    label=f"Secondary Flux Efficiency (eta_nom > {eta_nom_threshold})",
+    label=f"Secondary Flux",
     capsize=5
 )
 plt.errorbar(
@@ -606,7 +580,7 @@ plt.errorbar(
     yerr=eff_extended_ring_masked_error, 
     fmt='d-', 
     color='red', 
-    label=f"Extended Flux Efficiency (eta_nom > {eta_nom_threshold})",
+    label=f"Extended Flux",
     capsize=5
 )
 
@@ -614,7 +588,6 @@ plt.errorbar(
 plt.xticks(ring_numbers, circle_labels, rotation=45, fontsize=10)
 
 plt.ylabel("Efficiency (%)", fontsize=14)
-plt.title(f"Efficiencies Across Rings (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
