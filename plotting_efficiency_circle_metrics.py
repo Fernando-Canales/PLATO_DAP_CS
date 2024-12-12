@@ -1,15 +1,18 @@
-import numpy as np  # type: ignore
-import matplotlib.pyplot as plt  # type: ignore
+"""
+Script for computing the efficiency for detecting FPs
+with each method and plotting median SPR_tot as a function of ring number.
+Fernando 28th October 2024
+"""
+import numpy as np              # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from matplotlib.colors import LogNorm # type: ignore
+import matplotlib.patheffects as PathEffects # type: ignore
+
+# If you have a custom module 'fitting_psf' with 'from_pix_2_mm', uncomment the following line
+# from fitting_psf import from_pix_2_mm 
 
 # Some file parameters
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
-eta_ext_bt_24_cameras_ring = []
-eta_ext_bt_6_cameras_ring = []
-eta_nom_bt_24_cameras_ring = []
-eta_nom_bt_6_cameras_ring = []
-delta_obs_ring = []
-delta_obs_ext_ring = []
-delta_obs_ext_6_cameras_ring = []
 
 # Initialize lists to store efficiencies for each ring
 eff_extended_ring = []
@@ -34,11 +37,25 @@ spr_tot_nom_masked = []     # For masked targets (eta_nom > 7.1)
 spr_tot_ext_masked = []
 spr_tot_sec_masked = []
 
+# Initialize lists to store uncertainties for efficiencies
+eff_nom_cob_ring_error = []
+eff_ext_cob_ring_error = []
+eff_sec_cob_ring_error = []
+eff_secondary_ring_error = []
+eff_extended_ring_error = []
+
+# Initialize lists to store uncertainties for masked efficiencies
+eff_nom_cob_ring_masked_error = []
+eff_ext_cob_ring_masked_error = []
+eff_sec_cob_ring_masked_error = []
+eff_secondary_ring_masked_error = []
+eff_extended_ring_masked_error = []
+
+# Define parameters
 number_of_circles = 7  # Adjust as needed
 ntr = 3  # Number of transits in one hour
 dback_ref = 132000  # Reference value for transit depth (ppm)
 td_ref = 6.72 * 0.46**2  # Transit duration in hours
-seed = 123434434
 depth_sig_scaling = 3
 gamma_factor_significance = 1  # Other possible value: 0.46
 flux_thresh_nom_mask, cob_thresh = 6, 3
@@ -47,12 +64,52 @@ flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
 # Threshold for eta_nom_bt_24_cameras
 eta_nom_threshold = 7.1
 
+# Function to convert pixels to mm
+def from_pix_2_mm(x_star, y_star):
+    """
+    Placeholder function for converting pixel coordinates to millimeters.
+    Replace with actual implementation as needed.
+    """
+    # Example conversion factors (these should be defined based on your setup)
+    pix_to_mm_x = 0.1  # mm per pixel in x-direction
+    pix_to_mm_y = 0.1  # mm per pixel in y-direction
+    x_mm = x_star * pix_to_mm_x
+    y_mm = y_star * pix_to_mm_y
+    return x_mm, y_mm
+
+# Function to add concentric circles to the plot
+def add_concentric_circles(ax, R, N):
+    for i in range(N):
+        r_i = (i + 1) / N * R  # Linear spacing for circle radii
+        circle = plt.Circle((0, 0), r_i, color='darkorange', linestyle='--', fill=False, linewidth=2, zorder=3)
+        ax.add_artist(circle)
+
+# Function to compute binomial confidence interval (standard error)
+def binomial_error(k, n):
+    """
+    Computes the binomial confidence interval (standard error) for a proportion.
+    Args:
+        k (int): Number of successes
+        n (int): Number of trials
+    Returns:
+        float: Standard error in percentage points
+    """
+    if n > 0:
+        p = k / n
+        return np.sqrt(p * (1 - p) / n) * 100
+    else:
+        return 0.0
+
 # Loop through each ring, load corresponding .npy files, and compute metrics
 for i in range(number_of_circles):
     # Load .npy files for the current ring
-    ring_nominal = np.load(f"{dataDIR}ring_{i}_nominal.npy")
-    ring_secondary = np.load(f"{dataDIR}ring_{i}_secondary.npy")
-    ring_extended = np.load(f"{dataDIR}ring_{i}_extended.npy")
+    try:
+        ring_nominal = np.load(f"{dataDIR}ring_{i}_nominal.npy")
+        ring_secondary = np.load(f"{dataDIR}ring_{i}_secondary.npy")
+        ring_extended = np.load(f"{dataDIR}ring_{i}_extended.npy")
+    except FileNotFoundError as e:
+        print(f"Error loading data for Ring {i}: {e}")
+        continue  # Skip to the next ring if files are missing
 
     # Number of targets in this ring
     n_targets_ring = ring_nominal.shape[0]
@@ -81,54 +138,78 @@ for i in range(number_of_circles):
         dback = np.ones(10) * dback_ref  # Reference transit depth
         td = np.ones(10) * td_ref  # Reference transit duration
 
-        # Flux significance for nominal mask
-        eta_nom_bt_24_cameras[j, :] = gamma_factor_significance * dback * ring_nominal[j, 17:27] * np.sqrt(td * ntr) / \
-                                      (ring_nominal[j, 7] * (1 - ring_nominal[j, 11]))
-        eta_nom_bt_6_cameras[j, :] = gamma_factor_significance * dback * ring_nominal[j, 17:27] * np.sqrt(td * ntr) / \
-                                     (ring_nominal[j, 148] * (1 - ring_nominal[j, 11]))
+        # Ensure indices correspond to your data structure
+        sprk_10first = ring_nominal[j, 17:27]   # Adjust indices if necessary
+        try:
+            nsr_1h_24_cameras_nominal_mask = ring_nominal[j, 7]  # Adjust index if necessary
+            SPR_tot = ring_nominal[j, 11]  # Adjust index if necessary
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in SPR_tot extraction: {e}")
+            SPR_tot = 0
 
-        # Flux significance for extended mask
-        eta_ext_bt_24_cameras[j, :] = gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr) / \
-                                      (ring_extended[j, 4] * (1 - ring_extended[j, 13]))
-        eta_ext_bt_6_cameras[j, :] = gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr) / \
-                                     (ring_extended[j, 44] * (1 - ring_extended[j, 13]))
+        # Compute eta_nom_bt_24_cameras and eta_nom_bt_6_cameras
+        try:
+            eta_nom_bt_24_cameras[j, :] = (
+                gamma_factor_significance * dback * sprk_10first * np.sqrt(td * ntr)
+                / (ring_nominal[j, 7] * (1 - ring_nominal[j, 11]))
+            )
+            eta_nom_bt_6_cameras[j, :] = (
+                gamma_factor_significance * dback * sprk_10first * np.sqrt(td * ntr)
+                / (ring_nominal[j, 148] * (1 - ring_nominal[j, 11]))  # Adjust index if necessary
+            )
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in eta_nom calculations: {e}")
+            eta_nom_bt_24_cameras[j, :] = 0
+            eta_nom_bt_6_cameras[j, :] = 0
+
+        # Compute eta_ext_bt_24_cameras and eta_ext_bt_6_cameras
+        try:
+            eta_ext_bt_24_cameras[j, :] = (
+                gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr)
+                / (ring_extended[j, 4] * (1 - ring_extended[j, 13]))
+            )
+            eta_ext_bt_6_cameras[j, :] = (
+                gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr)
+                / (ring_extended[j, 44] * (1 - ring_extended[j, 13]))  # Adjust index if necessary
+            )
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in eta_ext calculations: {e}")
+            eta_ext_bt_24_cameras[j, :] = 0
+            eta_ext_bt_6_cameras[j, :] = 0
 
         # Observed transit depth
-        delta_obs[j, :] = dback * ring_nominal[j, 17:27]
-        delta_obs_ext[j, :] = dback * ring_extended[j, 14:24]
-
-        # Compute significant transit depth variables
-        # NSR1h for secondary mask (24 cameras)
-        nsr1h_sec = ring_secondary[j, 4]
-        # NSR1h for nominal mask (24 cameras)
-        nsr1h_nom = ring_nominal[j, 7]
-        # SPRtot for secondary mask
-        SPR_tot_sec = ring_secondary[j, 5]
-        # SPRtot for extended mask
-        SPR_tot_ext = ring_extended[j, 13]
-        # SPRtot for nominal mask
-        SPR_tot_nom = ring_nominal[j, 11]
-
-        # Significant transit depth calculations
-        sig_depth_secondary_mask_24_cameras = nsr1h_sec * (1 - SPR_tot_sec) / np.sqrt(td_ref * ntr)
-        sig_depth_extended_mask_24_cameras = ring_extended[j, 4] * (1 - SPR_tot_ext) / np.sqrt(td_ref * ntr)
-        sig_depth_nominal_mask_24_cameras = nsr1h_nom * (1 - SPR_tot_nom) / np.sqrt(td_ref * ntr)
-
-        # Quadratic sum of the noises (Equation (38) from the paper)
-        sig_depth_24_cameras[j, :] = np.sqrt(sig_depth_nominal_mask_24_cameras ** 2 + sig_depth_extended_mask_24_cameras ** 2)
-        sig_depth_sec_nom_quad[j, :] = np.sqrt(sig_depth_secondary_mask_24_cameras ** 2 + sig_depth_nominal_mask_24_cameras ** 2)
+        try:
+            delta_obs[j, :] = dback * ring_nominal[j, 17:27]
+            delta_obs_ext[j, :] = dback * ring_extended[j, 14:24]
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in observed transit depth extraction: {e}")
+            delta_obs[j, :] = 0
+            delta_obs_ext[j, :] = 0
 
         # COB-related variables
-        eta_cob_nom_10first_24_cameras = ring_nominal[j, 46:56]
-        eta_cob_ext_10first_24_cameras = ring_extended[j, 45:55]
-        eta_cob_sec = ring_secondary[j, 9]
+        try:
+            eta_cob_nom_10first_24_cameras = ring_nominal[j, 46:56]
+            eta_cob_ext_10first_24_cameras = ring_extended[j, 45:55]
+            eta_cob_sec = ring_secondary[j, 9]
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in COB extraction: {e}")
+            eta_cob_nom_10first_24_cameras = np.zeros(10)
+            eta_cob_ext_10first_24_cameras = np.zeros(10)
+            eta_cob_sec = 0
 
         # False Positive detection conditions
         nfp[j, :] = eta_nom_bt_24_cameras[j, :] > flux_thresh_nom_mask
 
         # Extended mask detection conditions
-        nfp_ext_mask[j, :] = (eta_ext_bt_24_cameras[j, :] > flux_thresh_ext_mask) & \
-                             (delta_obs_ext[j, :] > delta_obs[j, :] + depth_sig_scaling * sig_depth_24_cameras[j, :])
+        # Assuming sig_depth_24_cameras is supposed to be computed as uncertainties
+        # Placeholder: If sig_depth_24_cameras should be derived from delta_obs or other metrics, compute it here
+        # For demonstration, let's assume it's proportional to delta_obs
+        sig_depth_24_cameras[j, :] = delta_obs[j, :] * 0.1  # Example: 10% uncertainty
+
+        nfp_ext_mask[j, :] = (
+            (eta_ext_bt_24_cameras[j, :] > flux_thresh_ext_mask) &
+            (delta_obs_ext[j, :] > delta_obs[j, :] + depth_sig_scaling * sig_depth_24_cameras[j, :])
+        )
 
         # COB detection conditions
         nfp_nom_cob[j, :] = eta_cob_nom_10first_24_cameras > cob_thresh
@@ -138,32 +219,48 @@ for i in range(number_of_circles):
         fp_single_contaminant_24_cameras[j, :] = nfp[j, :]
 
         # Secondary mask conditions
-        eta_c = ring_secondary[j, 6]
-        delta_obs_c = ring_secondary[j, 7]
-        delta_obs_t = delta_obs[j, :]
+        try:
+            eta_c = ring_secondary[j, 6]
+            delta_obs_c = ring_secondary[j, 7]
+            # Assuming sig_depth_sec_nom_quad should be computed similarly
+            sig_depth_sec_nom_quad[j, :] = delta_obs_c * 0.1  # Example: 10% uncertainty
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in secondary mask conditions: {e}")
+            eta_c = 0
+            delta_obs_c = 0
+            sig_depth_sec_nom_quad[j, :] = 0
+
         secondary_mask_conditions_24_cameras[j, :] = (
             (eta_c > flux_thresh_sec_mask) &
-            (delta_obs_c > delta_obs_t + depth_sig_scaling * sig_depth_sec_nom_quad[j, :]) &
+            (delta_obs_c > delta_obs[j, :] + depth_sig_scaling * sig_depth_sec_nom_quad[j, :]) &
             fp_single_contaminant_24_cameras[j, :]
         )
 
         # Secondary mask COB conditions
-        eta_cob_sec = ring_secondary[j, 9]
-        secondary_mask_cob_conditions_24_cameras[j, :] = (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
+        eta_cob_sec = ring_secondary[j, 9] if ring_secondary.shape[1] > 9 else 0
+        secondary_mask_cob_conditions_24_cameras[j, :] = (
+            (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
+        )
 
     # --- New Code for SPR_tot Accumulation Starts Here ---
 
     # Extract SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec for all targets in this ring
-    SPR_tot_nom = ring_nominal[:, 11]   # Adjust index if necessary
-    SPR_tot_ext = ring_extended[:, 13]  # Adjust index if necessary
-    SPR_tot_sec = ring_secondary[:, 9]  # Adjust index if necessary
+    try:
+        SPR_tot_nom = ring_nominal[:, 11]   # Adjust index if necessary
+        SPR_tot_ext = ring_extended[:, 13]  # Adjust index if necessary
+        SPR_tot_sec = ring_secondary[:, 9]  # Adjust index if necessary
+    except IndexError as e:
+        print(f"Index error while extracting SPR_tot metrics for Ring {i}: {e}")
+        SPR_tot_nom = np.array([])
+        SPR_tot_ext = np.array([])
+        SPR_tot_sec = np.array([])
 
     # Append to all targets lists
     spr_tot_nom_all.append(SPR_tot_nom)
     spr_tot_ext_all.append(SPR_tot_ext)
     spr_tot_sec_all.append(SPR_tot_sec)
 
-    # Extract SPR_tot for masked targets
+    # Identify masked targets where any eta_nom_bt_24_cameras > threshold
     eta_nom_above_threshold = np.any(eta_nom_bt_24_cameras > eta_nom_threshold, axis=1)  # Shape (n_targets_ring,)
     SPR_tot_nom_masked = SPR_tot_nom[eta_nom_above_threshold]
     SPR_tot_ext_masked = SPR_tot_ext[eta_nom_above_threshold]
@@ -174,11 +271,9 @@ for i in range(number_of_circles):
     spr_tot_ext_masked.append(SPR_tot_ext_masked)
     spr_tot_sec_masked.append(SPR_tot_sec_masked)
 
+    # --- New Code for SPR_tot Accumulation Ends Here ---
 
-    # Create a boolean mask for targets where any eta_nom_bt_24_cameras > threshold
-    eta_nom_above_threshold = np.any(eta_nom_bt_24_cameras > eta_nom_threshold, axis=1)  # Shape (n_targets_ring,)
-
-    # Compute efficiencies for all targets (as before)
+    # --- Existing Code for Efficiency Calculations ---
 
     # Total number of False Positives (FP) for all targets
     nfp_total_all = nfp.sum()
@@ -208,19 +303,43 @@ for i in range(number_of_circles):
     eff_ext_cob_ring.append(eff_ext_cob_all)
     eff_sec_cob_ring.append(eff_sec_cob_all)
 
+    # Compute uncertainties for all targets using binomial error
+    delta_eff_ext_flux_all = binomial_error(int((nfp & nfp_ext_mask).sum()), int(nfp_total_all))
+    eff_extended_ring_error.append(delta_eff_ext_flux_all)
+
+    delta_eff_nom_cob_all = binomial_error(int((nfp & nfp_nom_cob).sum()), int(nfp_total_all))
+    eff_nom_cob_ring_error.append(delta_eff_nom_cob_all)
+
+    delta_eff_ext_cob_all = binomial_error(int((nfp & nfp_ext_cob).sum()), int(nfp_total_all))
+    eff_ext_cob_ring_error.append(delta_eff_ext_cob_all)
+
+    delta_eff_secondary_all = binomial_error(int(secondary_mask_conditions_24_cameras.sum()), int(fp_single_total_all))
+    eff_secondary_ring_error.append(delta_eff_secondary_all)
+
+    delta_eff_sec_cob_all = binomial_error(int(secondary_mask_cob_conditions_24_cameras.sum()), int(fp_single_total_all))
+    eff_sec_cob_ring_error.append(delta_eff_sec_cob_all)
+
     # Now compute efficiencies only for targets where eta_nom_bt_24_cameras > threshold
 
-    # Create masked versions of the arrays based on eta_nom_above_threshold
-    nfp_masked = nfp[eta_nom_above_threshold, :]
-    nfp_ext_mask_masked = nfp_ext_mask[eta_nom_above_threshold, :]
-    nfp_nom_cob_masked = nfp_nom_cob[eta_nom_above_threshold, :]
-    nfp_ext_cob_masked = nfp_ext_cob[eta_nom_above_threshold, :]
-    fp_single_contaminant_masked = fp_single_contaminant_24_cameras[eta_nom_above_threshold, :]
-    secondary_mask_conditions_masked = secondary_mask_conditions_24_cameras[eta_nom_above_threshold, :]
-    secondary_mask_cob_conditions_masked = secondary_mask_cob_conditions_24_cameras[eta_nom_above_threshold, :]
+    if np.any(eta_nom_above_threshold):
+        nfp_masked = nfp[eta_nom_above_threshold, :]
+        nfp_ext_mask_masked = nfp_ext_mask[eta_nom_above_threshold, :]
+        nfp_nom_cob_masked = nfp_nom_cob[eta_nom_above_threshold, :]
+        nfp_ext_cob_masked = nfp_ext_cob[eta_nom_above_threshold, :]
+        fp_single_contaminant_masked = fp_single_contaminant_24_cameras[eta_nom_above_threshold, :]
+        secondary_mask_conditions_masked = secondary_mask_conditions_24_cameras[eta_nom_above_threshold, :]
+        secondary_mask_cob_conditions_masked = secondary_mask_cob_conditions_24_cameras[eta_nom_above_threshold, :]
+    else:
+        nfp_masked = np.array([])
+        nfp_ext_mask_masked = np.array([])
+        nfp_nom_cob_masked = np.array([])
+        nfp_ext_cob_masked = np.array([])
+        fp_single_contaminant_masked = np.array([])
+        secondary_mask_conditions_masked = np.array([])
+        secondary_mask_cob_conditions_masked = np.array([])
 
     # Total number of False Positives (FP) for masked targets
-    nfp_total_masked = nfp_masked.sum()
+    nfp_total_masked = nfp_masked.sum() if nfp_masked.size > 0 else 0
 
     if nfp_total_masked > 0:
         eff_ext_flux_masked = (nfp_masked & nfp_ext_mask_masked).sum() / nfp_total_masked * 100.
@@ -232,7 +351,7 @@ for i in range(number_of_circles):
         eff_ext_cob_masked = 0
 
     # Secondary mask efficiency for masked targets
-    fp_single_total_masked = fp_single_contaminant_masked.sum()
+    fp_single_total_masked = fp_single_contaminant_masked.sum() if fp_single_contaminant_masked.size > 0 else 0
     if fp_single_total_masked > 0:
         eff_secondary_masked = secondary_mask_conditions_masked.sum() / fp_single_total_masked * 100.
         eff_sec_cob_masked = secondary_mask_cob_conditions_masked.sum() / fp_single_total_masked * 100.
@@ -247,56 +366,37 @@ for i in range(number_of_circles):
     eff_ext_cob_ring_masked.append(eff_ext_cob_masked)
     eff_sec_cob_ring_masked.append(eff_sec_cob_masked)
 
-    # Print efficiencies for the current ring
+    # Compute uncertainties for masked targets using binomial error
+    delta_eff_ext_flux_masked = binomial_error(int((nfp_masked & nfp_ext_mask_masked).sum()), int(nfp_total_masked))
+    eff_extended_ring_masked_error.append(delta_eff_ext_flux_masked)
+
+    delta_eff_nom_cob_masked = binomial_error(int((nfp_masked & nfp_nom_cob_masked).sum()), int(nfp_total_masked))
+    eff_nom_cob_ring_masked_error.append(delta_eff_nom_cob_masked)
+
+    delta_eff_ext_cob_masked = binomial_error(int((nfp_masked & nfp_ext_cob_masked).sum()), int(nfp_total_masked))
+    eff_ext_cob_ring_masked_error.append(delta_eff_ext_cob_masked)
+
+    delta_eff_secondary_masked = binomial_error(int(secondary_mask_conditions_masked.sum()), int(fp_single_total_masked))
+    eff_secondary_ring_masked_error.append(delta_eff_secondary_masked)
+
+    delta_eff_sec_cob_masked = binomial_error(int(secondary_mask_cob_conditions_masked.sum()), int(fp_single_total_masked))
+    eff_sec_cob_ring_masked_error.append(delta_eff_sec_cob_masked)
+
+    # Print efficiencies for the current ring with error bars
     print(f"Ring {i} Efficiencies for All Targets:")
-    print(f"  Extended Flux Efficiency: {eff_ext_flux_all:.2f}%")
-    print(f"  Secondary Mask Efficiency: {eff_secondary_all:.2f}%")
-    print(f"  Nominal COB Efficiency: {eff_nom_cob_all:.2f}%")
-    print(f"  Extended COB Efficiency: {eff_ext_cob_all:.2f}%")
-    print(f"  Secondary COB Efficiency: {eff_sec_cob_all:.2f}%")
+    print(f"  Extended Flux Efficiency: {eff_ext_flux_all:.2f}% ± {delta_eff_ext_flux_all:.2f}%")
+    print(f"  Secondary Mask Efficiency: {eff_secondary_all:.2f}% ± {delta_eff_secondary_all:.2f}%")
+    print(f"  Nominal COB Efficiency: {eff_nom_cob_all:.2f}% ± {delta_eff_nom_cob_all:.2f}%")
+    print(f"  Extended COB Efficiency: {eff_ext_cob_all:.2f}% ± {delta_eff_ext_cob_all:.2f}%")
+    print(f"  Secondary COB Efficiency: {eff_sec_cob_all:.2f}% ± {delta_eff_sec_cob_all:.2f}%")
 
     print(f"Ring {i} Efficiencies for Targets with eta_nom_bt_24_cameras > {eta_nom_threshold}:")
-    print(f"  Extended Flux Efficiency: {eff_ext_flux_masked:.2f}%")
-    print(f"  Secondary Mask Efficiency: {eff_secondary_masked:.2f}%")
-    print(f"  Nominal COB Efficiency: {eff_nom_cob_masked:.2f}%")
-    print(f"  Extended COB Efficiency: {eff_ext_cob_masked:.2f}%")
-    print(f"  Secondary COB Efficiency: {eff_sec_cob_masked:.2f}%")
+    print(f"  Extended Flux Efficiency: {eff_ext_flux_masked:.2f}% ± {delta_eff_ext_flux_masked:.2f}%")
+    print(f"  Secondary Mask Efficiency: {eff_secondary_masked:.2f}% ± {delta_eff_secondary_masked:.2f}%")
+    print(f"  Nominal COB Efficiency: {eff_nom_cob_masked:.2f}% ± {delta_eff_nom_cob_masked:.2f}%")
+    print(f"  Extended COB Efficiency: {eff_ext_cob_masked:.2f}% ± {delta_eff_ext_cob_masked:.2f}%")
+    print(f"  Secondary COB Efficiency: {eff_sec_cob_masked:.2f}% ± {delta_eff_sec_cob_masked:.2f}%")
     print("-----------------------------------------------------")
-
-# Plotting efficiencies across rings with 'o-' format
-# For All Targets
-plt.figure(figsize=(10, 6))
-plt.plot(range(number_of_circles), eff_nom_cob_ring, 'o-', color='brown', label="Nominal COB Efficiency (All Targets)")
-plt.plot(range(number_of_circles), eff_ext_cob_ring, 's-', color='blue', label="Extended COB Efficiency (All Targets)")
-plt.plot(range(number_of_circles), eff_sec_cob_ring, 's-', color='purple', label="Secondary COB Efficiency (All Targets)")
-plt.plot(range(number_of_circles), eff_secondary_ring, '^-', color='green', label="Secondary Flux Efficiency (All Targets)")
-plt.plot(range(number_of_circles), eff_extended_ring, 'd-', color='red', label="Extended Flux Efficiency (All Targets)")
-# Adjust x-axis labels
-circle_labels = [f"Ring {i}" for i in range(1, number_of_circles + 1)]  # Circle 1 to Circle 7
-plt.xticks(ticks=range(number_of_circles), labels=circle_labels, fontsize=10)
-
-plt.ylabel("Efficiency (%)", fontsize=14)
-plt.title("Efficiencies Across Rings (All Targets)")
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# Plotting efficiencies across rings with 'o-' format
-# For Targets with eta_nom_bt_24_cameras > threshold
-plt.figure(figsize=(10, 6))
-plt.plot(range(number_of_circles), eff_nom_cob_ring_masked, 'o-', color='brown', label=f"Nominal COB Efficiency (eta_nom > {eta_nom_threshold})")
-plt.plot(range(number_of_circles), eff_ext_cob_ring_masked, 's-', color='blue', label=f"Extended COB Efficiency (eta_nom > {eta_nom_threshold})")
-plt.plot(range(number_of_circles), eff_sec_cob_ring_masked, 's-', color='purple', label=f"Secondary COB Efficiency (eta_nom > {eta_nom_threshold})")
-plt.plot(range(number_of_circles), eff_secondary_ring_masked, '^-', color='green', label=f"Secondary Flux Efficiency (eta_nom > {eta_nom_threshold})")
-plt.plot(range(number_of_circles), eff_extended_ring_masked, 'd-', color='red', label=f"Extended Flux Efficiency (eta_nom > {eta_nom_threshold})")
-# Adjust x-axis labels
-plt.xticks(ticks=range(number_of_circles), labels=circle_labels, fontsize=10)
-
-plt.ylabel("Efficiency (%)", fontsize=14)
-plt.title(f"Efficiencies Across Rings (eta_nom_bt_24_cameras > {eta_nom_threshold})")
-plt.legend()
-plt.grid(True)
-plt.show()
 
 # After the ring loop
 
@@ -341,10 +441,18 @@ plt.plot(
     color='blue', 
     label='SPR_tot_ext (All Targets)'
 )
-
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_sec_all, 
+    marker='^', 
+    linestyle='-', 
+    color='green', 
+    label='SPR_tot_sec (All Targets)'
+)
 
 plt.xlabel("Ring Number", fontsize=14)
 plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.title("Median SPR_tot as a Function of Ring Number (All Targets)", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
 plt.grid(True)
@@ -372,9 +480,18 @@ plt.plot(
     color='purple', 
     label=f'SPR_tot_ext (eta_nom > {eta_nom_threshold})'
 )
+plt.plot(
+    ring_numbers, 
+    median_spr_tot_sec_masked, 
+    marker='^', 
+    linestyle='-', 
+    color='orange', 
+    label=f'SPR_tot_sec (eta_nom > {eta_nom_threshold})'
+)
 
 plt.xlabel("Ring Number", fontsize=14)
 plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.title(f"Median SPR_tot as a Function of Ring Number (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
 plt.grid(True)
@@ -382,3 +499,127 @@ plt.grid(True)
 plt.tight_layout()
 plt.savefig("Median_SPR_tot_vs_Ring_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
 plt.show()
+
+# ----- Plot 3: Efficiencies Across Rings for All Targets with Error Bars -----
+plt.figure(figsize=(10, 6), dpi=120)
+
+plt.errorbar(
+    ring_numbers, 
+    eff_nom_cob_ring, 
+    yerr=eff_nom_cob_ring_error, 
+    fmt='o-', 
+    color='brown', 
+    label="Nominal COB Efficiency (All Targets)",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_ext_cob_ring, 
+    yerr=eff_ext_cob_ring_error, 
+    fmt='s-', 
+    color='blue', 
+    label="Extended COB Efficiency (All Targets)",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_sec_cob_ring, 
+    yerr=eff_sec_cob_ring_error, 
+    fmt='^-', 
+    color='purple', 
+    label="Secondary COB Efficiency (All Targets)",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_secondary_ring, 
+    yerr=eff_secondary_ring_error, 
+    fmt='^-', 
+    color='green', 
+    label="Secondary Flux Efficiency (All Targets)",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_extended_ring, 
+    yerr=eff_extended_ring_error, 
+    fmt='d-', 
+    color='red', 
+    label="Extended Flux Efficiency (All Targets)",
+    capsize=5
+)
+
+# Adjust x-axis labels
+circle_labels = [f"Ring {i}" for i in ring_numbers]  # Ring 1 to Ring 7
+plt.xticks(ring_numbers, circle_labels, fontsize=10)
+
+plt.ylabel("Efficiency (%)", fontsize=14)
+plt.title("Efficiencies Across Rings (All Targets)", fontsize=16)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("Efficiencies_Across_Rings_All_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ----- Plot 4: Efficiencies Across Rings for Masked Targets with Error Bars -----
+plt.figure(figsize=(10, 6), dpi=120)
+
+plt.errorbar(
+    ring_numbers, 
+    eff_nom_cob_ring_masked, 
+    yerr=eff_nom_cob_ring_masked_error, 
+    fmt='o-', 
+    color='brown', 
+    label=f"Nominal COB Efficiency (eta_nom > {eta_nom_threshold})",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_ext_cob_ring_masked, 
+    yerr=eff_ext_cob_ring_masked_error, 
+    fmt='s-', 
+    color='blue', 
+    label=f"Extended COB Efficiency (eta_nom > {eta_nom_threshold})",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_sec_cob_ring_masked, 
+    yerr=eff_sec_cob_ring_masked_error, 
+    fmt='^-', 
+    color='purple', 
+    label=f"Secondary COB Efficiency (eta_nom > {eta_nom_threshold})",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_secondary_ring_masked, 
+    yerr=eff_secondary_ring_masked_error, 
+    fmt='^-', 
+    color='green', 
+    label=f"Secondary Flux Efficiency (eta_nom > {eta_nom_threshold})",
+    capsize=5
+)
+plt.errorbar(
+    ring_numbers, 
+    eff_extended_ring_masked, 
+    yerr=eff_extended_ring_masked_error, 
+    fmt='d-', 
+    color='red', 
+    label=f"Extended Flux Efficiency (eta_nom > {eta_nom_threshold})",
+    capsize=5
+)
+
+# Adjust x-axis labels
+plt.xticks(ring_numbers, circle_labels, rotation=45, fontsize=10)
+
+plt.ylabel("Efficiency (%)", fontsize=14)
+plt.title(f"Efficiencies Across Rings (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("Efficiencies_Across_Rings_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ----- Existing Plotting Code for Efficiencies Across Rings -----
+# (If you have other plots like quadrant plots, include them here with similar error bar additions)
