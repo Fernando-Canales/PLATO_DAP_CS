@@ -603,7 +603,7 @@ for i in range(nP):
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras_2_pix, yerr=error_ext_2_pix_24_cameras, fmt='^', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
-    plt.errorbar(Pi, eff_ext_overall_6_cameras_2_pix, yerr=error_ext_2_pix_6_cameras, fmt='^', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_ext_overall_6_cameras_2_pix, yerr=error_ext_2_pix_6_cameras, fmt='^', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
     plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1)
     plt.fill_between([11, 13.4], [55, 55], [100, 100], color='plum', alpha=0.1)
 
@@ -622,7 +622,7 @@ for i in range(nP):
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix, eff_ext_overall_24_cameras_2_pix], color='yellow', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix_6_cameras, eff_ext_overall_6_cameras_2_pix], color='orange', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix_6_cameras, eff_ext_overall_6_cameras_2_pix], color='orange', linestyle='-', markersize=0)
     
     # Update previous values
     prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras, prev_eff_ext_overall_2_pix, prev_eff_ext_overall_2_pix_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras, eff_ext_overall_24_cameras_2_pix, eff_ext_overall_6_cameras_2_pix
