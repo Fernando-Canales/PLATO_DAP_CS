@@ -341,18 +341,10 @@ plt.plot(
     color='blue', 
     label='SPR_tot_ext (All Targets)'
 )
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_sec_all, 
-    marker='^', 
-    linestyle='-', 
-    color='green', 
-    label='SPR_tot_sec (All Targets)'
-)
+
 
 plt.xlabel("Ring Number", fontsize=14)
 plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
-plt.title("Median SPR_tot as a Function of Ring Number (All Targets)", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
 plt.grid(True)
@@ -380,18 +372,9 @@ plt.plot(
     color='purple', 
     label=f'SPR_tot_ext (eta_nom > {eta_nom_threshold})'
 )
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_sec_masked, 
-    marker='^', 
-    linestyle='-', 
-    color='orange', 
-    label=f'SPR_tot_sec (eta_nom > {eta_nom_threshold})'
-)
 
 plt.xlabel("Ring Number", fontsize=14)
 plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
-plt.title(f"Median SPR_tot as a Function of Ring Number (eta_nom_bt_24_cameras > {eta_nom_threshold})", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
 plt.grid(True)
