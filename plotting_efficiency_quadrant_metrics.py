@@ -6,6 +6,9 @@ Fernando 28th Nov. 2024
 import numpy as np  # type:ignore
 import matplotlib.pyplot as plt  # type:ignore
 
+# Adjust global line width for thicker error bars
+plt.rcParams['lines.linewidth'] = 2  # Increase as needed
+
 dataDIR_quadrants = '/home/fercho/double-aperture-photometry/simulation_results/rings/quarters/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 
 # Initialize lists to store efficiencies for each quadrant (all targets)
@@ -249,7 +252,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
 
     # Compute uncertainties for each efficiency metric (all targets)
     # Using binomial error: sqrt(p*(1-p)/n) * 100
-    # Where p = k/n, k is number of successes, n is number of trials
+    # Where p = k/n, k is number of successes
 
     # Number of successes for each efficiency metric
     k_nom_cob = (nfp & nfp_nom_cob).sum()
@@ -413,21 +416,16 @@ plt.show()
 fig_masked, ax_masked = plt.subplots(figsize=(12, 8))
 
 # Plot each efficiency metric with corresponding error bars
-rects1_masked = ax_masked.bar(x - 2*width, eff_nom_cob_quadrant_masked, width, yerr=eff_nom_cob_quadrant_masked_error,
+rects1_masked = ax_masked.bar(x - width, eff_nom_cob_quadrant_masked, width, yerr=eff_nom_cob_quadrant_masked_error,
                                 label='Nominal COB Efficiency (Masked)', color='brown', capsize=5)
-rects2_masked = ax_masked.bar(x - width, eff_ext_cob_quadrant_masked, width, yerr=eff_ext_cob_quadrant_masked_error,
-                                label='Extended COB Efficiency (Masked)', color='blue', capsize=5)
-rects3_masked = ax_masked.bar(x, eff_sec_cob_quadrant_masked, width, yerr=eff_sec_cob_quadrant_masked_error,
-                                label='Secondary COB Efficiency (Masked)', color='purple', capsize=5)
-rects4_masked = ax_masked.bar(x + width, eff_secondary_quadrant_masked, width, yerr=eff_secondary_quadrant_masked_error,
+rects2_masked = ax_masked.bar(x, eff_secondary_quadrant_masked, width, yerr=eff_secondary_quadrant_masked_error,
                                 label='Secondary Flux Efficiency (Masked)', color='green', capsize=5)
-rects5_masked = ax_masked.bar(x + 2*width, eff_extended_quadrant_masked, width, yerr=eff_extended_quadrant_masked_error,
+rects3_masked = ax_masked.bar(x + width, eff_extended_quadrant_masked, width, yerr=eff_extended_quadrant_masked_error,
                                 label='Extended Flux Efficiency (Masked)', color='red', capsize=5)
 
 # Add labels, title, and custom x-axis tick labels
 ax_masked.set_xlabel('Quadrant', fontsize=14)
 ax_masked.set_ylabel('Efficiency (%)', fontsize=14)
-ax_masked.set_title('Efficiencies Across Quadrants with Error Bars (Masked Targets)', fontsize=16)
 ax_masked.set_xticks(x)
 ax_masked.set_xticklabels(quadrant_names, fontsize=12)
 ax_masked.legend(fontsize=12)
