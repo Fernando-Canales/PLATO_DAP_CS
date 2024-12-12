@@ -130,6 +130,20 @@ sc_selected = ax.scatter(x_selected, y_selected, c=spr_tot_selected, cmap='virid
 ax.axhline(0, color='black', linewidth=2)
 ax.axvline(0, color='black', linewidth=2)
 
+# Add Roman numerals for the quadrants with a white font and black outline
+txt_I = plt.text(R/2, R/2, 'I', color='white', fontsize=24, fontweight='bold', 
+                 ha='center', va='center')
+txt_II = plt.text(-R/2, R/2, 'II', color='white', fontsize=24, fontweight='bold', 
+                  ha='center', va='center')
+txt_III = plt.text(-R/2, -R/2, 'III', color='white', fontsize=24, fontweight='bold', 
+                   ha='center', va='center')
+txt_IV = plt.text(R/2, -R/2, 'IV', color='white', fontsize=24, fontweight='bold', 
+                  ha='center', va='center')
+
+# Apply path effects to outline the text in black
+for txt in [txt_I, txt_II, txt_III, txt_IV]:
+    txt.set_path_effects([PathEffects.withStroke(linewidth=3, foreground='black')])
+
 ax.set_xlim(-(R + 5), R + 5)
 ax.set_ylim(-(R + 5), R + 5)
 
