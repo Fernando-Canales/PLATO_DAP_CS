@@ -5,6 +5,7 @@ import spline2dbase # type: ignore
 from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 from imagette import window, ran_unique_int, centroid_shift
 from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
+from tqdm import tqdm # type:ignore
 # ------------------------------------------------
 
 # ------------------------------------------------
@@ -16,7 +17,7 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = 'test_results/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/tests_plus_sign/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -39,7 +40,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 #n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
-n_tar = 50                            # number of targets per magnitude interval
+n_tar = 100                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
 Pmax = 13                               # maximum magnitude
 binsize = 0.5                           # binsize around every magnitude value
@@ -48,7 +49,8 @@ nP = int((Pmax - Pmin) / binsize + 1)   # number of bins
 
 # ------------------------------------------------
 # MORE CONFIGURATION PARAMETERS
-data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
+#data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
+data = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy')
 psfdata = np.load(PSFfile)                       # processed PSFs 
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue
 
@@ -550,7 +552,9 @@ for i in range(nP):
         
         return save_info, save_info_contaminant, save_info_ext, save_info_bray     
 
-    for k in range(len(ID_target)):
+
+    for k in tqdm(range(len(ID_target)), desc=f"Magnitude bin {Pi:.2f}", unit="target"):
+    #for k in range(len(ID_target)):
         result = process_target(k)
         save_info[counter] = result[0]
         save_info_sec[counter] = result[1]

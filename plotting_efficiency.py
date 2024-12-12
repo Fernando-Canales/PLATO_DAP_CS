@@ -7,8 +7,8 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_4000K_PSF'
+#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -25,7 +25,7 @@ td_ref = 6.72*0.46**2
 dback_ref = 132000
 
 
-data_catalogue = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
+data_catalogue = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy') # star catalogue from GAIA
 magnitude_all_stars = data_catalogue[:, 2]
 data = np.load(dataDIR + 'targets_P5.npy')
 #0: ID_t
