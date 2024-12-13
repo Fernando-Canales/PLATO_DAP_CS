@@ -417,11 +417,11 @@ fig_masked, ax_masked = plt.subplots(figsize=(12, 8))
 
 # Plot each efficiency metric with corresponding error bars
 rects1_masked = ax_masked.bar(x - width, eff_nom_cob_quadrant_masked, width, yerr=eff_nom_cob_quadrant_masked_error,
-                                label='Nominal COB Efficiency (Masked)', color='brown', capsize=5)
+                                label='Nominal centroids', color='brown', capsize=5)
 rects2_masked = ax_masked.bar(x, eff_secondary_quadrant_masked, width, yerr=eff_secondary_quadrant_masked_error,
-                                label='Secondary Flux Efficiency (Masked)', color='green', capsize=5)
+                                label='Secondary Flux', color='green', capsize=5)
 rects3_masked = ax_masked.bar(x + width, eff_extended_quadrant_masked, width, yerr=eff_extended_quadrant_masked_error,
-                                label='Extended Flux Efficiency (Masked)', color='red', capsize=5)
+                                label='Extended Flux ', color='red', capsize=5)
 
 # Add labels, title, and custom x-axis tick labels
 ax_masked.set_xlabel('Quadrant', fontsize=14)
