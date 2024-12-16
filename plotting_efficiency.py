@@ -7,8 +7,8 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
+dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
 Pmin = 10
@@ -599,9 +599,9 @@ for i in range(nP):
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
-    plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
-    plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras_2_pix, yerr=error_ext_2_pix_24_cameras, fmt='^', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
     #plt.errorbar(Pi, eff_ext_overall_6_cameras_2_pix, yerr=error_ext_2_pix_6_cameras, fmt='^', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
     plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1)
@@ -618,9 +618,9 @@ for i in range(nP):
     # Connecting lines for the previous data points
     if i > 0:
         plt.plot([prev_Pi, Pi], [prev_eff_sec, eff_sec], color='purple', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix, eff_ext_overall_24_cameras_2_pix], color='yellow', linestyle='-', markersize=0)
         #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix_6_cameras, eff_ext_overall_6_cameras_2_pix], color='orange', linestyle='-', markersize=0)
     
