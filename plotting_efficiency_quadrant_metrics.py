@@ -39,6 +39,10 @@ eff_nom_cob_quadrant_masked_error = []
 eff_ext_cob_quadrant_masked_error = []
 eff_sec_cob_quadrant_masked_error = []
 
+# Initialize lists to store median SPR_tot and SPR_tot_ext for each quadrant
+median_SPR_tot_nom_quadrant = []
+median_SPR_tot_ext_quadrant = []
+
 quadrant_names = ['Q1', 'Q2', 'Q3', 'Q4']  # List of quadrants
 ntr = 3  # Number of transits in one hour
 dback_ref = 132000  # Reference transit depth (ppm)
@@ -76,6 +80,35 @@ for idx, quadrant_name in enumerate(quadrant_names):
         quadrant_extended = np.load(f"{dataDIR_quadrants}quadrant_{quadrant_name}_extended.npy")
     except FileNotFoundError as e:
         print(f"Error loading data for {quadrant_name}: {e}")
+        # Append np.nan to median lists if data is missing
+        median_SPR_tot_nom_quadrant.append(np.nan)
+        median_SPR_tot_ext_quadrant.append(np.nan)
+        # Append zeros to efficiency lists to maintain list length
+        eff_extended_quadrant.append(0)
+        eff_secondary_quadrant.append(0)
+        eff_nom_cob_quadrant.append(0)
+        eff_ext_cob_quadrant.append(0)
+        eff_sec_cob_quadrant.append(0)
+        
+        # Append zeros to uncertainties lists
+        eff_extended_quadrant_error.append(0)
+        eff_secondary_quadrant_error.append(0)
+        eff_nom_cob_quadrant_error.append(0)
+        eff_ext_cob_quadrant_error.append(0)
+        eff_sec_cob_quadrant_error.append(0)
+        
+        # Append zeros to masked efficiencies and uncertainties
+        eff_extended_quadrant_masked.append(0)
+        eff_secondary_quadrant_masked.append(0)
+        eff_nom_cob_quadrant_masked.append(0)
+        eff_ext_cob_quadrant_masked.append(0)
+        eff_sec_cob_quadrant_masked.append(0)
+        
+        eff_extended_quadrant_masked_error.append(0)
+        eff_secondary_quadrant_masked_error.append(0)
+        eff_nom_cob_quadrant_masked_error.append(0)
+        eff_ext_cob_quadrant_masked_error.append(0)
+        eff_sec_cob_quadrant_masked_error.append(0)
         continue  # Skip to the next quadrant if files are missing
 
     # Number of targets in this quadrant
@@ -100,6 +133,10 @@ for idx, quadrant_name in enumerate(quadrant_names):
 
     # Array to track masked targets
     masked_targets = np.zeros(n_targets_quadrant, dtype=bool)
+
+    # Initialize temporary lists to collect SPR_tot_nom and SPR_tot_ext for median calculation
+    SPR_tot_nom_list = []
+    SPR_tot_ext_list = []
 
     # Compute metrics for each target in the quadrant
     for j in range(n_targets_quadrant):
@@ -152,6 +189,10 @@ for idx, quadrant_name in enumerate(quadrant_names):
             SPR_tot_sec = 0
             SPR_tot_ext = 0
             SPR_tot_nom = 0
+
+        # Collect SPR_tot_nom and SPR_tot_ext for median calculation
+        SPR_tot_nom_list.append(SPR_tot_nom)
+        SPR_tot_ext_list.append(SPR_tot_ext)
 
         # Significant transit depth calculations
         try:
@@ -223,6 +264,20 @@ for idx, quadrant_name in enumerate(quadrant_names):
         if np.any(eta_nom_bt_24_cameras[j, :] > eta_nom_threshold):
             masked_targets[j] = True
 
+    # Compute median SPR_tot_nom and SPR_tot_ext for the current quadrant
+    if len(SPR_tot_nom_list) > 0:
+        median_SPR_tot_nom = np.median(SPR_tot_nom_list)
+    else:
+        median_SPR_tot_nom = np.nan  # Assign NaN if list is empty
+
+    if len(SPR_tot_ext_list) > 0:
+        median_SPR_tot_ext = np.median(SPR_tot_ext_list)
+    else:
+        median_SPR_tot_ext = np.nan  # Assign NaN if list is empty
+
+    median_SPR_tot_nom_quadrant.append(median_SPR_tot_nom)
+    median_SPR_tot_ext_quadrant.append(median_SPR_tot_ext)
+
     # Compute efficiencies for all targets
     nfp_total = nfp.sum()
     if nfp_total > 0:
@@ -257,7 +312,7 @@ for idx, quadrant_name in enumerate(quadrant_names):
     # Number of successes for each efficiency metric
     k_nom_cob = (nfp & nfp_nom_cob).sum()
     k_ext_cob = (nfp & nfp_ext_cob).sum()
-    k_sec_cob = eff_secondary_cob / 100.0 * fp_single_total if fp_single_total > 0 else 0
+    k_sec_cob = eff_sec_cob_quadrant[-1] / 100.0 * fp_single_total if fp_single_total > 0 else 0
     k_secondary = eff_secondary / 100.0 * fp_single_total if fp_single_total > 0 else 0
     k_ext_flux = (nfp & nfp_ext_mask).sum()
 
@@ -371,6 +426,10 @@ for idx, quadrant_name in enumerate(quadrant_names):
     print(f"  Secondary Flux Efficiency: {eff_secondary:.2f}% ± {delta_secondary:.2f}%")
     print(f"  Extended Flux Efficiency: {eff_ext_flux:.2f}% ± {delta_ext_flux:.2f}%\n")
 
+    # Print median SPR_tot_nom and SPR_tot_ext for the current quadrant
+    print(f"Quadrant {quadrant_name} Median SPR_tot_nom: {median_SPR_tot_nom:.2f}")
+    print(f"Quadrant {quadrant_name} Median SPR_tot_ext: {median_SPR_tot_ext:.2f}\n")
+
     # If there are masked targets, print their efficiencies as well
     if np.any(masked_targets):
         print(f"Quadrant {quadrant_name} Masked Targets Efficiencies:")
@@ -417,15 +476,16 @@ fig_masked, ax_masked = plt.subplots(figsize=(12, 8))
 
 # Plot each efficiency metric with corresponding error bars
 rects1_masked = ax_masked.bar(x - width, eff_nom_cob_quadrant_masked, width, yerr=eff_nom_cob_quadrant_masked_error,
-                                label='Nominal centroids', color='brown', capsize=5)
+                                label='Nominal COB Efficiency (Masked)', color='brown', capsize=5)
 rects2_masked = ax_masked.bar(x, eff_secondary_quadrant_masked, width, yerr=eff_secondary_quadrant_masked_error,
-                                label='Secondary Flux', color='green', capsize=5)
+                                label='Secondary Flux Efficiency (Masked)', color='green', capsize=5)
 rects3_masked = ax_masked.bar(x + width, eff_extended_quadrant_masked, width, yerr=eff_extended_quadrant_masked_error,
-                                label='Extended Flux ', color='red', capsize=5)
+                                label='Extended Flux Efficiency (Masked)', color='red', capsize=5)
 
 # Add labels, title, and custom x-axis tick labels
 ax_masked.set_xlabel('Quadrant', fontsize=14)
 ax_masked.set_ylabel('Efficiency (%)', fontsize=14)
+ax_masked.set_title('Efficiencies Across Quadrants with Error Bars (Masked Targets)', fontsize=16)
 ax_masked.set_xticks(x)
 ax_masked.set_xticklabels(quadrant_names, fontsize=12)
 ax_masked.legend(fontsize=12)
@@ -433,4 +493,29 @@ ax_masked.grid(True, linestyle='--', alpha=0.7)
 
 plt.tight_layout()
 plt.savefig("Efficiencies_Across_Quadrants_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# --- Plotting Median SPR_tot_nom and SPR_tot_ext for Each Quadrant ---
+fig_median, ax_median = plt.subplots(figsize=(12, 8))
+
+# Define positions for each bar group
+x_median = np.arange(len(quadrant_names))
+width_median = 0.35  # width of the bars
+
+# Plot median SPR_tot_nom and SPR_tot_ext
+rects1_median = ax_median.bar(x_median - width_median/2, median_SPR_tot_nom_quadrant, width_median, 
+                               label='Nominal mask', color='orange', capsize=5)
+rects2_median = ax_median.bar(x_median + width_median/2, median_SPR_tot_ext_quadrant, width_median, 
+                               label='Extended mask', color='cyan', capsize=5)
+
+# Add labels, title, and custom x-axis tick labels
+ax_median.set_xlabel('Quadrant', fontsize=14)
+ax_median.set_ylabel(r'Median $\rm SPR_{tot}$', fontsize=14)
+ax_median.set_xticks(x_median)
+ax_median.set_xticklabels(quadrant_names, fontsize=12)
+ax_median.legend(fontsize=12)
+ax_median.grid(True, linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.savefig("Median_SPR_tot_Across_Quadrants.pdf", format='pdf', bbox_inches='tight')
 plt.show()
