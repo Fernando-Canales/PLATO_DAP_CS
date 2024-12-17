@@ -3,6 +3,7 @@ import h5py # type: ignore
 import spline2dbase # type: ignore
 import math
 import numpy as np #type:ignore
+import matplotlib.pyplot as plt # type:ignore
 
 fpsf = 'PSF_Focus_0mu_0.2pxdif.npz'
 psfidx = 100 # index of the PSF to be used
@@ -12,7 +13,7 @@ PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
 
 nexp = 1500 #  number of exposures
-driftamplitude = 1. # amplitude of the drif in pix/90 days
+driftamplitude = 0.1 # amplitude of the drif in pix/90 days
 
 ron = 52.  # readout noise [e-]
 zero_point = 20.62 # camera zero point
@@ -27,8 +28,9 @@ bgerr = 100. # background residual error [e-/pix]
 Mpx = 6 # size of the imagette
 Mag = 11 # PLATO magnitude , target
 MagC = Mag + 2 # magnitude contaminant
-DistC = 1. # distance of the contaminant from the target
-x0,y0 = 3.1, 2.9 # target position in the imagette
+DistC = 1.6 # distance of the contaminant from the target
+x0,y0 = 3, 3 # target position in the imagette
+
 
 # stellar variability
 ffluxvar = 'fluxtransitcorot7b_90d.hdf5' # Corot 7b depth=3.958e-4
@@ -200,8 +202,8 @@ IhrT *= fxT
 IhrC *= fxC
 
 
-data = np.zeros((nexp,3+6*6))
-
+#data = np.zeros((nexp,3+6*6))
+data = np.zeros((nexp, 40))
 i0 = int(round(x0-Mpx/2.))
 j0 = int(round(y0-Mpx/2.))
 
@@ -220,7 +222,17 @@ em = extended_binary_mask(bm,1)
 NSRe = NSR(em,bg,ron, sq, IT, IC)
 print('SNRe = %f' % (1./NSRe))
 
+# calculation of the corresponding secondary mask
+sm = aperture_computation(IC, IT, bg, ron, sq)
+NSRs = NSR(sm, bg, ron, sq, IC, IT)
+print('SNRs = %f' % (1./NSRs))
+
+
 MagTC = Mag + 2.5*(math.log10(fxT) - math.log10(fxC+fxT) )
+
+print('Target coordinates: %f' % x0, y0)
+print('Contaminant coordinates: %f' % x0C, y0C)
+
 
 for t in range(nexp):
     dx = t*25./(86400.*90)* driftamplitude /math.sqrt(2.)
@@ -247,61 +259,62 @@ for t in range(nexp):
     data[t,0] = t*25.
     data[t,1] = dx
     data[t,2] = dy
-    
     s = 3
     data[t,s] = np.sum(Itot*bm)
     data[t,1+s] = np.sum(Itot*em)
     data[t,2+s:4+s] = barycenter(Itot,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot,mask=em)
+    #data[t,4+s:6+s] = barycenter(Itot,mask=sm)
+    data[t, 7 + s] = np.sum(Itot * sm)  # Secondary flux for target
     
     s = 9
     data[t,s] = np.sum(IT*bm)
     data[t,1+s] = np.sum(IT*em)
     data[t,2+s:4+s] = barycenter(IT,mask=bm)
     data[t,4+s:6+s] = barycenter(IT,mask=em)
+    #data[t,4+s:6+s] = barycenter(IC,mask=sm)
+    data[t, 7 + s + 6] = np.sum(IC * sm)  # Secondary flux for contaminant
 
     s = 15
     data[t,s] = np.sum(IC*bm)
     data[t,1+s] = np.sum(IC*em)
     data[t,2+s:4+s] = barycenter(IC,mask=bm)
     data[t,4+s:6+s] = barycenter(IC,mask=em)
+    #data[t,4+s:6+s] = barycenter(IT,mask=sm)
+    data[t, 7 + s + 12] = np.sum(IT * sm)  # Secondary flux for contaminant
 
     s = 21
     data[t,s] = np.sum(IC0*bm)
     data[t,1+s] = np.sum(IC0*em)
     data[t,2+s:4+s] = barycenter(IC0,mask=bm)
     data[t,4+s:6+s] = barycenter(IC0,mask=em)
+    #data[t,4+s:6+s] = barycenter(IT0,mask=sm)
+    data[t,7+s] = np.sum(IT0*sm)
 
     s = 27
     data[t,s] = np.sum(IT0*bm)
     data[t,1+s] = np.sum(IT0*em)
     data[t,2+s:4+s] = barycenter(IT0,mask=bm)
     data[t,4+s:6+s] = barycenter(IT0,mask=em)
+    #data[t,4+s:6+s] = barycenter(IC0,mask=sm)
+    #data[t,7+s] = np.sum(IC0*sm)
 
     s = 33
     data[t,s] = np.sum(Itot0*bm)
-    data[t,1+s] = np.sum(Itot0*em)
+    data[t,1+s] = np.sum(Itot0*sm)
     data[t,2+s:4+s] = barycenter(Itot0,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot0,mask=em)
-
-    #print((("%i %f %f") %  (t,dx,dy)))
-    
-    
+    #data[t,4+s:6+s] = barycenter(Itot0,mask=sm)
+    #data[t,7+s] = np.sum(Itot0*sm)
 
 # saving data
 np.save(fname+'.npy',data)
 np.save(fname+'_bm.npy',bm)
 np.save(fname+'_em.npy',em)
+np.save(fname+'_sm.npy',sm)
 np.save(fname+'_IhrC.npy',IhrC)
 np.save(fname+'_IhrT.npy',IhrT)
 np.savez(fname+'_param',x0=x0,x0C=x0C,y0=y0,y0C=y0C,i0=0,j0=0,bg=bg)
-
-figure(0) # type: ignore
-clf() # type: ignore
-plot(data[:,0],data[:,33],'k') # type: ignore
-plot(data[:,0],data[:,3],'r') # type: ignore
-
-show() # type: ignore
 
 # data[:,i]
 # 0 : time
@@ -320,3 +333,63 @@ show() # type: ignore
 # 21-26: same for contaminant star only, no transit
 # 27-32: same for target only, no transit
 # 33-40: Ftot, no transit
+
+
+
+# Function to add dashed lines for the nominal mask
+def plot_nominal_mask_contour(nominal_mask, plot_color):
+    for j in range(6):
+        for i in range(6):
+            if nominal_mask[j, i] == 1:
+                plt.plot([i, i+1], [j, j], color=plot_color, linestyle='--', lw=3)  # Bottom edge
+                plt.plot([i, i+1], [j+1, j+1], color=plot_color, linestyle='--', lw=3)  # Top edge
+                plt.plot([i, i], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Left edge
+                plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
+
+plt.figure(1, figsize=(7, 6), dpi=300)
+plt.plot(data[:, 0]/ 3600., data[:,33]/max(data[:, 33]), label='Nominal Flux from the Target', color='black')
+plt.scatter(data[:, 0]/ 3600., data[:, 3]/max(data[:, 3]), label='Nominal Flux from the Contmnt.', color='black',  marker='o', s=2)
+plt.scatter(data[:, 0]/ 3600., data[:, 4]/max(data[:, 4]), label='Extended Flux from the Contmnt.', color='blue',  marker='s', s=2)
+plt.xlabel('Time [hours]', fontsize=14)
+plt.ylabel('Normalized Flux', fontsize=14)
+plt.legend()
+# Adjust the layout manually to increase the space at the bottom for the x-axis label
+plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
+plt.savefig('Extended_and_Nominal_light_curves.pdf', format='pdf')
+plt.show()
+
+plt.figure(2, figsize=(7, 6), dpi=300)
+plt.plot(data[:, 0]/ 3600., data[:,33]/max(data[:, 33]), label='Nominal Flux from the Target', color='black')
+plt.scatter(data[:, 0]/ 3600., data[:, 3]/max(data[:, 3]), label='Nominal Flux from the Contmnt.', color='black',  marker='o', s=3)
+plt.scatter(data[:, 0]/ 3600., data[:, 7]/max(data[:, 7]), label='Secondary Flux from the Contmnt.', color='red',  marker='P', s=3)
+plt.xlabel('Time [hours]', fontsize=14)
+plt.ylabel('Normalized Flux', fontsize=14)
+plt.legend()
+# Adjust the layout manually to increase the space at the bottom for the x-axis label
+plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
+#plt.savefig('Secondary_and_Nominal_light_curves.pdf', format='pdf')
+plt.show()
+
+# Plotting the masks
+plt.imshow(bm, origin='lower', extent=(0,6,0,6))
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.savefig('nominal_mask_example_target_and_contaminant.pdf', format='pdf')
+plt.show()
+plt.imshow(em, origin='lower', extent=(0,6,0,6))
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plot_nominal_mask_contour(nominal_mask=bm, plot_color='black')
+plt.savefig('extended_mask_example_target_and_contaminant.pdf', format='pdf')
+plt.show()
+plt.imshow(sm, origin='lower', extent=(0,6,0,6))
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plot_nominal_mask_contour(nominal_mask=bm, plot_color='white')
+plt.savefig('secondary_mask_example_target_and_contaminant.pdf', format='pdf')
+plt.show()
+
+
