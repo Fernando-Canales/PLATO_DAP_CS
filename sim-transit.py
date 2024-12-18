@@ -261,7 +261,7 @@ for t in range(nexp):
     data[t,2] = dy
     s = 3
     data[t,s] = np.sum(Itot*bm)
-    data[t,1+s] = np.sum(Itot*em)
+    data[t,1+s] = np.sum(Itot*sm)
     data[t,2+s:4+s] = barycenter(Itot,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot,mask=em)
     #data[t,4+s:6+s] = barycenter(Itot,mask=sm)
@@ -269,7 +269,7 @@ for t in range(nexp):
     
     s = 9
     data[t,s] = np.sum(IT*bm)
-    data[t,1+s] = np.sum(IT*em)
+    data[t,1+s] = np.sum(IC*sm)
     data[t,2+s:4+s] = barycenter(IT,mask=bm)
     data[t,4+s:6+s] = barycenter(IT,mask=em)
     #data[t,4+s:6+s] = barycenter(IC,mask=sm)
@@ -277,7 +277,7 @@ for t in range(nexp):
 
     s = 15
     data[t,s] = np.sum(IC*bm)
-    data[t,1+s] = np.sum(IC*em)
+    data[t,1+s] = np.sum(IT*sm)
     data[t,2+s:4+s] = barycenter(IC,mask=bm)
     data[t,4+s:6+s] = barycenter(IC,mask=em)
     #data[t,4+s:6+s] = barycenter(IT,mask=sm)
@@ -285,7 +285,7 @@ for t in range(nexp):
 
     s = 21
     data[t,s] = np.sum(IC0*bm)
-    data[t,1+s] = np.sum(IC0*em)
+    data[t,1+s] = np.sum(IT0*sm)
     data[t,2+s:4+s] = barycenter(IC0,mask=bm)
     data[t,4+s:6+s] = barycenter(IC0,mask=em)
     #data[t,4+s:6+s] = barycenter(IT0,mask=sm)
@@ -293,7 +293,7 @@ for t in range(nexp):
 
     s = 27
     data[t,s] = np.sum(IT0*bm)
-    data[t,1+s] = np.sum(IT0*em)
+    data[t,1+s] = np.sum(IC0*sm)
     data[t,2+s:4+s] = barycenter(IT0,mask=bm)
     data[t,4+s:6+s] = barycenter(IT0,mask=em)
     #data[t,4+s:6+s] = barycenter(IC0,mask=sm)
@@ -347,28 +347,18 @@ def plot_nominal_mask_contour(nominal_mask, plot_color):
                 plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
 
 plt.figure(1, figsize=(7, 6), dpi=300)
-plt.plot(data[:, 0]/ 3600., data[:,33]/max(data[:, 33]), label='Nominal Flux from the Target', color='black')
-plt.scatter(data[:, 0]/ 3600., data[:, 3]/max(data[:, 3]), label='Nominal Flux from the Contmnt.', color='black',  marker='o', s=2)
-plt.scatter(data[:, 0]/ 3600., data[:, 4]/max(data[:, 4]), label='Extended Flux from the Contmnt.', color='blue',  marker='s', s=2)
+plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label='Nominal Flux', color='black',  marker='o', s=3)
+plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Secondary Flux', color='red',  marker='P', s=3)
 plt.xlabel('Time [hours]', fontsize=14)
 plt.ylabel('Normalized Flux', fontsize=14)
 plt.legend()
 # Adjust the layout manually to increase the space at the bottom for the x-axis label
 plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
-plt.savefig('Extended_and_Nominal_light_curves.pdf', format='pdf')
+#plt.savefig('Extended_and_Nominal_light_curves.pdf', format='pdf')
+#plt.show()
+plt.savefig('Secondary_and_Nominal_light_curves.pdf', format='pdf')
 plt.show()
 
-plt.figure(2, figsize=(7, 6), dpi=300)
-plt.plot(data[:, 0]/ 3600., data[:,33]/max(data[:, 33]), label='Nominal Flux from the Target', color='black')
-plt.scatter(data[:, 0]/ 3600., data[:, 3]/max(data[:, 3]), label='Nominal Flux from the Contmnt.', color='black',  marker='o', s=3)
-plt.scatter(data[:, 0]/ 3600., data[:, 7]/max(data[:, 7]), label='Secondary Flux from the Contmnt.', color='red',  marker='P', s=3)
-plt.xlabel('Time [hours]', fontsize=14)
-plt.ylabel('Normalized Flux', fontsize=14)
-plt.legend()
-# Adjust the layout manually to increase the space at the bottom for the x-axis label
-plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
-#plt.savefig('Secondary_and_Nominal_light_curves.pdf', format='pdf')
-plt.show()
 
 # Plotting the masks
 plt.imshow(bm, origin='lower', extent=(0,6,0,6))
