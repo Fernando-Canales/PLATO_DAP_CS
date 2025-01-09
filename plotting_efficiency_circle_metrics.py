@@ -14,6 +14,10 @@ import matplotlib.patheffects as PathEffects # type: ignore
 # Some file parameters
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 
+# Define ring numbers for x-axis (1 to number_of_circles)
+number_of_circles = 7  # Ensure this matches your data
+ring_numbers = np.arange(1, number_of_circles + 1)  # [1, 2, ..., number_of_circles]
+
 # Initialize lists to store efficiencies for each ring
 eff_extended_ring = []
 eff_secondary_ring = []
@@ -51,8 +55,27 @@ eff_sec_cob_ring_masked_error = []
 eff_secondary_ring_masked_error = []
 eff_extended_ring_masked_error = []
 
+# Initialize lists to store median SPR_tot for masked targets per ring
+median_spr_tot_nom_masked_ring = []
+median_spr_tot_ext_masked_ring = []
+median_spr_tot_sec_masked_ring = []
+
+# Initialize lists to store errors for median SPR_tot for masked targets
+median_spr_tot_nom_masked_ring_error = []
+median_spr_tot_ext_masked_ring_error = []
+median_spr_tot_sec_masked_ring_error = []
+
+# Initialize lists to store median SPR_tot for all targets per ring
+median_spr_tot_nom_ring = []
+median_spr_tot_ext_ring = []
+median_spr_tot_sec_ring = []
+
+# Initialize lists to store errors for median SPR_tot for all targets
+median_spr_tot_nom_ring_error = []
+median_spr_tot_ext_ring_error = []
+median_spr_tot_sec_ring_error = []
+
 # Define parameters
-number_of_circles = 7  # Adjust as needed
 ntr = 3  # Number of transits in one hour
 dback_ref = 132000  # Reference value for transit depth (ppm)
 td_ref = 6.72 * 0.46**2  # Transit duration in hours
@@ -100,6 +123,33 @@ def binomial_error(k, n):
     else:
         return 0.0
 
+# Function to estimate median error via bootstrapping
+def bootstrap_median(data, num_samples=1000, random_seed=None):
+    """
+    Estimates the standard error of the median using bootstrapping.
+    
+    Args:
+        data (array-like): The data to bootstrap.
+        num_samples (int): Number of bootstrap samples.
+        random_seed (int, optional): Seed for reproducibility.
+    
+    Returns:
+        float: Estimated standard error of the median.
+    """
+    if random_seed is not None:
+        np.random.seed(random_seed)
+    
+    medians = []
+    n = len(data)
+    if n == 0:
+        return np.nan  # Return NaN if data is empty
+    
+    for _ in range(num_samples):
+        sample = np.random.choice(data, size=n, replace=True)
+        medians.append(np.median(sample))
+    
+    return np.std(medians)
+
 # Loop through each ring, load corresponding .npy files, and compute metrics
 for i in range(number_of_circles):
     # Load .npy files for the current ring
@@ -109,6 +159,39 @@ for i in range(number_of_circles):
         ring_extended = np.load(f"{dataDIR}ring_{i}_extended.npy")
     except FileNotFoundError as e:
         print(f"Error loading data for Ring {i}: {e}")
+        # Append np.nan to median lists if data is missing
+        median_spr_tot_nom_ring.append(np.nan)
+        median_spr_tot_ext_ring.append(np.nan)
+        median_spr_tot_sec_ring.append(np.nan)
+        median_spr_tot_nom_ring_error.append(np.nan)
+        median_spr_tot_ext_ring_error.append(np.nan)
+        median_spr_tot_sec_ring_error.append(np.nan)
+        # Append zeros to efficiency lists to maintain list length
+        eff_extended_ring.append(0)
+        eff_secondary_ring.append(0)
+        eff_nom_cob_ring.append(0)
+        eff_ext_cob_ring.append(0)
+        eff_sec_cob_ring.append(0)
+        
+        # Append zeros to uncertainties lists
+        eff_extended_ring_error.append(0)
+        eff_secondary_ring_error.append(0)
+        eff_nom_cob_ring_error.append(0)
+        eff_ext_cob_ring_error.append(0)
+        eff_sec_cob_ring_error.append(0)
+        
+        # Append zeros to masked efficiencies and uncertainties
+        eff_extended_ring_masked.append(0)
+        eff_secondary_ring_masked.append(0)
+        eff_nom_cob_ring_masked.append(0)
+        eff_ext_cob_ring_masked.append(0)
+        eff_sec_cob_ring_masked.append(0)
+        
+        eff_extended_ring_masked_error.append(0)
+        eff_secondary_ring_masked_error.append(0)
+        eff_nom_cob_ring_masked_error.append(0)
+        eff_ext_cob_ring_masked_error.append(0)
+        eff_sec_cob_ring_masked_error.append(0)
         continue  # Skip to the next ring if files are missing
 
     # Number of targets in this ring
@@ -139,12 +222,14 @@ for i in range(number_of_circles):
         td = np.ones(10) * td_ref  # Reference transit duration
 
         # Ensure indices correspond to your data structure
-        sprk_10first = ring_nominal[j, 17:27]   # Adjust indices if necessary
         try:
+            sprk_10first = ring_nominal[j, 17:27]   # Adjust indices if necessary
             nsr_1h_24_cameras_nominal_mask = ring_nominal[j, 7]  # Adjust index if necessary
             SPR_tot = ring_nominal[j, 11]  # Adjust index if necessary
         except IndexError as e:
             print(f"Index error for Ring {i}, Target {j} in SPR_tot extraction: {e}")
+            sprk_10first = np.zeros(10)
+            nsr_1h_24_cameras_nominal_mask = 0
             SPR_tot = 0
 
         # Compute eta_nom_bt_24_cameras and eta_nom_bt_6_cameras
@@ -153,13 +238,17 @@ for i in range(number_of_circles):
                 gamma_factor_significance * dback * sprk_10first * np.sqrt(td * ntr)
                 / (ring_nominal[j, 7] * (1 - ring_nominal[j, 11]))
             )
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in eta_nom_bt_24_cameras calculation: {e}")
+            eta_nom_bt_24_cameras[j, :] = 0
+
+        try:
             eta_nom_bt_6_cameras[j, :] = (
                 gamma_factor_significance * dback * sprk_10first * np.sqrt(td * ntr)
                 / (ring_nominal[j, 148] * (1 - ring_nominal[j, 11]))  # Adjust index if necessary
             )
         except IndexError as e:
-            print(f"Index error for Ring {i}, Target {j} in eta_nom calculations: {e}")
-            eta_nom_bt_24_cameras[j, :] = 0
+            print(f"Index error for Ring {i}, Target {j} in eta_nom_bt_6_cameras calculation: {e}")
             eta_nom_bt_6_cameras[j, :] = 0
 
         # Compute eta_ext_bt_24_cameras and eta_ext_bt_6_cameras
@@ -168,13 +257,17 @@ for i in range(number_of_circles):
                 gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr)
                 / (ring_extended[j, 4] * (1 - ring_extended[j, 13]))
             )
+        except IndexError as e:
+            print(f"Index error for Ring {i}, Target {j} in eta_ext_bt_24_cameras calculation: {e}")
+            eta_ext_bt_24_cameras[j, :] = 0
+
+        try:
             eta_ext_bt_6_cameras[j, :] = (
                 gamma_factor_significance * dback * ring_extended[j, 14:24] * np.sqrt(td * ntr)
                 / (ring_extended[j, 44] * (1 - ring_extended[j, 13]))  # Adjust index if necessary
             )
         except IndexError as e:
-            print(f"Index error for Ring {i}, Target {j} in eta_ext calculations: {e}")
-            eta_ext_bt_24_cameras[j, :] = 0
+            print(f"Index error for Ring {i}, Target {j} in eta_ext_bt_6_cameras calculation: {e}")
             eta_ext_bt_6_cameras[j, :] = 0
 
         # Observed transit depth
@@ -237,7 +330,11 @@ for i in range(number_of_circles):
         )
 
         # Secondary mask COB conditions
-        eta_cob_sec = ring_secondary[j, 9] if ring_secondary.shape[1] > 9 else 0
+        try:
+            eta_cob_sec = ring_secondary[j, 9] if ring_secondary.shape[1] > 9 else 0
+        except IndexError:
+            eta_cob_sec = 0
+
         secondary_mask_cob_conditions_24_cameras[j, :] = (
             (eta_cob_sec > cob_thresh) & fp_single_contaminant_24_cameras[j, :]
         )
@@ -398,201 +495,151 @@ for i in range(number_of_circles):
     print(f"  Secondary COB Efficiency: {eff_sec_cob_masked:.2f}% ± {delta_eff_sec_cob_masked:.2f}%")
     print("-----------------------------------------------------")
 
-# After the ring loop
+    # --- New Code for Median SPR_tot Calculations Starts Here ---
 
-# Compute median SPR_tot for all targets per ring
-median_spr_tot_nom_all = [np.median(spr_tot_nom_all[ring]) for ring in range(number_of_circles)]
-median_spr_tot_ext_all = [np.median(spr_tot_ext_all[ring]) for ring in range(number_of_circles)]
-median_spr_tot_sec_all = [np.median(spr_tot_sec_all[ring]) for ring in range(number_of_circles)]
+    # Compute median SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec for the current ring
+    if SPR_tot_nom.size > 0:
+        median_spr_nom = np.median(SPR_tot_nom)
+        error_spr_nom = bootstrap_median(SPR_tot_nom)
+    else:
+        median_spr_nom = np.nan
+        error_spr_nom = np.nan
 
-# Compute median SPR_tot for masked targets per ring
-median_spr_tot_nom_masked = [
-    np.median(spr_tot_nom_masked[ring]) if len(spr_tot_nom_masked[ring]) > 0 else np.nan 
-    for ring in range(number_of_circles)
-]
-median_spr_tot_ext_masked = [
-    np.median(spr_tot_ext_masked[ring]) if len(spr_tot_ext_masked[ring]) > 0 else np.nan 
-    for ring in range(number_of_circles)
-]
-median_spr_tot_sec_masked = [
-    np.median(spr_tot_sec_masked[ring]) if len(spr_tot_sec_masked[ring]) > 0 else np.nan 
-    for ring in range(number_of_circles)
-]
+    if SPR_tot_ext.size > 0:
+        median_spr_ext = np.median(SPR_tot_ext)
+        error_spr_ext = bootstrap_median(SPR_tot_ext)
+    else:
+        median_spr_ext = np.nan
+        error_spr_ext = np.nan
 
-# Define ring numbers for x-axis (1 to number_of_circles)
-ring_numbers = np.arange(1, number_of_circles + 1)
+    if SPR_tot_sec.size > 0:
+        median_spr_sec = np.median(SPR_tot_sec)
+        error_spr_sec = bootstrap_median(SPR_tot_sec)
+    else:
+        median_spr_sec = np.nan
+        error_spr_sec = np.nan
 
-# ----- Plot 1: Median SPR_tot vs Ring Number for All Targets -----
+    # Append the median values and their errors to the respective lists for all targets
+    median_spr_tot_nom_ring.append(median_spr_nom)
+    median_spr_tot_nom_ring_error.append(error_spr_nom)
+    median_spr_tot_ext_ring.append(median_spr_ext)
+    median_spr_tot_ext_ring_error.append(error_spr_ext)
+    median_spr_tot_sec_ring.append(median_spr_sec)
+    median_spr_tot_sec_ring_error.append(error_spr_sec)
+
+    # Similarly, compute medians and errors for masked targets
+    if SPR_tot_nom_masked.size > 0:
+        median_spr_nom_masked = np.median(SPR_tot_nom_masked)
+        error_spr_nom_masked = bootstrap_median(SPR_tot_nom_masked)
+    else:
+        median_spr_nom_masked = np.nan
+        error_spr_nom_masked = np.nan
+
+    if SPR_tot_ext_masked.size > 0:
+        median_spr_ext_masked = np.median(SPR_tot_ext_masked)
+        error_spr_ext_masked = bootstrap_median(SPR_tot_ext_masked)
+    else:
+        median_spr_ext_masked = np.nan
+        error_spr_ext_masked = np.nan
+
+    if SPR_tot_sec_masked.size > 0:
+        median_spr_sec_masked = np.median(SPR_tot_sec_masked)
+        error_spr_sec_masked = bootstrap_median(SPR_tot_sec_masked)
+    else:
+        median_spr_sec_masked = np.nan
+        error_spr_sec_masked = np.nan
+
+    # Append the median values and their errors to the respective lists for masked targets
+    median_spr_tot_nom_masked_ring.append(median_spr_nom_masked)
+    median_spr_tot_nom_masked_ring_error.append(error_spr_nom_masked)
+    median_spr_tot_ext_masked_ring.append(median_spr_ext_masked)
+    median_spr_tot_ext_masked_ring_error.append(error_spr_ext_masked)
+    median_spr_tot_sec_masked_ring.append(median_spr_sec_masked)
+    median_spr_tot_sec_masked_ring_error.append(error_spr_sec_masked)
+
+    # --- New Code for Median SPR_tot Calculations Ends Here ---
+    # ----- Plot 1: Median SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec vs Ring Number for All Targets with Error Bars -----
 plt.figure(figsize=(10, 6), dpi=120)
 
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_nom_all, 
-    marker='o', 
-    linestyle='-', 
-    color='brown', 
-    label='SPR_tot_nom (All Targets)'
+plt.errorbar(
+    ring_numbers,
+    median_spr_tot_nom_ring,
+    yerr=median_spr_tot_nom_ring_error,
+    fmt='o-', 
+    color='brown',
+    label=r'Median $\rm SPR_{tot\_nom}$ (All Targets)',
+    capsize=5,
+    ecolor='black',
+    alpha=0.7
 )
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_ext_all, 
-    marker='s', 
-    linestyle='-', 
-    color='blue', 
-    label='SPR_tot_ext (All Targets)'
+plt.errorbar(
+    ring_numbers,
+    median_spr_tot_ext_ring,
+    yerr=median_spr_tot_ext_ring_error,
+    fmt='s-', 
+    color='blue',
+    label=r'Median $\rm SPR_{tot\_ext}$ (All Targets)',
+    capsize=5,
+    ecolor='black',
+    alpha=0.7
 )
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_sec_all, 
-    marker='^', 
-    linestyle='-', 
-    color='green', 
-    label='SPR_tot_sec (All Targets)'
+plt.errorbar(
+    ring_numbers,
+    median_spr_tot_sec_ring,
+    yerr=median_spr_tot_sec_ring_error,
+    fmt='^-', 
+    color='green',
+    label=r'Median $\rm SPR_{tot\_sec}$ (All Targets)',
+    capsize=5,
+    ecolor='black',
+    alpha=0.7
 )
 
 plt.xlabel("Ring Number", fontsize=14)
-plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.ylabel(r'Median $\rm SPR_{tot}$', fontsize=14)
 plt.title("Median SPR_tot as a Function of Ring Number (All Targets)", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
-plt.grid(True)
+plt.grid(True, linestyle='--', alpha=0.7)
 
 plt.tight_layout()
-plt.savefig("Median_SPR_tot_vs_Ring_All_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.savefig("Median_SPR_tot_vs_Ring_All_Targets_with_Errors.pdf", format='pdf', bbox_inches='tight')
 plt.show()
 
-# ----- Plot 2: Median SPR_tot vs Ring Number for Masked Targets -----
+# ----- Plot 2: Median SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec vs Ring Number for Masked Targets with Error Bars -----
 plt.figure(figsize=(10, 6), dpi=120)
 
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_nom_masked, 
-    marker='o', 
-    linestyle='-', 
-    color='brown', 
-    label=f'Nominal mask'
+plt.errorbar(
+    ring_numbers,
+    median_spr_tot_nom_masked,
+    yerr=error_spr_nom_masked,
+    fmt='o-', 
+    color='brown',
+    label=r'Median $\rm SPR_{tot\_nom}$ (Masked Targets)',
+    capsize=5,
+    ecolor='black',
+    alpha=0.7
 )
-plt.plot(
-    ring_numbers, 
-    median_spr_tot_ext_masked, 
-    marker='s', 
-    linestyle='-', 
-    color='red', 
-    label=f'Extended mask'
+plt.errorbar(
+    ring_numbers,
+    median_spr_tot_ext_masked,
+    yerr=error_spr_ext_masked,
+    fmt='s-', 
+    color='red',
+    label=r'Median $\rm SPR_{tot\_ext}$ (Masked Targets)',
+    capsize=5,
+    ecolor='black',
+    alpha=0.7
 )
+
 
 plt.xlabel("Ring Number", fontsize=14)
-plt.ylabel(r'$\rm SPR_{tot}$', fontsize=14)
+plt.ylabel(r'Median $\rm SPR_{tot}$', fontsize=14)
+plt.title("Median SPR_tot as a Function of Ring Number (Masked Targets)", fontsize=16)
 plt.xticks(ring_numbers, [f"Ring {i}" for i in ring_numbers], fontsize=12)
 plt.legend(fontsize=12)
-plt.grid(True)
+plt.grid(True, linestyle='--', alpha=0.7)
 
 plt.tight_layout()
-plt.savefig("Median_SPR_tot_vs_Ring_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
+plt.savefig("Median_SPR_tot_vs_Ring_Masked_Targets_with_Errors.pdf", format='pdf', bbox_inches='tight')
 plt.show()
-
-# ----- Plot 3: Efficiencies Across Rings for All Targets with Error Bars -----
-plt.figure(figsize=(10, 6), dpi=120)
-
-plt.errorbar(
-    ring_numbers, 
-    eff_nom_cob_ring, 
-    yerr=eff_nom_cob_ring_error, 
-    fmt='o-', 
-    color='brown', 
-    label="Nominal COB Efficiency (All Targets)",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_ext_cob_ring, 
-    yerr=eff_ext_cob_ring_error, 
-    fmt='s-', 
-    color='blue', 
-    label="Extended COB Efficiency (All Targets)",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_sec_cob_ring, 
-    yerr=eff_sec_cob_ring_error, 
-    fmt='^-', 
-    color='purple', 
-    label="Secondary COB Efficiency (All Targets)",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_secondary_ring, 
-    yerr=eff_secondary_ring_error, 
-    fmt='^-', 
-    color='green', 
-    label="Secondary Flux Efficiency (All Targets)",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_extended_ring, 
-    yerr=eff_extended_ring_error, 
-    fmt='d-', 
-    color='red', 
-    label="Extended Flux Efficiency (All Targets)",
-    capsize=5
-)
-
-# Adjust x-axis labels
-circle_labels = [f"Ring {i}" for i in ring_numbers]  # Ring 1 to Ring 7
-plt.xticks(ring_numbers, circle_labels, fontsize=10)
-
-plt.ylabel("Efficiency (%)", fontsize=14)
-plt.title("Efficiencies Across Rings (All Targets)", fontsize=16)
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("Efficiencies_Across_Rings_All_Targets.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-# ----- Plot 4: Efficiencies Across Rings for Masked Targets with Error Bars -----
-plt.figure(figsize=(10, 6), dpi=120)
-
-plt.errorbar(
-    ring_numbers, 
-    eff_nom_cob_ring_masked, 
-    yerr=eff_nom_cob_ring_masked_error, 
-    fmt='o-', 
-    color='brown', 
-    label=f"Nominal Centroids",
-    capsize=5
-)
-
-plt.errorbar(
-    ring_numbers, 
-    eff_secondary_ring_masked, 
-    yerr=eff_secondary_ring_masked_error, 
-    fmt='^-', 
-    color='green', 
-    label=f"Secondary Flux",
-    capsize=5
-)
-plt.errorbar(
-    ring_numbers, 
-    eff_extended_ring_masked, 
-    yerr=eff_extended_ring_masked_error, 
-    fmt='d-', 
-    color='red', 
-    label=f"Extended Flux",
-    capsize=5
-)
-
-# Adjust x-axis labels
-plt.xticks(ring_numbers, circle_labels, rotation=45, fontsize=10)
-
-plt.ylabel("Efficiency (%)", fontsize=14)
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("Efficiencies_Across_Rings_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-# ----- Existing Plotting Code for Efficiencies Across Rings -----
-# (If you have other plots like quadrant plots, include them here with similar error bar additions)

@@ -476,21 +476,22 @@ fig_masked, ax_masked = plt.subplots(figsize=(12, 8))
 
 # Plot each efficiency metric with corresponding error bars
 rects1_masked = ax_masked.bar(x - width, eff_nom_cob_quadrant_masked, width, yerr=eff_nom_cob_quadrant_masked_error,
-                                label='Nominal COB Efficiency (Masked)', color='brown', capsize=5)
+                                label='Nominal Centroids', color='brown', capsize=5)
 rects2_masked = ax_masked.bar(x, eff_secondary_quadrant_masked, width, yerr=eff_secondary_quadrant_masked_error,
-                                label='Secondary Flux Efficiency (Masked)', color='green', capsize=5)
+                                label='Secondary Fluxes', color='green', capsize=5)
 rects3_masked = ax_masked.bar(x + width, eff_extended_quadrant_masked, width, yerr=eff_extended_quadrant_masked_error,
-                                label='Extended Flux Efficiency (Masked)', color='red', capsize=5)
+                                label='Extended Fluxes', color='red', capsize=5)
 
 # Add labels, title, and custom x-axis tick labels
 ax_masked.set_xlabel('Quadrant', fontsize=14)
 ax_masked.set_ylabel('Efficiency (%)', fontsize=14)
-ax_masked.set_title('Efficiencies Across Quadrants with Error Bars (Masked Targets)', fontsize=16)
+#ax_masked.set_title('Efficiencies Across Quadrants with Error Bars (Masked Targets)', fontsize=16)
 ax_masked.set_xticks(x)
 ax_masked.set_xticklabels(quadrant_names, fontsize=12)
 ax_masked.legend(fontsize=12)
 ax_masked.grid(True, linestyle='--', alpha=0.7)
 
+plt.ylim(60,100)
 plt.tight_layout()
 plt.savefig("Efficiencies_Across_Quadrants_Masked_Targets.pdf", format='pdf', bbox_inches='tight')
 plt.show()
@@ -504,9 +505,9 @@ width_median = 0.35  # width of the bars
 
 # Plot median SPR_tot_nom and SPR_tot_ext
 rects1_median = ax_median.bar(x_median - width_median/2, median_SPR_tot_nom_quadrant, width_median, 
-                               label='Nominal mask', color='orange', capsize=5)
+                               label='Nominal mask', color='brown', capsize=5)
 rects2_median = ax_median.bar(x_median + width_median/2, median_SPR_tot_ext_quadrant, width_median, 
-                               label='Extended mask', color='cyan', capsize=5)
+                               label='Extended mask', color='red', capsize=5)
 
 # Add labels, title, and custom x-axis tick labels
 ax_median.set_xlabel('Quadrant', fontsize=14)
