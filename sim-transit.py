@@ -347,8 +347,8 @@ def plot_nominal_mask_contour(nominal_mask, plot_color):
                 plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
 
 plt.figure(1, figsize=(7, 6), dpi=300)
-plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label='Nominal Flux', color='black',  marker='o', s=3)
-plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Secondary Flux', color='red',  marker='P', s=3)
+plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), color='gold',  marker='o', s=3)
+#plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Secondary Flux', color='red',  marker='P', s=3)
 plt.xlabel('Time [hours]', fontsize=14)
 plt.ylabel('Normalized Flux', fontsize=14)
 plt.legend()
@@ -356,28 +356,28 @@ plt.legend()
 plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
 #plt.savefig('Extended_and_Nominal_light_curves.pdf', format='pdf')
 #plt.show()
-plt.savefig('Secondary_and_Nominal_light_curves.pdf', format='pdf')
+plt.savefig('Nominal_light_curve.png', dpi=300, format='png')
 plt.show()
 
 
 # Plotting the masks
 plt.imshow(bm, origin='lower', extent=(0,6,0,6))
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=80, c='red', zorder=5)  # 'c' sets the face color of the marker
 plt.savefig('nominal_mask_example_target_and_contaminant.pdf', format='pdf')
 plt.show()
 plt.imshow(em, origin='lower', extent=(0,6,0,6))
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=80, c='red', zorder=5)  # 'c' sets the face color of the marker
 plot_nominal_mask_contour(nominal_mask=bm, plot_color='black')
 plt.savefig('extended_mask_example_target_and_contaminant.pdf', format='pdf')
 plt.show()
 plt.imshow(sm, origin='lower', extent=(0,6,0,6))
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=40, c='magenta', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=40, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=80, c='red', zorder=5)  # 'c' sets the face color of the marker
 plot_nominal_mask_contour(nominal_mask=bm, plot_color='white')
 plt.savefig('secondary_mask_example_target_and_contaminant.pdf', format='pdf')
 plt.show()
