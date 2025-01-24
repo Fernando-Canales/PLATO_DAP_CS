@@ -69,28 +69,28 @@ def plot_masks(save_individual=False):
         plot_nominal_mask_contour(axes[2], nominal_mask)
 
         plt.tight_layout()
-        plt.savefig(DIRout +'combined_masks_schematic.pdf')
+        plt.savefig(DIRout +'combined_masks_schematic.png', dpi=300)
         plt.show()
     else:
         # Plot and save each mask individually
         fig, ax = plt.subplots(figsize=(5, 5))
         plot_single_mask(ax, nominal_mask, center_x, center_y, contaminants)
         plt.tight_layout()
-        plt.savefig(DIRout +'nominal_mask_schematic.pdf')
+        plt.savefig(DIRout +'nominal_mask_schematic.png', dpi=300)
         plt.show()
 
         fig, ax = plt.subplots(figsize=(5, 5))
         plot_single_mask(ax, extended_mask, center_x, center_y, contaminants)
         plot_nominal_mask_contour(ax=ax, nominal_mask=nominal_mask, plot_color='black')  # Add dashed lines
         plt.tight_layout()
-        plt.savefig(DIRout+'extended_mask_schematic.pdf')
+        plt.savefig(DIRout+'extended_mask_schematic.png', dpi=300)
         plt.show()
 
         fig, ax = plt.subplots(figsize=(5, 5))
         plot_single_mask(ax, secondary_mask, center_x, center_y, contaminants)
         plot_nominal_mask_contour(ax=ax, nominal_mask=nominal_mask, plot_color='white')
         plt.tight_layout()
-        plt.savefig(DIRout+'secondary_mask_schematic.pdf')
+        plt.savefig(DIRout+'secondary_mask_schematic.png', dpi=300)
         plt.show()
 
 # Function to plot individual masks
