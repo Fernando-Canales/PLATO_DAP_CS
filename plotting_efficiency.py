@@ -602,7 +602,7 @@ for i in range(nP):
     #plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     #plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.errorbar(Pi, eff_ext_overall_24_cameras_2_pix, yerr=error_ext_2_pix_24_cameras, fmt='^', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
+    #plt.errorbar(Pi, eff_ext_overall_24_cameras_2_pix, yerr=error_ext_2_pix_24_cameras, fmt='^', color='yellow', ecolor='yellow', capsize=5, label='Ext. Mask 2 pix. (24 cameras)' if not labels_added['ext_2_pix_24'] else "", markersize=4)
     #plt.errorbar(Pi, eff_ext_overall_6_cameras_2_pix, yerr=error_ext_2_pix_6_cameras, fmt='^', color='orange', ecolor='orange', capsize=5, label='Ext. Mask 2 pix. (6 cameras)' if not labels_added['ext_2_pix_6'] else "", markersize=4)
     plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1)
     plt.fill_between([11, 13.4], [55, 55], [100, 100], color='plum', alpha=0.1)
@@ -621,7 +621,7 @@ for i in range(nP):
         #plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
         plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
         #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix, eff_ext_overall_24_cameras_2_pix], color='yellow', linestyle='-', markersize=0)
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix, eff_ext_overall_24_cameras_2_pix], color='yellow', linestyle='-', markersize=0)
         #plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_2_pix_6_cameras, eff_ext_overall_6_cameras_2_pix], color='orange', linestyle='-', markersize=0)
     
     # Update previous values
@@ -709,11 +709,11 @@ for i in range(nP):
     error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / m.sum())
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob, fmt='*', yerr=error_cob, label='Nom. Mask (24 cameras)' if i == 0 else "", color='orange', ecolor='orange', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
+    #plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
     plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1)
     plt.fill_between([11, 13.4], [60,60], [100, 100], color='plum', alpha=0.1)
     
@@ -721,10 +721,10 @@ for i in range(nP):
     if i > 0:
         plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall, eff_ext_cob_overall], color='blue', linestyle='-')
         plt.plot([prev_Pi, Pi], [prev_eff_cob, eff_cob], color='orange', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_6_cameras, eff_cob_6_cameras], color='olive', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec_6_cameras, eff_cob_sec_6_cameras], color='green', linestyle='-')   
+        #plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-')
+        #plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-')
+        #plt.plot([prev_Pi, Pi], [prev_eff_cob_6_cameras, eff_cob_6_cameras], color='olive', linestyle='-')
+        #plt.plot([prev_Pi, Pi], [prev_eff_cob_sec_6_cameras, eff_cob_sec_6_cameras], color='green', linestyle='-')   
     # Update previous values
     prev_Pi, prev_eff_ext_cob_overall, prev_eff_cob, prev_eff_cob_sec, prev_eff_ext_cob_overall_6_cameras, prev_eff_cob_6_cameras, prev_eff_cob_sec_6_cameras = Pi, eff_ext_cob_overall, eff_cob, eff_cob_sec, eff_ext_cob_overall_6_cameras, eff_cob_6_cameras, eff_cob_sec_6_cameras
 
@@ -755,15 +755,15 @@ ax_inset = inset_axes(
     bbox_transform=plt.gca().transAxes
 )
 ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
-ax_inset.errorbar(Pi_values, eff_ext_cob_overall_6_cameras_values, fmt='s', yerr=error_ext_cob_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
+#ax_inset.errorbar(Pi_values, eff_ext_cob_overall_6_cameras_values, fmt='s', yerr=error_ext_cob_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
 ax_inset.errorbar(Pi_values, eff_cob_values, color='orange', fmt='*', yerr=error_cob, linewidth=1.5, label='Nom. Mask (24 cameras)')
-ax_inset.errorbar(Pi_values, eff_cob_6_cameras_values, color='olive', fmt='*', yerr=error_cob_6_cameras,  linewidth=1.5, label='Nom. Mask (6 cameras)')
+#ax_inset.errorbar(Pi_values, eff_cob_6_cameras_values, color='olive', fmt='*', yerr=error_cob_6_cameras,  linewidth=1.5, label='Nom. Mask (6 cameras)')
 
 # Connect the dots
 ax_inset.plot(Pi_values, eff_ext_cob_overall_values, color='blue', linestyle='-')
-ax_inset.plot(Pi_values, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
+#ax_inset.plot(Pi_values, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
 ax_inset.plot(Pi_values, eff_cob_values, color='orange', linestyle='-')
-ax_inset.plot(Pi_values, eff_cob_6_cameras_values, color='olive', linestyle='-')
+#ax_inset.plot(Pi_values, eff_cob_6_cameras_values, color='olive', linestyle='-')
 
 # Add shaded areas and vertical lines to the inset plot
 ax_inset.fill_between([9, 11.7], [95, 95], [100, 100], color='aqua', alpha=0.5)

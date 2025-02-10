@@ -12,6 +12,15 @@ bsres = 20 # b-spline resolution
 PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
 
+contaminants = [
+    (4.5, 4.5),
+    (1.5, 4.5),
+    (0.25, 0.75),
+    (1.0, 1.5),
+    (2.5, 1.5)
+]
+
+
 nexp = 1500 #  number of exposures
 driftamplitude = 0.1 # amplitude of the drif in pix/90 days
 
@@ -364,7 +373,10 @@ plt.show()
 plt.imshow(bm, origin='lower', extent=(0,6,0,6), cmap='plasma')
 plt.grid(True, linewidth=2)
 plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
+#plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
+x_c = [c[0] for c in contaminants]
+y_c = [c[1] for c in contaminants]
+#plt.scatter(x_c, y_c, s=80, c='cyan', marker='^', zorder=5)
 plt.savefig('nominal_mask_example_target_and_contaminant.png', dpi=300, format='png')
 plt.show()
 plt.imshow(em, origin='lower', extent=(0,6,0,6), cmap='plasma')
