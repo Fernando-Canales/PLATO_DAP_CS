@@ -12,6 +12,7 @@ psfbs.npy
 /test_results_multiprocessing
 /catalogue_stars
 /__pycache__/
+/test_results_distribution_td_and_deltaback
 /catalogues_stars
 ID_comparisor.py
 data_reader.py

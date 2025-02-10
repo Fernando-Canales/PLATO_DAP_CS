@@ -7,7 +7,8 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
+dataDIR = '/home/fercho/double-aperture-photometry/test_results_distribution_td_and_deltaback/' 
+#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
 # Parameters for the plots
