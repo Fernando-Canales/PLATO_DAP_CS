@@ -767,10 +767,10 @@ ax_inset.plot(Pi_values, eff_cob_values, color='orange', linestyle='-')
 #ax_inset.plot(Pi_values, eff_cob_6_cameras_values, color='olive', linestyle='-')
 
 # Add shaded areas and vertical lines to the inset plot
-ax_inset.fill_between([9, 11.7], [95, 95], [100, 100], color='aqua', alpha=0.5)
-ax_inset.fill_between([11, 13.4], [95, 95], [100, 100], color='plum', alpha=0.5)
-ax_inset.vlines(11.7, ymin=95, ymax=100, linestyles='dashed', colors='green')
-ax_inset.vlines(11, ymin=95, ymax=100, linestyles='dashdot', colors='red')
+ax_inset.fill_between([9, 11.7], [85, 85], [89, 95], color='aqua', alpha=0.5)
+ax_inset.fill_between([11, 13.4], [85, 85], [95, 95], color='plum', alpha=0.5)
+ax_inset.vlines(11.7, ymin=85, ymax=95, linestyles='dashed', colors='green')
+ax_inset.vlines(11, ymin=85, ymax=95, linestyles='dashdot', colors='red')
 
 # Set inset plot limits and appearance
 ax_inset.set_ylim(85, 95)

@@ -11,6 +11,7 @@ subres = 64 # psf sub-pixel resolution
 bsres = 20 # b-spline resolution
 PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
+colormap = 'Pastel2'
 
 contaminants = [
     (4.5, 4.5),
@@ -36,14 +37,14 @@ bgerr = 100. # background residual error [e-/pix]
 
 Mpx = 6 # size of the imagette
 Mag = 11 # PLATO magnitude , target
-MagC = Mag + 2 # magnitude contaminant
+MagC = Mag + 3 # magnitude contaminant
 DistC = 1.6 # distance of the contaminant from the target
 x0,y0 = 3, 3 # target position in the imagette
 
 
 # stellar variability
 ffluxvar = 'fluxtransitcorot7b_90d.hdf5' # Corot 7b depth=3.958e-4
-fluxvarsf = 0.5/(3.958e-4) #  scaling factor for the false transit (transit in the contaminant)
+fluxvarsf = 0.5/(1.958e-4) #  scaling factor for the false transit (transit in the contaminant)
 fluxvarsftf = 0. # scaling factor for the true transit (transit in the target)
 
 
@@ -148,7 +149,7 @@ def aperture_computation(ft, fc, sb, sd, sq):
     # Then we reshape the aperture
     aperture = aperture.reshape((6, 6))
 
-    return aperture
+    return aperture, nsr_agg
 
 
 # We define here a function for obtaining an extended mask given a nominal-binary mask
@@ -222,7 +223,7 @@ MagC = np.array([MagC])
 
 # calculation of the nominal mask (optimal binary mask)
 sq = gain/math.sqrt(12.) # quantification noise
-bm = aperture_computation(IT, IC, bg, ron,sq)
+bm = aperture_computation(IT, IC, bg, ron,sq)[0]
 NSRn = NSR(bm,bg,ron, sq, IT, IC)
 print('SNRn = %f' % (1./NSRn))
 
@@ -232,7 +233,7 @@ NSRe = NSR(em,bg,ron, sq, IT, IC)
 print('SNRe = %f' % (1./NSRe))
 
 # calculation of the corresponding secondary mask
-sm = aperture_computation(IC, IT, bg, ron, sq)
+sm = aperture_computation(IC, IT, bg, ron, sq)[0]
 NSRs = NSR(sm, bg, ron, sq, IC, IT)
 print('SNRs = %f' % (1./NSRs))
 
@@ -270,7 +271,7 @@ for t in range(nexp):
     data[t,2] = dy
     s = 3
     data[t,s] = np.sum(Itot*bm)
-    data[t,1+s] = np.sum(Itot*sm)
+    data[t,1+s] = np.sum(Itot*em)
     data[t,2+s:4+s] = barycenter(Itot,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot,mask=em)
     #data[t,4+s:6+s] = barycenter(Itot,mask=sm)
@@ -278,7 +279,7 @@ for t in range(nexp):
     
     s = 9
     data[t,s] = np.sum(IT*bm)
-    data[t,1+s] = np.sum(IC*sm)
+    data[t,1+s] = np.sum(IC*em)
     data[t,2+s:4+s] = barycenter(IT,mask=bm)
     data[t,4+s:6+s] = barycenter(IT,mask=em)
     #data[t,4+s:6+s] = barycenter(IC,mask=sm)
@@ -286,7 +287,7 @@ for t in range(nexp):
 
     s = 15
     data[t,s] = np.sum(IC*bm)
-    data[t,1+s] = np.sum(IT*sm)
+    data[t,1+s] = np.sum(IT*em)
     data[t,2+s:4+s] = barycenter(IC,mask=bm)
     data[t,4+s:6+s] = barycenter(IC,mask=em)
     #data[t,4+s:6+s] = barycenter(IT,mask=sm)
@@ -294,7 +295,7 @@ for t in range(nexp):
 
     s = 21
     data[t,s] = np.sum(IC0*bm)
-    data[t,1+s] = np.sum(IT0*sm)
+    data[t,1+s] = np.sum(IT0*em)
     data[t,2+s:4+s] = barycenter(IC0,mask=bm)
     data[t,4+s:6+s] = barycenter(IC0,mask=em)
     #data[t,4+s:6+s] = barycenter(IT0,mask=sm)
@@ -302,7 +303,7 @@ for t in range(nexp):
 
     s = 27
     data[t,s] = np.sum(IT0*bm)
-    data[t,1+s] = np.sum(IC0*sm)
+    data[t,1+s] = np.sum(IC0*em)
     data[t,2+s:4+s] = barycenter(IT0,mask=bm)
     data[t,4+s:6+s] = barycenter(IT0,mask=em)
     #data[t,4+s:6+s] = barycenter(IC0,mask=sm)
@@ -357,7 +358,7 @@ def plot_nominal_mask_contour(nominal_mask, plot_color):
 
 plt.figure(1, figsize=(7, 6), dpi=300)
 plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label= 'Nominal Flux', color='black',  marker='o', s=3)
-plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Secondary Flux', color='gold',  marker='P', s=3)
+#plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Extended Flux', color='brown',  marker='P', s=3)
 plt.xlabel('Time [hours]', fontsize=14)
 plt.ylabel('Normalized Flux', fontsize=14)
 plt.legend()
@@ -369,8 +370,17 @@ plt.savefig('Nominal_light_curve.png', dpi=300, format='png')
 plt.show()
 
 
+plt.figure(2, figsize=(7,6), dpi=300)
+NSR_agg = aperture_computation(IT, IC, bg, ron,sq)[1]
+plt.plot(13333*NSR_agg, 'o-')
+plt.axvline(x=4, color='orange', linestyle='--')
+plt.xlabel('Pixels')
+plt.ylabel(r'$\mathrm{NSR}_{\mathrm{agg}}$ over 1 hour and 24 cam. [ppm $\mathrm{hr}^{\frac{1}{2}}$]')
+plt.savefig('NSR_agg_sim_transit.png', dpi=300, format='png')
+plt.show()
+
 # Plotting the masks
-plt.imshow(bm, origin='lower', extent=(0,6,0,6), cmap='plasma')
+plt.imshow(bm, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
 plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
 #plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
@@ -379,14 +389,14 @@ y_c = [c[1] for c in contaminants]
 #plt.scatter(x_c, y_c, s=80, c='cyan', marker='^', zorder=5)
 plt.savefig('nominal_mask_example_target_and_contaminant.png', dpi=300, format='png')
 plt.show()
-plt.imshow(em, origin='lower', extent=(0,6,0,6), cmap='plasma')
+plt.imshow(em, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
 plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
 plt.scatter(x0C, y0C, s=80, c='cyan', marker='^',  zorder=5)  # 'c' sets the face color of the marker
 plot_nominal_mask_contour(nominal_mask=bm, plot_color='black')
 plt.savefig('extended_mask_example_target_and_contaminant.png',  dpi=300, format='png')
 plt.show()
-plt.imshow(sm, origin='lower', extent=(0,6,0,6), cmap='plasma')
+plt.imshow(sm, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
 plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
 plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
