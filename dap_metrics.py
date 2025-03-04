@@ -18,7 +18,7 @@ PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = 'test_results/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
-DIRout = '/home/fercho/double-aperture-photometry/test_results_distribution_td_and_deltaback/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_4_22_hr_CONDITION_1-PIXEL_SEC_MASK/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -26,9 +26,6 @@ subres = 128   # resolution of the PSF
 bsres = 20     # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
-#sb = 0
-#sd = 0
-#sb = (0. * 21)
 sb = (45. * 21) # Background noise from zodiacal light in e-/px (poisson noise)times integration time (21 sec.)
 sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2       # Quantization noise in units of e-rms/px
@@ -38,7 +35,6 @@ transit_depth = 132000  # transit depth in ppm
 transit_duration = 6.72*0.46**2   # transit duration in hours
 ntr = 3        # number of transits in one hour
 distance_max = 7 # maximum distance in pixels, from the target, to a star in the window in order to be considered a contaminant
-#n_c_max = 300 # maximum number of contaminants in each window
 Delta_P_max = 15.
 # Parameters for the magnitude intervals
 n_tar = 1000                            # number of targets per magnitude interval
@@ -174,7 +170,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(transit_duration)  # Fill the array with the fixed value
@@ -307,7 +303,13 @@ for i in range(nP):
         eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras, gamma_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
-        
+        # Now override if secondary_mask_size == 1:
+        if secondary_mask_size == 1:
+            eta_c = 0
+            eta_c_6_cameras = 0
+            eta_cob_c = 0
+            eta_cob_c_6_cameras = 0
+        # -----------------------------------------------------------------------
         ################################################################################################################
         #                                               EXTENDED MASK                                                  #
         ################################################################################################################

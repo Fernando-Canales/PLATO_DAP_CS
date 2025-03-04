@@ -1,3 +1,9 @@
+"""
+This script plots the light curves
+and COB of the extended and nominal masks
+
+Fernando, 25.Feb.2025
+"""
 from pylab import * # type: ignore
 import h5py # type: ignore
 import spline2dbase # type: ignore
@@ -12,10 +18,18 @@ bsres = 20 # b-spline resolution
 PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
 colormap = 'Pastel2'
+resultsDIR = '/home/fercho/double-aperture-photometry/plots_pdfs/'
 
+contaminants = [
+    (4.5, 4.5),
+    (1.5, 4.5),
+    (0.25, 0.75),
+    (1.0, 1.5),
+    (2.5, 1.5)
+]
 
 nexp = 1500 #  number of exposures
-driftamplitude = 0.1 # amplitude of the drif in pix/90 days
+driftamplitude = 0 # amplitude of the drif in pix/90 days
 
 ron = 52.  # readout noise [e-]
 zero_point = 20.62 # camera zero point
@@ -267,7 +281,7 @@ for t in range(nexp):
     data[t,2+s:4+s] = barycenter(Itot,mask=bm)
     data[t,4+s:6+s] = barycenter(Itot,mask=em)
     #data[t,4+s:6+s] = barycenter(Itot,mask=sm)
-    data[t, 7 + s] = np.sum(Itot * sm)  # Secondary flux for target
+    #data[t, 7 + s] = np.sum(Itot * sm)  # Secondary flux for target
     
     s = 9
     data[t,s] = np.sum(IT*bm)
@@ -275,7 +289,7 @@ for t in range(nexp):
     data[t,2+s:4+s] = barycenter(IT,mask=bm)
     data[t,4+s:6+s] = barycenter(IT,mask=em)
     #data[t,4+s:6+s] = barycenter(IC,mask=sm)
-    data[t, 7 + s + 6] = np.sum(IC * sm)  # Secondary flux for contaminant
+    #data[t, 7 + s + 6] = np.sum(IC * sm)  # Secondary flux for contaminant
 
     s = 15
     data[t,s] = np.sum(IC*bm)
@@ -283,7 +297,7 @@ for t in range(nexp):
     data[t,2+s:4+s] = barycenter(IC,mask=bm)
     data[t,4+s:6+s] = barycenter(IC,mask=em)
     #data[t,4+s:6+s] = barycenter(IT,mask=sm)
-    data[t, 7 + s + 12] = np.sum(IT * sm)  # Secondary flux for contaminant
+    #data[t, 7 + s + 12] = np.sum(IT * sm)  # Secondary flux for contaminant
 
     s = 21
     data[t,s] = np.sum(IC0*bm)
@@ -291,7 +305,7 @@ for t in range(nexp):
     data[t,2+s:4+s] = barycenter(IC0,mask=bm)
     data[t,4+s:6+s] = barycenter(IC0,mask=em)
     #data[t,4+s:6+s] = barycenter(IT0,mask=sm)
-    data[t,7+s] = np.sum(IT0*sm)
+    #data[t,7+s] = np.sum(IT0*sm)
 
     s = 27
     data[t,s] = np.sum(IT0*bm)
@@ -336,19 +350,70 @@ np.savez(fname+'_param',x0=x0,x0C=x0C,y0=y0,y0C=y0C,i0=0,j0=0,bg=bg)
 # 27-32: same for target only, no transit
 # 33-40: Ftot, no transit
 
+centroid_x_nom = data[:, 5]
+centroid_y_nom = data[:, 6]
+centroid_x_ext = data[:, 7]
+centroid_y_ext = data[:, 8]
+
+# Compute radial shifts (or adapt this formula to however you define the shift).
+centroid_shift_nom = np.sqrt((centroid_x_nom/data[0,5])**2 + (centroid_y_nom/data[0,6])**2)
+centroid_shift_ext = np.sqrt((centroid_x_ext/data[0, 7])**2 + (centroid_y_ext/data[0,8])**2)
+
+max_cob = max(centroid_shift_nom.max(), centroid_shift_ext.max())
+# Function to add dashed lines for the nominal mask
+def plot_nominal_mask_contour(nominal_mask, plot_color):
+    for j in range(6):
+        for i in range(6):
+            if nominal_mask[j, i] == 1:
+                plt.plot([i, i+1], [j, j], color=plot_color, linestyle='--', lw=3)  # Bottom edge
+                plt.plot([i, i+1], [j+1, j+1], color=plot_color, linestyle='--', lw=3)  # Top edge
+                plt.plot([i, i], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Left edge
+                plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
+
 plt.figure(1, figsize=(7, 6), dpi=300)
-plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label= 'Nominal Flux', color='black',  marker='o', s=3)
+#plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label= 'Nominal Flux', color='black',  marker='o', s=3)
 #plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Extended Flux', color='brown',  marker='P', s=3)
+plt.scatter(data[:, 0]/3600., centroid_shift_nom - max_cob, label='Nominal COB', color='black', marker='o', s=3)
+plt.scatter(data[:, 0]/3600., centroid_shift_ext - max_cob, label='Extended COB', color='blue', marker='o', s=3) 
 plt.xlabel('Time [hours]', fontsize=14)
-plt.ylabel('Normalized Flux', fontsize=14)
+plt.ylabel('Centroid shift [pixel]', fontsize=14)
 plt.legend()
 # Adjust the layout manually to increase the space at the bottom for the x-axis label
 plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
-plt.savefig('Secondary_and_Nominal_light_curves.png', dpi=300, format='png')
-#plt.show()
-plt.savefig('Nominal_light_curve.png', dpi=300, format='png')
+plt.savefig(resultsDIR+'Secondary_and_Nominal_COBs.png', dpi=300, format='png')
 plt.show()
 
 
+plt.figure(2, figsize=(7,6), dpi=300)
+NSR_agg = aperture_computation(IT, IC, bg, ron,sq)[1]
+plt.plot(13333*NSR_agg, 'o-')
+plt.axvline(x=4, color='orange', linestyle='--')
+plt.xlabel('Pixels')
+plt.ylabel(r'$\mathrm{NSR}_{\mathrm{agg}}$ over 1 hour and 24 cam. [ppm $\mathrm{hr}^{\frac{1}{2}}$]')
+plt.savefig(resultsDIR+'NSR_agg_sim_transit.png', dpi=300, format='png')
+plt.show()
 
-
+# Plotting the masks
+plt.imshow(bm, origin='lower', extent=(0,6,0,6), cmap=colormap)
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+#plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
+x_c = [c[0] for c in contaminants]
+y_c = [c[1] for c in contaminants]
+#plt.scatter(x_c, y_c, s=80, c='cyan', marker='^', zorder=5)
+plt.savefig(resultsDIR+'nominal_mask_example_target_and_contaminant.png', dpi=300, format='png')
+plt.show()
+plt.imshow(em, origin='lower', extent=(0,6,0,6), cmap=colormap)
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=80, c='cyan', marker='^',  zorder=5)  # 'c' sets the face color of the marker
+plot_nominal_mask_contour(nominal_mask=bm, plot_color='black')
+plt.savefig(resultsDIR+'extended_mask_example_target_and_contaminant.png',  dpi=300, format='png')
+plt.show()
+plt.imshow(sm, origin='lower', extent=(0,6,0,6), cmap=colormap)
+plt.grid(True, linewidth=2)
+plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
+plot_nominal_mask_contour(nominal_mask=bm, plot_color='white')
+plt.savefig(resultsDIR+'secondary_mask_example_target_and_contaminant.png',  dpi=300, format='png')
+plt.show()
