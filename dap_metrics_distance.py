@@ -51,12 +51,6 @@ Delta_P_max = 15.
 data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
 psfdata = np.load(PSFfile)                       # processed PSFs 
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue
-# Parameters for the magnitude intervals
-n_tar = 600                            # number of targets per magnitude interval
-Pmin = 10                               # minimum magnitude
-Pmax = 13                               # maximum magnitude
-#binsize = 0.5 
-radius_focal_plane = 86  # Radius of the focal plane disk in mm
 number_of_circles = 7   # Number of circles                          # binsize around every magn
 
 # First values
@@ -67,10 +61,11 @@ x_star = data[:, 3]              # x-coordinate on the focal plane for every sta
 y_star = data[:, 4]              # y-coordinate on the focal plane for every star in the catalogue
 x_tar_fp_pix = data_nominal_mask[:, 219]
 y_tar_fp_pix = data_nominal_mask[:, 220]
-
-
-# Convert the values from pixels to mm
-x_tar_fp_mm, y_tar_fp_mm = from_pix_2_mm(x_star=x_tar_fp_pix, y_star=y_tar_fp_pix)
+x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar_fp_pix, y_tar_fp_pix)
+distance_from_target_to_10first_contaminants = data_nominal_mask[:, 179:189] # within the imagette, in pixels
+# Compute a representative distance for each target (e.g. the minimum distance among the 10)
+rep_distance = np.median(distance_from_target_to_10first_contaminants, axis=1)
+distance_from_target_to_10first_contaminants_1D = distance_from_target_to_10first_contaminants.flatten()
 
 psfbs = psfdata['psfbs']         # PSF b-spline decomposition
 pxc = psfdata['pxc']             # x-coordinate of the PSF b-spline decomposition centroid
@@ -80,20 +75,16 @@ ypsf_pix = psfdata['ypsf_pix']   # y-coordinate of the PSF in pixel
 
 # Now we use a seed for obtaining the same number of targets and dback and td values
 np.random.seed(300)
-
-all_pairs = []
-
 # Lists to store results for each ring
 ring_results_nominal = []
 ring_results_secondary = []
 ring_results_extended = []
 ring_results_bray = []
 
-
 def process_target(target_index):
     ID_t = ID[target_index]
     m_t = data_nominal_mask[:, 1][target_index]     
-    alpha = np.arctan(np.sqrt(x_tar_fp_mm[target_index] ** 2 + y_tar_fp_mm[target_index] ** 2) / 247.732)
+    alpha = np.arctan(np.sqrt(x_tar_mm[target_index] ** 2 + y_tar_mm[target_index] ** 2) / 247.732)
 
     # Compute distance to PSF and find closest PSF
     s_d = (xpsf_pix - x_tar_fp_pix[target_index]) ** 2 + (ypsf_pix - y_tar_fp_pix[target_index]) ** 2
@@ -438,7 +429,7 @@ def process_target(target_index):
     print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n')
 
     # Now we save the important metrics for every target w.r.t the nominal mask
-    save_info = np.array([ID_t, m_t, n_c, m_c_bad, dist_bad, nominal_mask_key, nominal_mask_size, nsr_1h_24_cameras_nominal_mask, n_bad, SPR_crit_24_cameras, sprk[index_contaminant_highest_sprk], SPR_tot, eta_t, delta_obs_nominal_mask, abs_cob, eta_cob, 
+    save_info = np.array([ID_t, m_t, n_c, m_c_bad, nominal_mask_key, nominal_mask_size, nsr_1h_24_cameras_nominal_mask, n_bad, SPR_crit_24_cameras, sprk[index_contaminant_highest_sprk], SPR_tot, eta_t, delta_obs_nominal_mask, abs_cob, eta_cob, 
                         sigma_1_24])
 
     save_info = np.append(save_info, sprk_10first)
@@ -528,10 +519,9 @@ def process_target(target_index):
     save_info_ext = np.append(save_info_ext, SPR_crit_ext_2_pix)
     save_info_ext = np.append(save_info_ext, SPR_tot_ext_2_pix)
 
-
     # Now we save the import metrics w.r.t the 4 pixel mask described by Bray et al. 2023
     save_info_bray = np.array([ID_t, m_t, n_c, NSR_bray_1h, n_bad_bray, SPR_crit_bray, sprk_bray[index_contaminant_highest_sprk], SPR_tot_bray])
-    return save_info, save_info_contaminant, save_info_ext, save_info_bray, pairs
+    return save_info, save_info_contaminant, save_info_ext, save_info_bray
 
 
 # =============================================================================
@@ -541,79 +531,47 @@ all_nominal = []
 all_secondary = []
 all_extended = []
 all_bray = []
-all_pairs = []
 
-print(f"Processing {data_nominal_mask.shape[0]} targets to collect all mask metrics and pair info...")
-for t in tqdm(range(data_nominal_mask.shape[0]), desc="Processing targets", unit="target"):
-    res_nom, res_sec, res_ext, res_bray, pairs = process_target(t)
-    if res_nom.size > 0:
-        all_nominal.append(res_nom)
-        all_secondary.append(res_sec)
-        all_extended.append(res_ext)
-        all_bray.append(res_bray)
-        all_pairs.append(pairs)
-
-if len(all_nominal) > 0:
-    all_nominal = np.concatenate(all_nominal, axis=0)
-    all_secondary = np.concatenate(all_secondary, axis=0)
-    all_extended = np.concatenate(all_extended, axis=0)
-    all_bray = np.concatenate(all_bray, axis=0)
-    all_pairs = np.concatenate(all_pairs, axis=0)
-    # Ensure each global array is at least 2D:
-    all_nominal = np.atleast_2d(all_nominal)
-    all_secondary = np.atleast_2d(all_secondary)
-    all_extended = np.atleast_2d(all_extended)
-    all_bray = np.atleast_2d(all_bray)
-    all_pairs = np.atleast_2d(all_pairs)
-else:
-    all_nominal = np.empty((0, 5))
-    all_secondary = np.empty((0, 5))
-    all_extended = np.empty((0, 5))
-    all_bray = np.empty((0, 5))
-    all_pairs = np.empty((0, 4))
-
-print(f"Total pairs (basic) found: {all_pairs.shape[0]}")
-
-# =============================================================================
-# Divide the global distance space [0, distance_max] into shells (equal-area rings)
-# =============================================================================
-shell_edges = np.zeros(number_of_circles + 1)
-for i in range(number_of_circles + 1):
-    shell_edges[i] = np.sqrt(i / number_of_circles) * distance_max
+# Instead of radius_focal_plane, we use our fixed maximum distance for the contaminants:
+max_distance = 7.0  # maximum distance in pixels
+number_of_shells = 7
+shell_edges = np.sqrt(np.linspace(0, max_distance**2, number_of_shells + 1))
 print("Shell edges (pixels):", shell_edges)
 
-# =============================================================================
-# For each shell, filter the global arrays and save separate .npy files per mask type
-# =============================================================================
-for i in range(number_of_circles):
+
+for i in range(number_of_shells):
     r_lo = shell_edges[i]
     r_hi = shell_edges[i+1]
-    
-    # Use the first column (distance) for filtering
-    mask_shell_pairs = (all_pairs[:, 0] >= r_lo) & (all_pairs[:, 0] < r_hi)
-    pairs_shell = all_pairs[mask_shell_pairs]
-    np.save(f"{DIRout}ring_{i}_pairs.npy", pairs_shell)
-    print(f"Shell {i}: Basic pairs -> {pairs_shell.shape[0]} pairs")
-    
-    mask_shell_nom = (all_nominal[:, 0] >= r_lo) & (all_nominal[:, 0] < r_hi)
-    nominal_shell = all_nominal[mask_shell_nom]
-    np.save(f"{DIRout}ring_{i}_nominal.npy", nominal_shell)
-    print(f"Shell {i}: Nominal mask -> {nominal_shell.shape[0]} entries")
-    
-    mask_shell_sec = (all_secondary[:, 0] >= r_lo) & (all_secondary[:, 0] < r_hi)
-    secondary_shell = all_secondary[mask_shell_sec]
-    np.save(f"{DIRout}ring_{i}_secondary.npy", secondary_shell)
-    print(f"Shell {i}: Secondary mask -> {secondary_shell.shape[0]} entries")
-    
-    mask_shell_ext = (all_extended[:, 0] >= r_lo) & (all_extended[:, 0] < r_hi)
-    extended_shell = all_extended[mask_shell_ext]
-    np.save(f"{DIRout}ring_{i}_extended.npy", extended_shell)
-    print(f"Shell {i}: Extended mask -> {extended_shell.shape[0]} entries")
-    
-    mask_shell_bray = (all_bray[:, 0] >= r_lo) & (all_bray[:, 0] < r_hi)
-    bray_shell = all_bray[mask_shell_bray]
-    np.save(f"{DIRout}ring_{i}_bray.npy", bray_shell)
-    print(f"Shell {i}: Bray mask -> {bray_shell.shape[0]} entries")
+    # Select targets whose representative distance is in the current shell
+    targets_in_shell = np.where((rep_distance >= r_lo) & (rep_distance < r_hi))[0]
+    print(f"Shell {i}: Found {targets_in_shell.size} targets with rep. distance in [{r_lo:.2f}, {r_hi:.2f})")
 
-print("Global shell division and saving complete.")
-print("Files saved in:", DIRout)
+    ring_nominal_mask_results = []
+    ring_secondary_mask_results = []
+    ring_extended_mask_results = []
+    ring_bray_mask_results = []
+    
+    for t in tqdm(targets_in_shell, desc=f"Processing Shell {i+1}", unit="target"):
+         results = process_target(t)
+         # Save or accumulate these results for later analysis.
+
+        # Append results to the current ring's result lists
+         ring_nominal_mask_results.append(results[0])
+         ring_secondary_mask_results.append(results[1])
+         ring_extended_mask_results.append(results[2])
+         ring_bray_mask_results.append(results[3])
+        # counter = counter +1
+        # Convert the lists to arrays and store them in the main list for each ring
+    ring_results_nominal.append(np.array(ring_nominal_mask_results))
+    ring_results_secondary.append(np.array(ring_secondary_mask_results))
+    ring_results_extended.append(np.array(ring_extended_mask_results))
+    ring_results_bray.append(np.array(ring_bray_mask_results))
+
+    # Save each ring's results as separate .npy files
+for i, (nominal, secondary, extended, bray) in enumerate(zip(ring_results_nominal, ring_results_secondary, ring_results_extended, ring_results_bray)):
+    np.save(f"{DIRout}ring_{i}_nominal.npy", nominal)
+    np.save(f"{DIRout}ring_{i}_secondary.npy", secondary)
+    np.save(f"{DIRout}ring_{i}_extended.npy", extended)
+    np.save(f"{DIRout}ring_{i}_bray.npy", bray)
+
+print("Ring-based processing and saving complete.")
