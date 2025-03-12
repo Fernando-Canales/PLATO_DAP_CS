@@ -17,6 +17,7 @@ psfbs.npy
 ID_comparisor.py
 data_reader.py
 ilyas.py
+/.vscode
 plots_pdfs
 /argv.py
 /master.py

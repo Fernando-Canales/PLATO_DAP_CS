@@ -413,8 +413,8 @@ for i in range(nP):
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1)
-    plt.fill_between([11, 13.4], [55, 55], [100, 100], color='plum', alpha=0.1)
+    plt.fill_between([9, 11.7], [55, 55], [100, 100], color='aqua', alpha=0.1) # type: ignore
+    plt.fill_between([11, 13.4], [55, 55], [100, 100], color='plum', alpha=0.1) # type: ignore
 
     # Update label tracking
     labels_added['sec_24'] = True
@@ -426,17 +426,17 @@ for i in range(nP):
 
     # Connecting lines for the previous data points
     if i > 0:
-        plt.plot([prev_Pi, Pi], [prev_eff_sec, eff_sec], color='purple', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0)
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0)
+        plt.plot([prev_Pi, Pi], [prev_eff_sec, eff_sec], color='purple', linestyle='-', markersize=0) # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_sec_6_cameras, eff_sec_6_cameras], color='green', linestyle='-', markersize=0) # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall, eff_ext_overall_24_cameras], color='blue', linestyle='-', markersize=0) # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_overall_6_cameras, eff_ext_overall_6_cameras], color='red', linestyle='-', markersize=0) # type: ignore
     
     # Update previous values
     prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
 
 # Additional plot settings
-plt.vlines(11.7, ymin=55, ymax=100, linestyles='dashed', colors='green')
-plt.vlines(11, ymin=55, ymax=100, linestyles='dashdot', colors='red')
+plt.vlines(11.7, ymin=55, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=55, ymax=100, linestyles='dashdot', colors='red') # type: ignore
 plt.ylim(55, 100)
 plt.xlim(9.9, 13.1)
 plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
@@ -462,7 +462,7 @@ plt.plot(mag, eta_t_6_cameras_superearth, '*', markersize=4, label='Super-Earth 
 plt.plot(mag, eta_t_24_cameras, 'o', markersize=4, label='Earth-like planets (24 cameras)')        # Circle third
 
 # Horizontal line and other settings
-plt.hlines(7.1, xmin=10, xmax=13, linestyles='dashed', colors='red')
+plt.hlines(7.1, xmin=10, xmax=13, linestyles='dashed', colors='red') # type: ignore
 plt.semilogy()
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel(r'$ \eta $', fontsize=fsize)
@@ -516,24 +516,24 @@ for i in range(nP):
     plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
-    plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1)
-    plt.fill_between([11, 13.4], [60,60], [100, 100], color='plum', alpha=0.1)
+    plt.fill_between([9, 11.7], [60, 60], [100, 100], color='aqua', alpha=0.1) # type: ignore
+    plt.fill_between([11, 13.4], [60,60], [100, 100], color='plum', alpha=0.1) # type: ignore
     
     # Plot lines connecting the points
     if i > 0:
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall, eff_ext_cob_overall], color='blue', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob, eff_cob], color='orange', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_6_cameras, eff_cob_6_cameras], color='olive', linestyle='-')
-        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec_6_cameras, eff_cob_sec_6_cameras], color='green', linestyle='-')   
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall, eff_ext_cob_overall], color='blue', linestyle='-') # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_cob, eff_cob], color='orange', linestyle='-') # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec, eff_cob_sec], color='purple', linestyle='-') # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_ext_cob_overall_6_cameras, eff_ext_cob_overall_6_cameras], color='red', linestyle='-') # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_cob_6_cameras, eff_cob_6_cameras], color='olive', linestyle='-') # type: ignore
+        plt.plot([prev_Pi, Pi], [prev_eff_cob_sec_6_cameras, eff_cob_sec_6_cameras], color='green', linestyle='-')    # type: ignore
     # Update previous values
     prev_Pi, prev_eff_ext_cob_overall, prev_eff_cob, prev_eff_cob_sec, prev_eff_ext_cob_overall_6_cameras, prev_eff_cob_6_cameras, prev_eff_cob_sec_6_cameras = Pi, eff_ext_cob_overall, eff_cob, eff_cob_sec, eff_ext_cob_overall_6_cameras, eff_cob_6_cameras, eff_cob_sec_6_cameras
 
 
     #plt.legend(['Ext. Mask (10 contaminants)'], loc='best')
-    plt.vlines(11.7, ymin=60, ymax = 100, linestyles='dashed', colors='green')
-    plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red')
+    plt.vlines(11.7, ymin=60, ymax = 100, linestyles='dashed', colors='green') # type: ignore
+    plt.vlines(11, ymin=60, ymax=100, linestyles='dashdot', colors='red') # type: ignore
     plt.ylim(60, 100)
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
@@ -556,9 +556,9 @@ ax_inset = inset_axes(
     bbox_to_anchor=(0.48, 0.4),  # Center it horizontally (0.5) and position lower vertically (0.3)
     bbox_transform=plt.gca().transAxes
 )
-ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)')
+ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)') # type: ignore
 #ax_inset.errorbar(Pi_values, eff_ext_cob_overall_6_cameras_values, fmt='s', yerr=error_ext_cob_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)')
-ax_inset.errorbar(Pi_values, eff_cob_values, color='orange', fmt='*', yerr=error_cob, linewidth=1.5, label='Nom. Mask (24 cameras)')
+ax_inset.errorbar(Pi_values, eff_cob_values, color='orange', fmt='*', yerr=error_cob, linewidth=1.5, label='Nom. Mask (24 cameras)') # type: ignore
 #ax_inset.errorbar(Pi_values, eff_cob_6_cameras_values, color='olive', fmt='*', yerr=error_cob_6_cameras,  linewidth=1.5, label='Nom. Mask (6 cameras)')
 
 # Connect the dots
@@ -581,15 +581,16 @@ plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 plt.savefig("DAP_CS_efficiency.pdf", format='pdf', bbox_inches='tight')
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
-nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first)
-nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs)
+nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
-nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh)
-nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh)
+nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+
 nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 
 nfp_highest_contaminant = (eta_nom_bt_24_cameras[:,0]>flux_thresh_nom_mask)
-nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0])
+nfp_ext_mask_highest_contaminant = (eta_ext_bt_24_cameras[:,0]>flux_thresh_ext_mask) & (delta_obs_ext[:,0]>delta_obs[:,0]+depth_sig_scaling*sig_depth_24_cameras_10first[:,0]) & nfp_highest_contaminant
 
 magnitudes = mag  # Using the variable with all the magnitude values of the targets
 
@@ -647,17 +648,13 @@ for i in range(nP):
     n_star[i] = m.sum()
 
     # Compute efficiencies and fractions for the current bin
-    eff_ext_flux = (nfp[m] & nfp_ext_mask[m]).sum() / nfp[m].sum() * 100.
+    eff_ext_flux = nfp_ext_mask[m].sum() / nfp[m].sum() * 100.
     eff_sec_flux = (nfp_sec_mask[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100
     eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
     eff_ext_flux_without_significant_transit_depth_condition = (nfp[m] & nfp_ext_flux_without_significant_transit_depth_condition[m]).sum() / nfp[m].sum() * 100.
-    eff_nom_cob = (nfp[m] & nfp_nom_cob[m]).sum() / nfp[m].sum() * 100.
-    eff_ext_cob = (nfp[m] & nfp_ext_cob[m]).sum() / nfp[m].sum() * 100.
+    eff_nom_cob = nfp_nom_cob[m].sum() / nfp[m].sum() * 100.
+    eff_ext_cob = nfp_ext_cob[m].sum() / nfp[m].sum() * 100.
     eff_sec_cob = (secondary_mask_conditions_cob_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
-    fraction_fp_ext_cob_no_ext_flux = ((nfp_ext_mask[m]==False) & nfp_ext_cob[m] & nfp[m] ).sum()/nfp[m].sum()
-    fraction_fp_nom_cob_no_ext_flux = ((nfp_ext_mask[m]==False) & nfp_nom_cob[m] & nfp[m] ).sum()/nfp[m].sum()
-    fraction_fp_ext_flux_no_nom_cob = ((nfp_nom_cob[m]==False) & nfp_ext_mask[m] & nfp[m] ).sum()/nfp[m].sum()
-    fraction_fp_ext_cob_no_nom_cob = ((nfp_nom_cob[m]==False) & nfp_ext_cob[m] & nfp[m] ).sum()/nfp[m].sum()
 
     # Accumulate weighted sums
     weighted_eff_ext_flux +=  weights[i] * eff_ext_flux
@@ -667,10 +664,6 @@ for i in range(nP):
     weighted_eff_nom_cob += weights[i] * eff_nom_cob
     weighted_eff_ext_cob += weights[i] * eff_ext_cob
     weighted_eff_sec_cob += weights[i] * eff_sec_cob
-    weighted_fraction_fp_ext_cob_no_ext_flux += weights[i] * fraction_fp_ext_cob_no_ext_flux
-    weighted_fraction_fp_nom_cob_no_ext_flux += weights[i] * fraction_fp_nom_cob_no_ext_flux
-    weighted_fraction_fp_ext_flux_no_nom_cob += weights[i] * fraction_fp_ext_flux_no_nom_cob
-    weighted_fraction_fp_ext_cob_no_nom_cob += weights[i] * fraction_fp_ext_cob_no_nom_cob
 
     # Calculate variance for the efficiencies
     variance_eff_ext_flux = (eff_ext_flux * (100 - eff_ext_flux)) / n_star[i]
@@ -690,20 +683,6 @@ for i in range(nP):
     weighted_variance_eff_ext_cob += weights[i] * variance_eff_ext_cob
     weighted_variance_eff_sec_cob += weights[i] * variance_eff_sec_cob
 
-
-    # Calculate variance for the fractions
-    variance_fraction_fp_ext_cob_no_ext_flux = (fraction_fp_ext_cob_no_ext_flux * (1 - fraction_fp_ext_cob_no_ext_flux)) / n_star[i]
-    variance_fraction_fp_nom_cob_no_ext_flux = (fraction_fp_nom_cob_no_ext_flux * (1 - fraction_fp_nom_cob_no_ext_flux)) / n_star[i]
-    variance_fraction_fp_ext_flux_no_nom_cob = (fraction_fp_ext_flux_no_nom_cob * (1 - fraction_fp_ext_flux_no_nom_cob)) / n_star[i]
-    variance_fraction_fp_ext_cob_no_nom_cob = (fraction_fp_ext_cob_no_nom_cob *(1 - fraction_fp_ext_cob_no_nom_cob)) / n_star[i]
-
-
-    # Accumulate weighted variance
-    weighted_variance_fraction_fp_ext_cob_no_ext_flux += weights[i] * variance_fraction_fp_ext_cob_no_ext_flux
-    weighted_variance_fraction_fp_nom_cob_no_ext_flux += weights[i] * variance_fraction_fp_nom_cob_no_ext_flux
-    weighted_variance_fraction_fp_ext_flux_no_nom_cob += weights[i] * variance_fraction_fp_ext_flux_no_nom_cob
-    weighted_variance_fraction_fp_ext_cob_no_nom_cob += weights[i] * variance_fraction_fp_ext_cob_no_nom_cob
-
 # Compute the final errors as the square root of the weighted variances
 weighted_error_eff_ext_flux = np.sqrt(weighted_variance_eff_ext_flux)
 weighted_error_eff_sec_flux = np.sqrt(weighted_variance_eff_sec_flux)
@@ -714,12 +693,6 @@ weighted_error_eff_ext_cob = np.sqrt(weighted_variance_eff_ext_cob)
 weighted_error_eff_sec_cob = np.sqrt(weighted_variance_eff_sec_cob)
 
 
-# Computing the errors (standard deviaiton -> square root of the variance previously obtained)
-weighted_error_fraction_fp_ext_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_ext_flux)
-weighted_error_fraction_fp_nom_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_ext_flux)
-weighted_error_fraction_fp_ext_flux_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_flux_no_nom_cob)
-weighted_error_fraction_fp_ext_cob_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_nom_cob)
-
 # Print weighted efficiency results with errors
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}% ± {weighted_error_eff_ext_flux:.2f}%')
 print(f'Weighted secondary flux efficiency: {weighted_eff_sec_flux:.2f}% ± {weighted_error_eff_sec_flux:.2f}%')
@@ -729,10 +702,6 @@ print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}% ± {weighte
 print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}% ± {weighted_error_eff_ext_cob:.2f}%')
 print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}% ± {weighted_error_eff_sec_cob:.2f}%')
 # Print weighted fractions and their errors
-print(f'Weighted fraction of FPs detected by ECOB but not by EFX: {weighted_fraction_fp_ext_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_ext_flux * 100:.2f}%')
-print(f'Weighted fraction of FPs detected by NCOB but not by EFX: {weighted_fraction_fp_nom_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_nom_cob_no_ext_flux * 100:.2f}%')
-print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.2f}%')
-print(f'Weighted fraction of FPs detected by ECOB but not by NCOB: {weighted_fraction_fp_ext_cob_no_nom_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_nom_cob * 100:.2f}%')
 
 
 plt.figure(6)
@@ -759,10 +728,11 @@ plt.ylabel('Differential P magnitude [mag]')
 
 plt.figure(9)
 plt.scatter(dist_target_to_10first_contaminants[nfp_nom_cob], mag_diff_2d[nfp_nom_cob], alpha=0.5, s=4) # contaminants fulfilling the nominal cob conditions
+plt.scatter(dist_target_to_10first_contaminants[nfp_ext_cob], mag_diff_2d[nfp_ext_cob], alpha=0.5, s=4)
 plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')
 
-plt.figure(9)
+plt.figure(10)
 plt.scatter(dist_target_to_10first_contaminants[nfp_ext_cob], mag_diff_2d[nfp_ext_cob], alpha=0.5, s=4) # contaminants fulfilling the extended cob conditions
 plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')

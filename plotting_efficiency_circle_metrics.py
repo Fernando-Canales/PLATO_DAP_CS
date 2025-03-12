@@ -8,14 +8,11 @@ import matplotlib.pyplot as plt # type: ignore
 from matplotlib.colors import LogNorm # type: ignore
 import matplotlib.patheffects as PathEffects # type: ignore
 
-# If you have a custom module 'fitting_psf' with 'from_pix_2_mm', uncomment the following line
-# from fitting_psf import from_pix_2_mm 
-
 # Some file parameters
 dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/rings/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 
 # Define ring numbers for x-axis (1 to number_of_circles)
-number_of_circles = 7  # Ensure this matches your data
+number_of_circles = 7 
 ring_numbers = np.arange(1, number_of_circles + 1)  # [1, 2, ..., number_of_circles]
 
 # Initialize lists to store efficiencies for each ring
@@ -94,8 +91,8 @@ def from_pix_2_mm(x_star, y_star):
     Replace with actual implementation as needed.
     """
     # Example conversion factors (these should be defined based on your setup)
-    pix_to_mm_x = 0.1  # mm per pixel in x-direction
-    pix_to_mm_y = 0.1  # mm per pixel in y-direction
+    pix_to_mm_x = 0.018  # mm per pixel in x-direction
+    pix_to_mm_y = 0.018  # mm per pixel in y-direction
     x_mm = x_star * pix_to_mm_x
     y_mm = y_star * pix_to_mm_y
     return x_mm, y_mm
@@ -104,7 +101,7 @@ def from_pix_2_mm(x_star, y_star):
 def add_concentric_circles(ax, R, N):
     for i in range(N):
         r_i = (i + 1) / N * R  # Linear spacing for circle radii
-        circle = plt.Circle((0, 0), r_i, color='darkorange', linestyle='--', fill=False, linewidth=2, zorder=3)
+        circle = plt.Circle((0, 0), r_i, color='darkorange', linestyle='--', fill=False, linewidth=2, zorder=3) # type: ignore
         ax.add_artist(circle)
 
 # Function to compute binomial confidence interval (standard error)
@@ -609,28 +606,6 @@ plt.show()
 # ----- Plot 2: Median SPR_tot_nom, SPR_tot_ext, and SPR_tot_sec vs Ring Number for Masked Targets with Error Bars -----
 plt.figure(figsize=(10, 6), dpi=120)
 
-plt.errorbar(
-    ring_numbers,
-    median_spr_tot_nom_masked,
-    yerr=error_spr_nom_masked,
-    fmt='o-', 
-    color='brown',
-    label=r'Median $\rm SPR_{tot\_nom}$ (Masked Targets)',
-    capsize=5,
-    ecolor='black',
-    alpha=0.7
-)
-plt.errorbar(
-    ring_numbers,
-    median_spr_tot_ext_masked,
-    yerr=error_spr_ext_masked,
-    fmt='s-', 
-    color='red',
-    label=r'Median $\rm SPR_{tot\_ext}$ (Masked Targets)',
-    capsize=5,
-    ecolor='black',
-    alpha=0.7
-)
 
 
 plt.xlabel("Ring Number", fontsize=14)
