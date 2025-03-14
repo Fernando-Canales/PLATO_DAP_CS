@@ -442,7 +442,7 @@ def process_target(target_index):
     save_info_contaminant = np.append(save_info_contaminant, ID_contaminant_highest_sprk)
 
     # Now we save the important metrics w.r.t the extended mask
-    save_info_ext = np.array([dist_bad, ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[index_contaminant_highest_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
+    save_info_ext = np.array([ID_t, m_t, extended_mask_key, extended_mask_size, NSR_ext_1h_24_cameras, sprk_ext[index_contaminant_highest_sprk], SPR_crit_ext, eta_ext, delta_obs_ext, abs_cob_ext, eta_cob_ext, 
                             sigma_1_24_ext, n_bad_ext, SPR_tot_ext])
 
     save_info_ext = np.append(save_info_ext, SPRK_ext_10first)
