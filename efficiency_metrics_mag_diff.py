@@ -1,8 +1,8 @@
 """
-Script that computes the efficiency in the
-distance space
+Script that computes the efficiency
+for the mag difference parameter space
 
-Fernando 05.03.2025
+Fernando 17.03.2025
 """
 import numpy as np #type:ignore
 import matplotlib.pyplot as plt # type: ignore
@@ -37,15 +37,12 @@ ntr = 3        # number of transits in one hour
 distance_max = 5 # maximum distance in pixels, from the target, to a star in the window in order to be considered a contaminant
 #n_c_max = 300 # maximum number of contaminants in each window                      # processed PSFs 
 
-distance_from_target_to_10first_contaminants = data_nominal_mask[:, 179:189] # within the imagette, in pixels
-flat_distance = distance_from_target_to_10first_contaminants.flatten()
 
+mag = data_nominal_mask[:, 1] # mag of the targets
+mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
+mag_diff_from_target_to_10first_contaminants = data_nominal_mask[:, 169:179] - mag[:, None] # mag of the contaminants - mag of the target
+flat_mag_diff = mag_diff_from_target_to_10first_contaminants.flatten()
 
-# Instead of radius_focal_plane, we use our fixed maximum distance for the contaminants:
-max_distance = 5  # maximum distance in pixels
-number_of_shells = 5
-shell_edges = np.sqrt(np.linspace(0, max_distance**2, number_of_shells + 1))
-print("Shell edges (pixels):", shell_edges)
 
 nsr1h_sec = data_secondary_mask[:, 3]    # adjust index if needed
 sig_depth_secondary_mask = nsr1h_sec * (1 - data_secondary_mask[:, 5]) / np.sqrt(td_ref * ntr)
@@ -70,15 +67,34 @@ total_nfp_ext = 0
 total_nfp_ext_cob = 0
 total_nfp_nom_cob = 0
 
-#ext_eff = [66.51, 70.22, 70.69, 70.76, 70.80]
 
-# For each shell, create a boolean mask using the flattened distances.
-for i in range(number_of_shells):
-    r_lo = shell_edges[i]
-    r_hi = shell_edges[i+1]
-    mask = (flat_distance >= r_lo) & (flat_distance < r_hi)
-    print(f"Shell {i}: Found {np.sum(mask)} contaminants with distance in [{r_lo:.2f}, {r_hi:.2f})")
+flat_mag = np.repeat(mag, 10)  # shape (N*10,)
 
+# 2) Define uniform bins from flat_mag itself:
+mdiff_min = np.min(flat_mag_diff)
+mdiff_max = np.max(flat_mag_diff)
+binsize = 0.5
+
+# Number of bins (integer) that covers the entire range from mdiff_min to mdiff_max
+n_bins = int((mdiff_max - mdiff_min) / binsize + 1)
+
+# 3) QUANTILE BIN EDGES
+num_bins = 5
+clipped_diff = np.clip(flat_mag_diff, -2, None)
+bin_edges = np.quantile(clipped_diff, np.linspace(0, 1, num_bins + 1))
+print("Bin edges in Δm:", bin_edges)
+
+# 3) Loop over bins:
+for i in range(num_bins):
+
+    lo = bin_edges[i]
+    hi = bin_edges[i+1]
+    
+    # Build mask over flat_mag_diff
+    mask = (flat_mag_diff >= lo) & (flat_mag_diff < hi)
+    
+    # Build mask for [left, right):
+    #mask = (flat_mag >= left) & (flat_mag < right)
     # Now flatten the other arrays in the same way:
     flat_Sprk_ext = data_extended_mask[:, 14:24].flatten()  # shape: (n_targets*10,)
     flat_Sprk_nom = data_nominal_mask[:, 17:27].flatten()  # shape: (n_targets*10,)
@@ -95,19 +111,19 @@ for i in range(number_of_shells):
     flat_eta_ext = data_extended_mask[:, 24:34].flatten()
 
     # Filter the flattened eta values using the mask:
-    eta_nom_in_shell = flat_eta_nom[mask]
-    eta_ext_in_shell = flat_eta_ext[mask]
+    eta_nom_in_bin = flat_eta_nom[mask]
+    eta_ext_in_bin = flat_eta_ext[mask]
 
-    Sprk_ext_in_shell = flat_Sprk_ext[mask]
-    Sprk_nom_in_shell = flat_Sprk_nom[mask]
-    eta_cob_nom_in_shell = flat_eta_cob_nom[mask]
-    eta_cob_ext_in_shell = flat_eta_cob_ext[mask]
-    eta_sec_in_shell = flat_eta_secondary[mask]
+    Sprk_ext_in_bin = flat_Sprk_ext[mask]
+    Sprk_nom_in_bin = flat_Sprk_nom[mask]
+    eta_cob_nom_in_bin = flat_eta_cob_nom[mask]
+    eta_cob_ext_in_bin = flat_eta_cob_ext[mask]
+    eta_sec_in_bin = flat_eta_secondary[mask]
     dback = flat_dback[mask]
     
     # For example, compute a derived metric:
-    delta_obs_ext_in_shell = dback * Sprk_ext_in_shell
-    delta_obs_nom_in_shell = dback * Sprk_nom_in_shell
+    delta_obs_ext_in_shell = dback * Sprk_ext_in_bin
+    delta_obs_nom_in_shell = dback * Sprk_nom_in_bin
     delta_obs_sec_in_shell = flat_delta_obs_sec[mask]
     eta_target_secondary_in_shell = flat_eta_target_secondary[mask]
     delta_obst_target_sec_in_shell = flat_delta_obs_target_sec[mask]
@@ -116,54 +132,52 @@ for i in range(number_of_shells):
     sig_depth_in_shell = flat_sig_depth_total[mask]
     sig_depth_secondary_in_shell = flat_sig_depth_secondary[mask]
 
-    # Let’s say you define a boolean condition based on eta_nom_in_shell:
-    nfp = (eta_nom_in_shell > eta_nom_threshold)
+    # Let’s say you define a boolean condition based on eta_nom_in_bin:
+    nfp = (eta_nom_in_bin > eta_nom_threshold)
     # And another condition for the extended metric:
-    nfp_ext = (eta_ext_in_shell > eta_ext_threshold) & (delta_obs_ext_in_shell > delta_obs_nom_in_shell + 3*sig_depth_in_shell) & (eta_nom_in_shell > eta_nom_threshold)
-    nfp_sec = (eta_sec_in_shell > eta_ext_threshold) & (delta_obs_sec_in_shell > delta_obst_target_sec_in_shell + 3*sig_depth_secondary_in_shell) & (eta_target_secondary_in_shell > eta_nom_threshold)
-    nfp_ext_cob = (eta_cob_ext_in_shell > 3) & (eta_nom_in_shell > eta_nom_threshold)
-    nfp_nom_cob = (eta_cob_nom_in_shell > 3) & (eta_nom_in_shell > eta_nom_threshold)
+    nfp_ext = (eta_ext_in_bin > eta_ext_threshold) & (delta_obs_ext_in_shell > delta_obs_nom_in_shell + 3*sig_depth_in_shell) & (eta_nom_in_bin > eta_nom_threshold)
+    nfp_sec = (eta_sec_in_bin > eta_ext_threshold) & (delta_obs_sec_in_shell > delta_obst_target_sec_in_shell + 3*sig_depth_secondary_in_shell) & (eta_target_secondary_in_shell > eta_nom_threshold)
+    nfp_ext_cob = (eta_cob_ext_in_bin > 3) & (eta_nom_in_bin > eta_nom_threshold)
+    nfp_nom_cob = (eta_cob_nom_in_bin > 3) & (eta_nom_in_bin > eta_nom_threshold)
     count_nfp = np.sum(nfp)
     count_nfp_ext = np.sum(nfp_ext)
     count_nfp_ext_cob = np.sum(nfp_ext_cob)
     count_nfp_nom_cob = np.sum(nfp_nom_cob)
 
-    print(f"Shell {i}: nfp = {count_nfp}, nfp_ext = {count_nfp_ext} nfp_ext_cob = {count_nfp_ext_cob}, nfp_nom_cob = {count_nfp_nom_cob}")
+   
     # Then compute efficiency:
     eff_ext_flux = np.sum(nfp_ext) / np.sum(nfp) * 100.
     eff_ext_cob = np.sum(nfp_ext_cob) / np.sum(nfp) *100.
     eff_nom_cob = np.sum(nfp_nom_cob) / np.sum(nfp) *100.
     eff_sec_flux = np.sum(nfp_sec) / np.sum((eta_target_secondary_in_shell > eta_nom_threshold)) * 100.
 
-    r = (r_lo + r_hi) / 2
+      # (A) Bin midpoint for plotting:
+    bin_center = (lo + hi)/2
+
     
     # Plot the efficiency points. Add label only for the first iteration.
     if i == 0:
-        #plt.plot(r_lo, ext_eff[i], 'o-', color='blue', label='Extended flux')
-        plt.plot(r_lo, eff_ext_cob, '^-', color='orange', label='Extended COB')
-        plt.plot(r_lo, eff_nom_cob, 'P-', color='red', label='Nominal COB')
-        plt.plot(r, eff_sec_flux, 'd-', color='green', label='Sec flux')
+        plt.plot(bin_center, eff_ext_flux, 'o-', color='blue', label='Extended flux')
+        plt.plot(bin_center, eff_ext_cob, '^-', color='orange', label='Extended COB')
+        plt.plot(bin_center, eff_nom_cob, 'P-', color='red', label='Nominal COB')
+        plt.plot(bin_center, eff_sec_flux, 'd-', color='green', label='Sec flux')
     else:
-        #plt.plot(r_lo, ext_eff[i], 'o-', color='blue')
-        plt.plot(r_lo, eff_ext_cob, '^-', color='orange')
-        plt.plot(r_lo, eff_nom_cob, 'P-', color='red')
-        plt.plot(r_lo, eff_sec_flux, 'd-', color='green')
+        plt.plot(bin_center, eff_ext_flux, 'o-', color='blue')
+        plt.plot(bin_center, eff_ext_cob, '^-', color='orange')
+        plt.plot(bin_center, eff_nom_cob, 'P-', color='red')
+        plt.plot(bin_center, eff_sec_flux, 'd-', color='green')
 
             # Sum counts for this shell:
-    shell_nfp = np.sum(nfp)
-    shell_nfp_ext = np.sum(nfp_ext)
-    shell_nfp_ext_cob = np.sum(nfp_ext_cob)
-    shell_nfp_nom_cob = np.sum(nfp_nom_cob)
-    
-    print(f"Shell {i}: nfp = {shell_nfp}, nfp_ext = {shell_nfp_ext}, "
-          f"nfp_ext_cob = {shell_nfp_ext_cob}, nfp_nom_cob = {shell_nfp_nom_cob}")
+    bin_nfp = np.sum(nfp)
+    bin_nfp_ext = np.sum(nfp_ext)
+    bin_nfp_ext_cob = np.sum(nfp_ext_cob)
+    bin_nfp_nom_cob = np.sum(nfp_nom_cob)
     
     # Accumulate overall counts:
-    total_nfp += shell_nfp # type: ignore
-    total_nfp_ext += shell_nfp_ext # type: ignore
-    print(total_nfp_ext/total_nfp)
-    total_nfp_ext_cob += shell_nfp_ext_cob
-    total_nfp_nom_cob += shell_nfp_nom_cob
+    total_nfp += bin_nfp # type: ignore
+    total_nfp_ext += bin_nfp_ext # type: ignore
+    total_nfp_ext_cob += bin_nfp_ext_cob
+    total_nfp_nom_cob += bin_nfp_nom_cob
 
 # After processing all shells, compute overall efficiencies:
 if total_nfp > 0: # type: ignore
@@ -178,8 +192,8 @@ print("Overall Extended COB Efficiency: {:.2f}%".format(overall_eff_ext_cob))
 print("Overall Nominal COB Efficiency: {:.2f}%".format(overall_eff_nom_cob))
 
 
-plt.xlabel("Shells")
+plt.xlabel("Contaminant mag − Target mag (Δm)")
 plt.ylabel("Efficiency (%)")
 plt.legend()
-plt.savefig('/home/fercho/Documents/' +'efficiency_rings_distance.pdf', dpi=300, format='pdf')
+plt.savefig('/home/fercho/Documents/' +'efficiency_rings_mag_diff.pdf', dpi=300, format='pdf')
 plt.show()

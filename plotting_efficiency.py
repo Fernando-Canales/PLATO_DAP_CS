@@ -704,21 +704,23 @@ print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}% ± {
 # Print weighted fractions and their errors
 
 
-plt.figure(6)
+plt.figure(6, figsize=(7,6))
 mag_diff_2d = mag_target_10first_contaminants - mag[:, None] # gives the mag difference between each target and each contaminant
 mask_spr = SPRK10_first > spr_crit[:, None] # checks the SPRk value of each contaminant with respect to SPR_crit
 plt.scatter(dist_target_to_10first_contaminants, mag_diff_2d, alpha=0.5, label='all conts.', s=4) # all contaminants
-plt.scatter(dist_target_to_10first_contaminants[mask_spr], mag_diff_2d[mask_spr], alpha=0.5, label='conts. spr > spr crit', s=4) # contaminants for which sprk > spr_crit
+plt.scatter(dist_target_to_10first_contaminants[mask_spr], mag_diff_2d[mask_spr], alpha=0.5, label=r'conts. $\eta_{k}^{nom}$  > 7.1', s=4) # contaminants for which sprk > spr_crit
 plt.ylim(-6, 11)
 plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')
 plt.legend()
+plt.savefig('/home/fercho/Documents/' +'contaminants_fulfilling_condition.pdf', dpi=300, format='pdf')
 
 
-plt.figure(7)
+plt.figure(7, figsize=(7,6))
 plt.scatter(dist_target_to_10first_contaminants[nfp_ext_mask], mag_diff_2d[nfp_ext_mask], alpha=0.5, s=4) # contaminants fulfilling the extended mask conditions
 plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')
+plt.savefig('/home/fercho/Documents/' +'extended_mask_contaminants_fulfilling_condition.pdf', dpi=300, format='pdf')
 
 plt.figure(8)
 plt.scatter(dist_target_to_10first_contaminants[nfp], mag_diff_2d[nfp], alpha=0.5, s=4) # contaminants fulfilling the nominal flux conditions
@@ -726,11 +728,12 @@ plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')
 
 
-plt.figure(9)
-plt.scatter(dist_target_to_10first_contaminants[nfp_nom_cob], mag_diff_2d[nfp_nom_cob], alpha=0.5, s=4) # contaminants fulfilling the nominal cob conditions
-plt.scatter(dist_target_to_10first_contaminants[nfp_ext_cob], mag_diff_2d[nfp_ext_cob], alpha=0.5, s=4)
+plt.figure(9, figsize=(7,6))
+plt.scatter(dist_target_to_10first_contaminants[nfp_nom_cob], mag_diff_2d[nfp_nom_cob], alpha=0.5, s=4, label='Nominal mask') # contaminants fulfilling the nominal cob conditions
+plt.scatter(dist_target_to_10first_contaminants[nfp_ext_cob], mag_diff_2d[nfp_ext_cob], alpha=0.5, s=4, label='Extended mask')
 plt.xlabel('Distance [pixel]')
 plt.ylabel('Differential P magnitude [mag]')
+plt.savefig('/home/fercho/Documents/' +'cobs_contaminants_fulfilling_condition.pdf', dpi=300, format='pdf')
 
 plt.figure(10)
 plt.scatter(dist_target_to_10first_contaminants[nfp_ext_cob], mag_diff_2d[nfp_ext_cob], alpha=0.5, s=4) # contaminants fulfilling the extended cob conditions

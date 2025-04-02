@@ -93,7 +93,7 @@ def barycenter(array,mask=None,x=None,y=None,subres=1):
     if(isinstance(y, (np.ndarray, np.generic) )== False):
         y=(np.arange(0,array.shape[0])+0.5)/float(subres)
 
-    if(x.ndim ==1 & y.ndim ==1):
+    if(x.ndim ==1 & y.ndim ==1): # type: ignore
         x,y = np.meshgrid(x,y)
 
     if(mask is not None):
@@ -370,6 +370,18 @@ def plot_nominal_mask_contour(nominal_mask, plot_color):
                 plt.plot([i, i], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Left edge
                 plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
 
+plt.figure(0, figsize=(7,6), dpi=300)
+plt.scatter(data[:, 0]/3600., centroid_x_nom - 0.0135, label='Nominal mask', marker='o', s=3)
+plt.scatter(data[:, 0]/3600., centroid_x_ext - 0.0557, label='Extended mask', marker='o', s=3)
+plt.xlabel('Time [hours]', fontsize=14)
+plt.ylabel('x-component of C.O.B. [pixels]', fontsize=14)
+plt.legend()
+# Adjust the layout manually to increase the space at the bottom for the x-axis label
+plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
+plt.savefig(resultsDIR+'Extended_and_Nominal_COB.pdf', dpi=300, format='pdf')
+plt.show()
+
+
 plt.figure(1, figsize=(7, 6), dpi=300)
 #plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label= 'Nominal Flux', color='black',  marker='o', s=3)
 #plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Extended Flux', color='brown',  marker='P', s=3)
@@ -380,7 +392,7 @@ plt.ylabel('Centroid shift [pixel]', fontsize=14)
 plt.legend()
 # Adjust the layout manually to increase the space at the bottom for the x-axis label
 plt.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.15)  # Increase bottom margin
-plt.savefig(resultsDIR+'Secondary_and_Nominal_COBs.png', dpi=300, format='png')
+plt.savefig(resultsDIR+'Extended_and_Nominal_COBs.png', dpi=300, format='png')
 plt.show()
 
 
