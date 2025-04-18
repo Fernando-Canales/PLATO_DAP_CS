@@ -5,7 +5,8 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_4_22_hr_CONDITION_1-PIXEL_SEC_MASK/' 
+#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_4_22_hr_CONDITION_1-PIXEL_SEC_MASK/' 
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
@@ -23,7 +24,8 @@ gamma_factor_significance = 1 ## other 0.46
 td_ref = 6.72*0.46**2
 dback_ref = 132000
 
-data_catalogue = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy') # star catalogue from GAIA
+#data_catalogue = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy') # star catalogue from GAIA
+data_catalogue = np.load(cataDIR + 'SFP_DR3_20230101.npy')
 magnitude_all_stars = data_catalogue[:, 2]
 data = np.load(dataDIR + 'targets_P5.npy')
 #0: ID_t
@@ -145,8 +147,8 @@ delta_cob_ext_2_pix = data_ext[:, 246]
 mag_value, star_count = np.loadtxt(dataDIR + 'star_count.txt', unpack=True, usecols=[0, 1])
 ntr = 3        # number of transits in one hour
 n = data.shape[0]
-td = data[:, 126:136]
-dback = data[:, 136:146]
+td_from_dap = data[:, 126:136]
+dback_from_dap = data[:, 136:146]
 seed = 123434434
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
@@ -295,8 +297,8 @@ eta_ext_2_pix_bt_6_cameras = np.zeros((n, 10))
 mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
 
 for i in range(n):
-    dback = np.ones(10)*dback_ref
-    td = np.ones(10)*td_ref
+    dback= dback_from_dap[i, ::] #np.ones(10)*dback_ref
+    td = td_from_dap[i, ::] #np.ones(10)*td_ref
     eta_nom_bt_24_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11])) # Eq.(12) from the paper
     eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
@@ -634,6 +636,12 @@ weighted_fraction_fp_sec_cob_no_sec_flux = 0
 weighted_fraction_fp_sec_flux_no_ext_cob = 0
 weighted_fraction_fp_ext_cob_no_sec_flux = 0
 
+weighted_fraction_fp_sec_cob_no_ext_flux = 0
+weighted_fraction_fp_sec_cob_no_nom_cob = 0
+weighted_fraction_fp_nom_cob_no_sec_cob = 0
+weighted_fraction_fp_sec_cob_no_ext_cob = 0
+weighted_fraction_fp_ext_cob_no_sec_cob = 0
+
 
 # Initialize errors for fractions
 weighted_variance_fraction_fp_ext_cob_no_ext_flux = 0
@@ -649,6 +657,12 @@ weighted_variance_fraction_fp_sec_flux_no_sec_cob = 0
 weighted_variance_fraction_fp_sec_cob_no_sec_flux = 0
 weighted_variance_fraction_fp_sec_flux_no_ext_cob = 0
 weighted_variance_fraction_fp_ext_cob_no_sec_flux = 0
+weighted_variance_fraction_fp_sec_cob_no_ext_flux = 0
+weighted_variance_fraction_fp_sec_cob_no_ext_flux = 0
+weighted_variance_fraction_fp_sec_cob_no_nom_cob = 0
+weighted_variance_fraction_fp_nom_cob_no_sec_cob = 0
+weighted_variance_fraction_fp_sec_cob_no_ext_cob = 0
+weighted_variance_fraction_fp_ext_cob_no_sec_cob = 0
 
 # Initialize variance for efficiencies
 weighted_variance_eff_ext_flux = 0
@@ -689,6 +703,12 @@ for i in range(nP):
     fraction_fp_sec_cob_no_sec_flux = ((nfp_sec_mask[m] == False) & nfp_sec_cob[m] & fp_single_contaminant_24_cameras[m]).sum()  / fp_single_contaminant_24_cameras[m].sum()
     fraction_fp_sec_flux_no_ext_cob = ((nfp_ext_cob[m][:, 0] == False) & nfp_sec_mask[m] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
     fraction_fp_ext_cob_no_sec_flux = ((nfp_sec_mask[m] == False) & nfp_ext_cob[m][:, 0] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+    fraction_fp_sec_cob_no_ext_flux = ((nfp_ext_mask[m][:, 0] == False) & secondary_mask_conditions_cob_24_cameras[m] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+    fraction_fp_sec_cob_no_nom_cob = ((nfp_nom_cob[m][:, 0] == False) & secondary_mask_conditions_cob_24_cameras[m] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+    fraction_fp_nom_cob_no_sec_cob = ((secondary_mask_conditions_cob_24_cameras[m] == False) & nfp_nom_cob[m][:, 0] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+    fraction_fp_sec_cob_no_ext_cob = ((nfp_ext_cob[m][:, 0] == False) & secondary_mask_conditions_cob_24_cameras[m] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+    fraction_fp_ext_cob_no_sec_cob = ((secondary_mask_conditions_cob_24_cameras[m] == False) & nfp_ext_cob[m][:, 0] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+
 
 
     # Accumulate weighted sums
@@ -710,6 +730,11 @@ for i in range(nP):
     weighted_fraction_fp_nom_cob_no_sec_flux += weights[i] * fraction_fp_nom_cob_no_sec_flux
     weighted_fraction_fp_sec_flux_no_sec_cob += weights[i] * fraction_fp_sec_flux_no_sec_cob
     weighted_fraction_fp_sec_cob_no_sec_flux += weights[i] * fraction_fp_sec_cob_no_sec_flux 
+    weighted_fraction_fp_sec_cob_no_ext_flux += weights[i] * fraction_fp_sec_cob_no_ext_flux
+    weighted_fraction_fp_sec_cob_no_nom_cob += weights[i] * fraction_fp_sec_cob_no_nom_cob
+    weighted_fraction_fp_nom_cob_no_sec_cob += weights[i] * fraction_fp_nom_cob_no_sec_cob
+    weighted_fraction_fp_sec_cob_no_ext_cob += weights[i] * fraction_fp_sec_cob_no_ext_cob
+    weighted_fraction_fp_ext_cob_no_sec_cob += weights[i] * fraction_fp_ext_cob_no_sec_cob
 
 
     # Calculate variance for the efficiencies
@@ -742,7 +767,13 @@ for i in range(nP):
     variance_fraction_fp_sec_flux_no_nom_cob = (fraction_fp_sec_flux_no_nom_cob * (1 - fraction_fp_sec_flux_no_nom_cob)) / n_star[i]
     variance_fraction_fp_nom_cob_no_sec_flux = (fraction_fp_nom_cob_no_sec_flux * (1 - fraction_fp_nom_cob_no_sec_flux)) / n_star[i]
     variance_fraction_fp_sec_flux_no_sec_cob = (fraction_fp_sec_flux_no_sec_cob * (1 - fraction_fp_sec_flux_no_sec_cob)) / n_star[i]
-    variance_fraction_fp_sec_cob_no_sec_flux = (fraction_fp_sec_cob_no_sec_flux * (1 - fraction_fp_sec_cob_no_sec_flux)) / n_star[i]     
+    variance_fraction_fp_sec_cob_no_sec_flux = (fraction_fp_sec_cob_no_sec_flux * (1 - fraction_fp_sec_cob_no_sec_flux)) / n_star[i]
+    variance_fraction_fp_sec_cob_no_ext_flux = (fraction_fp_sec_cob_no_ext_flux * (1 - fraction_fp_sec_cob_no_ext_flux)) / n_star[i]
+    variance_fraction_fp_sec_cob_no_nom_cob = (fraction_fp_sec_cob_no_nom_cob * (1 - fraction_fp_sec_cob_no_nom_cob)) / n_star[i]
+    variance_fraction_fp_nom_cob_no_sec_cob = (fraction_fp_nom_cob_no_sec_cob * (1 - fraction_fp_nom_cob_no_sec_cob)) / n_star[i]
+    variance_fraction_fp_sec_cob_no_ext_cob = (fraction_fp_sec_cob_no_ext_cob * (1 - fraction_fp_sec_cob_no_ext_cob)) / n_star[i]
+    variance_fraction_fp_ext_cob_no_sec_cob = (fraction_fp_ext_cob_no_sec_cob * (1 - fraction_fp_ext_cob_no_sec_cob)) / n_star[i]
+     
 
     # Accumulate weighted variance for the fractions
     weighted_variance_fraction_fp_ext_cob_no_ext_flux += weights[i] * variance_fraction_fp_ext_cob_no_ext_flux
@@ -756,6 +787,11 @@ for i in range(nP):
     weighted_variance_fraction_fp_nom_cob_no_sec_flux += weights[i] * variance_fraction_fp_nom_cob_no_sec_flux
     weighted_variance_fraction_fp_sec_flux_no_sec_cob += weights[i] * variance_fraction_fp_sec_flux_no_sec_cob
     weighted_variance_fraction_fp_sec_cob_no_sec_flux += weights[i] * variance_fraction_fp_sec_cob_no_sec_flux
+    weighted_variance_fraction_fp_sec_cob_no_ext_flux += weights[i] * variance_fraction_fp_sec_cob_no_ext_flux
+    weighted_variance_fraction_fp_sec_cob_no_nom_cob += weights[i] * variance_fraction_fp_sec_cob_no_nom_cob
+    weighted_variance_fraction_fp_nom_cob_no_sec_cob += weights[i] * variance_fraction_fp_nom_cob_no_sec_cob
+    weighted_variance_fraction_fp_sec_cob_no_ext_cob += weights[i] * variance_fraction_fp_sec_cob_no_ext_cob
+    weighted_variance_fraction_fp_ext_cob_no_sec_cob += weights[i] * variance_fraction_fp_ext_cob_no_sec_cob
 
 
 
@@ -781,6 +817,11 @@ weighted_error_fraction_fp_sec_flux_no_nom_cob = np.sqrt(weighted_variance_fract
 weighted_error_fraction_fp_nom_cob_no_sec_flux = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_sec_flux)
 weighted_error_fraction_fp_sec_flux_no_sec_cob = np.sqrt(weighted_variance_fraction_fp_sec_flux_no_sec_cob)
 weighted_error_fraction_fp_sec_cob_no_sec_flux = np.sqrt(weighted_variance_fraction_fp_sec_cob_no_sec_flux)
+weighted_error_fraction_fp_sec_cob_no_ext_flux = np.sqrt(weighted_variance_fraction_fp_sec_cob_no_ext_flux)
+weighted_error_fraction_fp_sec_cob_no_nom_cob = np.sqrt(weighted_variance_fraction_fp_sec_cob_no_nom_cob)
+weighted_error_fraction_fp_nom_cob_no_sec_cob = np.sqrt(weighted_variance_fraction_fp_nom_cob_no_sec_cob)
+weighted_error_fraction_fp_sec_cob_no_ext_cob = np.sqrt(weighted_variance_fraction_fp_sec_cob_no_ext_cob)
+weighted_error_fraction_fp_ext_cob_no_sec_cob = np.sqrt(weighted_variance_fraction_fp_ext_cob_no_sec_cob)
 
 # Print weighted efficiency results with errors
 print(f'Weighted extended flux efficiency: {weighted_eff_ext_flux:.2f}% ± {weighted_error_eff_ext_flux:.2f}%')
@@ -801,6 +842,11 @@ print(f'Weighted fraction of FPs detected by SFX but not by NCOB: {weighted_frac
 print(f'Weighted fraction of FPs detected by NCOB but not by SFX: {weighted_fraction_fp_nom_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_nom_cob_no_sec_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by SFX but not by SCOB: {weighted_fraction_fp_sec_flux_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_sec_flux_no_sec_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by SCOB but not by SFX: {weighted_fraction_fp_sec_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_sec_cob_no_sec_flux * 100:.2f}%')
+print(f'Weighted fraction of FPs detected by SCOB but not by EFX: {weighted_fraction_fp_sec_cob_no_ext_flux * 100:.2f}% ± {weighted_error_fraction_fp_sec_cob_no_ext_flux * 100:.2f}%')
+print(f'Weighted fraction of FPs detected by SCOB but not by NCOB: {weighted_fraction_fp_sec_cob_no_nom_cob * 100:.2f}% ± {weighted_error_fraction_fp_sec_cob_no_nom_cob * 100:.2f}%')
+print(f'Weighted fraction of FPs detected by NCOB but not by SCOB: {weighted_fraction_fp_nom_cob_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_nom_cob_no_sec_cob * 100:.2f}%')
+print(f'Weighted fraction of FPs detected by SCOB but not by ECOB: {weighted_fraction_fp_sec_cob_no_ext_cob * 100:.2f}% ± {weighted_error_fraction_fp_sec_cob_no_ext_cob * 100:.2f}%')
+print(f'Weighted fraction of FPs detected by ECOB but not by SCOB: {weighted_fraction_fp_ext_cob_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_sec_cob * 100:.2f}%')
 
 
 plt.figure(6, figsize=(7,6))

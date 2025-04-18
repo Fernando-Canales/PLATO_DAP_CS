@@ -18,7 +18,8 @@ PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = 'test_results/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_4_22_hr_CONDITION_1-PIXEL_SEC_MASK/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1_targets_per_magnitude_bin/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -170,7 +171,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(transit_duration)  # Fill the array with the fixed value
