@@ -793,8 +793,7 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     return (effective_efficiency, metric_counts, resource_usage, resource_limits, 
             n_counts, method_efficiencies, total_fps, detected_fps, n_targets, within_limits)
 
-# Example call:
-# Add this at the end of your plotting_efficiency.py
+# Example call
 
 results = calculate_effective_efficiency(
     data, data_sec, data_ext,
