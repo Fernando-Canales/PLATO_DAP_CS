@@ -14,13 +14,13 @@ from tqdm import tqdm # type:ignore
 # Parameters relative to all the relevant paths
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
 #PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Noblesse-02760.npz'
-PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif_N4000K.npz'
+PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif_N6500K.npz'
 #PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = 'test_results/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr_6500K_PSF'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1_targets_per_magnitude_bin/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/4000K_PSF/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)

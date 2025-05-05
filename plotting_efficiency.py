@@ -5,7 +5,7 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/4000K_PSF/' 
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/' 
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
@@ -16,7 +16,7 @@ Pmax = 13
 binsize = 0.5
 nP = int((Pmax - Pmin) / binsize + 1)
 fsize = 14
-flux_thresh_nom_mask, cob_thresh = 6, 3
+flux_thresh_nom_mask, cob_thresh = 6, 3 
 flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
 n_tar = 1000
 depth_sig_scaling = 3
