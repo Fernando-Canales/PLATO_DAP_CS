@@ -587,3 +587,221 @@ print(f'Weighted extended flux withouth the significant transit condition: {weig
 print(f'Weighted nominal COB efficiency: {weighted_eff_nom_cob:.2f}% ± {weighted_error_eff_nom_cob:.2f}%')
 print(f'Weighted extended COB efficiency: {weighted_eff_ext_cob:.2f}% ± {weighted_error_eff_ext_cob:.2f}%')
 print(f'Weighted secondary mask COB efficiency: {weighted_eff_sec_cob:.2f}% ± {weighted_error_eff_sec_cob:.2f}%')
+
+
+def calculate_effective_efficiency(data, data_sec, data_ext, 
+                                  eta_nom_bt_24_cameras, eta_ext_bt_24_cameras,
+                                  eta_c, eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras,
+                                  fp_single_contaminant_24_cameras, secondary_mask_conditions_24_cameras,
+                                  flux_thresh_nom_mask, flux_thresh_ext_mask, flux_thresh_sec_mask, cob_thresh,
+                                  delta_obs, delta_obs_ext, delta_obs_t, sig_depth_24_cameras_10first,
+                                  depth_sig_scaling):
+    """
+    Calculate the effective efficiency of the PLATO false positive detection strategy.
+    
+    Parameters:
+    -----------
+    data, data_sec, data_ext : numpy arrays
+        Arrays containing target and contaminant data
+    eta_nom_bt_24_cameras, eta_ext_bt_24_cameras : numpy arrays
+        Arrays containing eta values for nominal and extended flux
+    eta_c : numpy array
+        Array containing eta values for secondary flux
+    eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras : numpy arrays
+        Arrays containing eta values for COB shifts
+    fp_single_contaminant_24_cameras, secondary_mask_conditions_24_cameras : numpy arrays
+        Boolean masks for false positives
+    flux_thresh_nom_mask, flux_thresh_ext_mask, flux_thresh_sec_mask, cob_thresh : float
+        Threshold values for detection methods
+    delta_obs, delta_obs_ext, delta_obs_t : numpy arrays
+        Observed transit depths
+    sig_depth_24_cameras_10first : numpy array
+        Signal depth significance
+    depth_sig_scaling : float
+        Scaling factor for depth significance
+        
+    Returns:
+    --------
+    tuple
+        Tuple containing (effective_efficiency, metric_counts, resource_usage, n_counts, method_efficiencies)
+    """
+    print("Calculating effective efficiency of the PLATO false positive detection strategy...")
+    
+    # Extract necessary data
+    mag = data[:, 1]  # Target magnitudes
+    n_bad = data[:, 8]  # Number of potential FPs per target
+    n_targets = len(mag)
+    
+    # Arrays to store assigned metrics and detected FPs
+    assigned_metrics = np.empty(n_targets, dtype='U4')  # EFX, SFX, NCOB, ECOB
+    fps_detected_by_assigned = np.zeros(n_targets)
+    total_fps_per_target = np.zeros(n_targets)
+    
+    # Arrays to count metric assignments
+    count_efx = 0
+    count_sfx = 0
+    count_ncob = 0
+    count_ecob = 0
+    
+    # Arrays to track FPs
+    total_fps = 0
+    detected_fps = 0
+    
+    # Define detection capability for each method (for each target)
+    efx_detection = np.zeros((n_targets, 10), dtype=bool)
+    sfx_detection = np.zeros(n_targets, dtype=bool)
+    ncob_detection = np.zeros((n_targets, 10), dtype=bool)
+    ecob_detection = np.zeros((n_targets, 10), dtype=bool)
+    
+    # Calculate detection capability for each method
+    efx_detection = (eta_ext_bt_24_cameras > flux_thresh_ext_mask) & \
+                    (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & \
+                    (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    
+    sfx_detection = secondary_mask_conditions_24_cameras
+    
+    ncob_detection = (eta_cob_nom_10first_24_cameras > cob_thresh) & \
+                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    
+    ecob_detection = (eta_cob_ext_10first_24_cameras > cob_thresh) & \
+                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    
+    # For each target, follow the decision flow to assign the best metric
+    for i in range(n_targets):
+        # Count the number of potential FPs for this target
+        N = int(n_bad[i])
+        total_fps_per_target[i] = N
+        total_fps += N
+        
+        # Implement the decision logic from the flow diagram
+        if N == 0:
+            # Assign Extended Flux (Low Priority)
+            assigned_metrics[i] = "EFX"
+            count_efx += 1
+            # No FPs to detect
+            fps_detected_by_assigned[i] = 0
+            
+        elif N == 1:
+            # Check if SFX can detect the highest SPR contaminant
+            if sfx_detection[i]:
+                assigned_metrics[i] = "SFX"
+                count_sfx += 1
+                fps_detected_by_assigned[i] = 1
+                detected_fps += 1
+            else:
+                assigned_metrics[i] = "NCOB"
+                count_ncob += 1
+                # Check if NCOB detects the FP
+                if ncob_detection[i, 0]:  # Check only highest SPR contaminant
+                    fps_detected_by_assigned[i] = 1
+                    detected_fps += 1
+                else:
+                    fps_detected_by_assigned[i] = 0
+                    
+        else:  # N ≥ 2
+            # Count how many FPs each method can detect
+            efx_count = np.sum(efx_detection[i])
+            ncob_count = np.sum(ncob_detection[i])
+            ecob_count = np.sum(ecob_detection[i])
+            
+            # Find the method that detects the most
+            if efx_count >= ncob_count and efx_count >= ecob_count:
+                assigned_metrics[i] = "EFX"
+                count_efx += 1
+                fps_detected_by_assigned[i] = efx_count
+                detected_fps += efx_count
+            elif ncob_count >= ecob_count:
+                assigned_metrics[i] = "NCOB"
+                count_ncob += 1
+                fps_detected_by_assigned[i] = ncob_count
+                detected_fps += ncob_count
+            else:
+                assigned_metrics[i] = "ECOB"
+                count_ecob += 1
+                fps_detected_by_assigned[i] = ecob_count
+                detected_fps += ecob_count
+    
+    # Calculate effective efficiency
+    effective_efficiency = (detected_fps / total_fps) * 100 if total_fps > 0 else 0
+    
+    # Metric distribution percentages
+    metric_counts = np.zeros(4)  # [EFX, SFX, NCOB, ECOB]
+    metric_counts[0] = (count_efx / n_targets) * 100
+    metric_counts[1] = (count_sfx / n_targets) * 100
+    metric_counts[2] = (count_ncob / n_targets) * 100
+    metric_counts[3] = (count_ecob / n_targets) * 100
+    
+    # Check resource constraints
+    efx_sfx_count = count_efx + count_sfx
+    cob_count = count_ncob + count_ecob
+    resource_usage = np.zeros(3)  # [EFX+SFX count, NCOB count, ECOB count]
+    resource_usage[0] = efx_sfx_count
+    resource_usage[1] = count_ncob
+    resource_usage[2] = count_ecob
+    resource_limits = np.array([45000, 7400, 7400])
+    within_limits = (efx_sfx_count <= 45000) and (count_ncob <= 7400) and (count_ecob <= 7400)
+    
+    # Distribution of targets by N value
+    n_counts = np.zeros(3)  # [N=0, N=1, N≥2]
+    n_counts[0] = np.sum(n_bad == 0) / n_targets * 100
+    n_counts[1] = np.sum(n_bad == 1) / n_targets * 100
+    n_counts[2] = np.sum(n_bad >= 2) / n_targets * 100
+    
+    # Calculate detection efficiency by detection method
+    method_efficiencies = np.zeros(5)  # [EFX, SFX, NCOB, ECOB, Overall]
+    
+    if np.sum(assigned_metrics == "EFX") > 0:
+        method_efficiencies[0] = np.sum(fps_detected_by_assigned[assigned_metrics == "EFX"]) / np.sum(total_fps_per_target[assigned_metrics == "EFX"]) * 100
+    
+    if np.sum(assigned_metrics == "SFX") > 0:
+        method_efficiencies[1] = np.sum(fps_detected_by_assigned[assigned_metrics == "SFX"]) / np.sum(total_fps_per_target[assigned_metrics == "SFX"]) * 100
+    
+    if np.sum(assigned_metrics == "NCOB") > 0:
+        method_efficiencies[2] = np.sum(fps_detected_by_assigned[assigned_metrics == "NCOB"]) / np.sum(total_fps_per_target[assigned_metrics == "NCOB"]) * 100
+    
+    if np.sum(assigned_metrics == "ECOB") > 0:
+        method_efficiencies[3] = np.sum(fps_detected_by_assigned[assigned_metrics == "ECOB"]) / np.sum(total_fps_per_target[assigned_metrics == "ECOB"]) * 100
+    
+    method_efficiencies[4] = effective_efficiency  # Overall efficiency
+    
+    # Print results
+    print(f"Effective efficiency: {effective_efficiency:.2f}%")
+    print("\nMetric distribution:")
+    print(f"  EFX: {metric_counts[0]:.2f}%")
+    print(f"  SFX: {metric_counts[1]:.2f}%")
+    print(f"  NCOB: {metric_counts[2]:.2f}%")
+    print(f"  ECOB: {metric_counts[3]:.2f}%")
+    
+    print("\nTarget distribution by FP count:")
+    print(f"  N=0: {n_counts[0]:.2f}%")
+    print(f"  N=1: {n_counts[1]:.2f}%")
+    print(f"  N≥2: {n_counts[2]:.2f}%")
+    
+    print("\nResource usage:")
+    print(f"  EFX+SFX: {efx_sfx_count} / 45000 targets")
+    print(f"  NCOB: {count_ncob} / 7400 targets")
+    print(f"  ECOB: {count_ecob} / 7400 targets")
+    print(f"  Within limits: {within_limits}")
+    
+    print("\nMethod efficiency for assigned targets:")
+    print(f"  EFX: {method_efficiencies[0]:.2f}%")
+    print(f"  SFX: {method_efficiencies[1]:.2f}%")
+    print(f"  NCOB: {method_efficiencies[2]:.2f}%")
+    print(f"  ECOB: {method_efficiencies[3]:.2f}%")
+    print(f"  Overall: {method_efficiencies[4]:.2f}%")
+    
+    return (effective_efficiency, metric_counts, resource_usage, resource_limits, 
+            n_counts, method_efficiencies, total_fps, detected_fps, n_targets, within_limits)
+
+# Example call:
+# Add this at the end of your plotting_efficiency.py
+
+results = calculate_effective_efficiency(
+    data, data_sec, data_ext,
+    eta_nom_bt_24_cameras, eta_ext_bt_24_cameras,
+    eta_c, eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras,
+    fp_single_contaminant_24_cameras, secondary_mask_conditions_24_cameras,
+    flux_thresh_nom_mask, flux_thresh_ext_mask, flux_thresh_sec_mask, cob_thresh,
+    delta_obs, delta_obs_ext, delta_obs_t, sig_depth_24_cameras_10first, 
+    depth_sig_scaling
+)
