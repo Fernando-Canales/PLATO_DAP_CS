@@ -17,7 +17,7 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/Long_Observational_Phase_Nord/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -46,8 +46,8 @@ nP = int((Pmax - Pmin) / binsize + 1)   # number of bins
 
 # ------------------------------------------------
 # MORE CONFIGURATION PARAMETERS
-#data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
-data = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy')
+data = np.load(cataDIR + 'SFP_DR3_20230101.npy') # star catalogue from GAIA
+#data = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy')
 psfdata = np.load(PSFfile)                       # processed PSFs 
 del_back, tr_dur = np.loadtxt(cataDIR + 'KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt', unpack=True, usecols=[0, 1]) # transit depth and duration from Kepler Eclipsing Binary Catalogue
 

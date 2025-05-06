@@ -5,7 +5,7 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/Long_Observational_Phase_Nord/' 
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/' 
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
@@ -623,9 +623,14 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     Returns:
     --------
     tuple
-        Tuple containing (effective_efficiency, metric_counts, resource_usage, n_counts, method_efficiencies)
+        Tuple containing (effective_efficiency, metric_counts, resource_usage, resource_limits, 
+                         n_counts, method_efficiencies, total_fps, detected_fps, n_targets, within_limits)
     """
-    print("Calculating effective efficiency of the PLATO false positive detection strategy...")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("+                                                                                 +")
+    print("+ Calculating effective efficiency of the PLATO false positive detection strategy +")
+    print("+                                                                                 +")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     
     # Extract necessary data
     mag = data[:, 1]  # Target magnitudes
@@ -687,14 +692,16 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
                 assigned_metrics[i] = "SFX"
                 count_sfx += 1
                 fps_detected_by_assigned[i] = 1
-                detected_fps += 1
+                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                detected_fps += fps_detected_by_assigned[i]
             else:
                 assigned_metrics[i] = "NCOB"
                 count_ncob += 1
                 # Check if NCOB detects the FP
                 if ncob_detection[i, 0]:  # Check only highest SPR contaminant
                     fps_detected_by_assigned[i] = 1
-                    detected_fps += 1
+                    fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                    detected_fps += fps_detected_by_assigned[i]
                 else:
                     fps_detected_by_assigned[i] = 0
                     
@@ -709,17 +716,20 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
                 assigned_metrics[i] = "EFX"
                 count_efx += 1
                 fps_detected_by_assigned[i] = efx_count
-                detected_fps += efx_count
+                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                detected_fps += fps_detected_by_assigned[i]
             elif ncob_count >= ecob_count:
                 assigned_metrics[i] = "NCOB"
                 count_ncob += 1
                 fps_detected_by_assigned[i] = ncob_count
-                detected_fps += ncob_count
+                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                detected_fps += fps_detected_by_assigned[i]
             else:
                 assigned_metrics[i] = "ECOB"
                 count_ecob += 1
                 fps_detected_by_assigned[i] = ecob_count
-                detected_fps += ecob_count
+                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                detected_fps += fps_detected_by_assigned[i]
     
     # Calculate effective efficiency
     effective_efficiency = (detected_fps / total_fps) * 100 if total_fps > 0 else 0
@@ -731,15 +741,6 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     metric_counts[2] = (count_ncob / n_targets) * 100
     metric_counts[3] = (count_ecob / n_targets) * 100
     
-    # Check resource constraints
-    efx_sfx_count = count_efx + count_sfx
-    cob_count = count_ncob + count_ecob
-    resource_usage = np.zeros(3)  # [EFX+SFX count, NCOB count, ECOB count]
-    resource_usage[0] = efx_sfx_count
-    resource_usage[1] = count_ncob
-    resource_usage[2] = count_ecob
-    resource_limits = np.array([45000, 7400, 7400])
-    within_limits = (efx_sfx_count <= 45000) and (count_ncob <= 7400) and (count_ecob <= 7400)
     
     # Distribution of targets by N value
     n_counts = np.zeros(3)  # [N=0, N=1, N≥2]
@@ -777,12 +778,6 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     print(f"  N=1: {n_counts[1]:.2f}%")
     print(f"  N≥2: {n_counts[2]:.2f}%")
     
-    print("\nResource usage:")
-    print(f"  EFX+SFX: {efx_sfx_count} / 45000 targets")
-    print(f"  NCOB: {count_ncob} / 7400 targets")
-    print(f"  ECOB: {count_ecob} / 7400 targets")
-    print(f"  Within limits: {within_limits}")
-    
     print("\nMethod efficiency for assigned targets:")
     print(f"  EFX: {method_efficiencies[0]:.2f}%")
     print(f"  SFX: {method_efficiencies[1]:.2f}%")
@@ -790,8 +785,7 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     print(f"  ECOB: {method_efficiencies[3]:.2f}%")
     print(f"  Overall: {method_efficiencies[4]:.2f}%")
     
-    return (effective_efficiency, metric_counts, resource_usage, resource_limits, 
-            n_counts, method_efficiencies, total_fps, detected_fps, n_targets, within_limits)
+    return (effective_efficiency, metric_counts, n_counts, method_efficiencies, total_fps, detected_fps, n_targets)
 
 # Example call
 
