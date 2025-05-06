@@ -16,7 +16,7 @@ Pmax = 13
 binsize = 0.5
 nP = int((Pmax - Pmin) / binsize + 1)
 fsize = 14
-flux_thresh_nom_mask, cob_thresh = 6, 3 
+flux_thresh_nom_mask, cob_thresh = 7.1, 3 
 flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
 n_tar = 1000
 depth_sig_scaling = 3
@@ -635,46 +635,46 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     # Extract necessary data
     mag = data[:, 1]  # Target magnitudes
     n_bad = data[:, 8]  # Number of potential FPs per target
+    print(len(n_bad))
     n_targets = len(mag)
+    
     
     # Arrays to store assigned metrics and detected FPs
     assigned_metrics = np.empty(n_targets, dtype='U4')  # EFX, SFX, NCOB, ECOB
     fps_detected_by_assigned = np.zeros(n_targets)
     total_fps_per_target = np.zeros(n_targets)
     
-    # Arrays to count metric assignments
+    # variables to count metric assignments
     count_efx = 0
     count_sfx = 0
     count_ncob = 0
     count_ecob = 0
+    count_efx_zero = 0
     
-    # Arrays to track FPs
-    total_fps = 0
-    detected_fps = 0
+    # variables to track FPs
+    total_fps = 0 # Total count of FPs across all targets
+    detected_fps = 0 # Total count of detected FPs across all targets 
     
     # Define detection capability for each method (for each target)
-    efx_detection = np.zeros((n_targets, 10), dtype=bool)
-    sfx_detection = np.zeros(n_targets, dtype=bool)
-    ncob_detection = np.zeros((n_targets, 10), dtype=bool)
-    ecob_detection = np.zeros((n_targets, 10), dtype=bool)
+    #efx_detection = np.zeros((n_targets, 10), dtype=bool)
+    #sfx_detection = np.zeros(n_targets, dtype=bool)
+    #ncob_detection = np.zeros((n_targets, 10), dtype=bool)
+    #ecob_detection = np.zeros((n_targets, 10), dtype=bool)
     
     # Calculate detection capability for each method
     efx_detection = (eta_ext_bt_24_cameras > flux_thresh_ext_mask) & \
-                    (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & \
-                    (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+                    (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
     
     sfx_detection = secondary_mask_conditions_24_cameras
     
-    ncob_detection = (eta_cob_nom_10first_24_cameras > cob_thresh) & \
-                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    ncob_detection = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
     
-    ecob_detection = (eta_cob_ext_10first_24_cameras > cob_thresh) & \
-                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
-    
+    ecob_detection = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    print(np.shape(eta_nom_bt_24_cameras))
     # For each target, follow the decision flow to assign the best metric
     for i in range(n_targets):
         # Count the number of potential FPs for this target
-        N = int(n_bad[i])
+        N = n_bad[i]
         total_fps_per_target[i] = N
         total_fps += N
         
@@ -692,18 +692,18 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
                 assigned_metrics[i] = "SFX"
                 count_sfx += 1
                 fps_detected_by_assigned[i] = 1
-                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                #fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
                 detected_fps += fps_detected_by_assigned[i]
             else:
                 assigned_metrics[i] = "NCOB"
                 count_ncob += 1
                 # Check if NCOB detects the FP
-                if ncob_detection[i, 0]:  # Check only highest SPR contaminant
-                    fps_detected_by_assigned[i] = 1
-                    fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
-                    detected_fps += fps_detected_by_assigned[i]
-                else:
-                    fps_detected_by_assigned[i] = 0
+                #if ncob_detection[i, 0]:  # Check only highest SPR contaminant
+                fps_detected_by_assigned[i] = 1
+                    #fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                detected_fps += fps_detected_by_assigned[i]
+                #else:
+                    #fps_detected_by_assigned[i] = 0
                     
         else:  # N ≥ 2
             # Count how many FPs each method can detect
@@ -716,23 +716,27 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
                 assigned_metrics[i] = "EFX"
                 count_efx += 1
                 fps_detected_by_assigned[i] = efx_count
-                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                if efx_count > N:
+                    print('efx_count:', efx_count)
+                    print('N is:', N)
+                #fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
                 detected_fps += fps_detected_by_assigned[i]
             elif ncob_count >= ecob_count:
                 assigned_metrics[i] = "NCOB"
                 count_ncob += 1
                 fps_detected_by_assigned[i] = ncob_count
-                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                #fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
                 detected_fps += fps_detected_by_assigned[i]
             else:
                 assigned_metrics[i] = "ECOB"
+                print(efx_count, ncob_count, ecob_count, N)
                 count_ecob += 1
                 fps_detected_by_assigned[i] = ecob_count
-                fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
+                #fps_detected_by_assigned[i] = min(fps_detected_by_assigned[i], total_fps_per_target[i])
                 detected_fps += fps_detected_by_assigned[i]
     
     # Calculate effective efficiency
-    effective_efficiency = (detected_fps / total_fps) * 100 if total_fps > 0 else 0
+    effective_efficiency = (detected_fps / total_fps) * 100
     
     # Metric distribution percentages
     metric_counts = np.zeros(4)  # [EFX, SFX, NCOB, ECOB]
@@ -753,6 +757,7 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     
     if np.sum(assigned_metrics == "EFX") > 0:
         method_efficiencies[0] = np.sum(fps_detected_by_assigned[assigned_metrics == "EFX"]) / np.sum(total_fps_per_target[assigned_metrics == "EFX"]) * 100
+        print(np.where(fps_detected_by_assigned[assigned_metrics == "EFX"] > total_fps_per_target[assigned_metrics == "EFX"]))
     
     if np.sum(assigned_metrics == "SFX") > 0:
         method_efficiencies[1] = np.sum(fps_detected_by_assigned[assigned_metrics == "SFX"]) / np.sum(total_fps_per_target[assigned_metrics == "SFX"]) * 100
