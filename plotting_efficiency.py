@@ -5,7 +5,7 @@ from matplotlib.ticker import FuncFormatter  # type: ignore
 
 from imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/' 
+dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/' 
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
@@ -742,7 +742,7 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     total_p5_targets_per_cam = 80000
     
     # Resource limits as absolute numbers and percentages
-    efx_sfx_limit = 45000  # Maximum for flux measurements
+    efx_sfx_limit = 45000  # Maximum for flux measurements, either extended or secondary (no on-board distinction)
     efx_sfx_limit_pct = (efx_sfx_limit / total_p5_targets_per_cam) * 100  # 56.25%
     
     ncob_limit = 7400  # Maximum for nominal COB
@@ -773,7 +773,6 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     
     if np.sum(assigned_metrics == "EFX") > 0:
         method_efficiencies[0] = np.sum(fps_detected_by_assigned[assigned_metrics == "EFX"]) / np.sum(total_fps_per_target[assigned_metrics == "EFX"]) * 100
-        print(np.where(fps_detected_by_assigned[assigned_metrics == "EFX"] > total_fps_per_target[assigned_metrics == "EFX"]))
     
     if np.sum(assigned_metrics == "SFX") > 0:
         method_efficiencies[1] = np.sum(fps_detected_by_assigned[assigned_metrics == "SFX"]) / np.sum(total_fps_per_target[assigned_metrics == "SFX"]) * 100
@@ -789,6 +788,10 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     # Calculate NCOB breakdown percentages
     ncob_n1_pct = (count_ncob_n1 / n_targets) * 100
     ncob_n2plus_pct = (count_ncob_n2plus / n_targets) * 100
+
+    # Calculate EFX breakdown percentages
+    efx_zero_pct = (count_efx_zero / n_targets) * 100
+    efx_multi_pct = (count_efx_multi / n_targets) * 100
     
     # Calculate what percentage of N=1 targets get NCOB
     n1_targets = np.sum(n_bad == 1)
@@ -812,11 +815,13 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     print(f"  N=1: {n_counts[1]:.2f}%")
     print(f"  N≥2: {n_counts[2]:.2f}%")
     
-    print("\nDetailed NCOB distribution:")
+    print("\nDetailed NCOB and EFX distribution:")
     print(f"  NCOB (N=1): {count_ncob_n1} targets ({ncob_n1_pct:.2f}% of all targets)")
     print(f"  NCOB (N≥2): {count_ncob_n2plus} targets ({ncob_n2plus_pct:.2f}% of all targets)")
     print(f"  NCOB (Total): {count_ncob} targets ({(count_ncob/n_targets)*100:.2f}% of all targets)")
     print(f"  {ncob_percentage_of_n1:.2f}% of N=1 targets are assigned NCOB")
+    print(f"  EFX (N = 0): {count_efx_zero} targets ({efx_zero_pct:.2f}% of all targets)")
+    print(f"  EFX (N >= 2): {count_efx_multi} targets ({efx_multi_pct:.2f}% of all targets)")
     
     print("\nResource usage (as % of all targets):")
     print(f"  EFX+SFX: {efx_sfx_used_pct:.2f}% (limit: {efx_sfx_limit_pct:.2f}%)")
@@ -834,7 +839,7 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     # Prepare extended return tuple including detailed NCOB statistics
     return (effective_efficiency, metric_counts, n_counts, method_efficiencies, total_fps, detected_fps, n_targets,
             count_ncob_n1, count_ncob_n2plus, ncob_n1_pct, ncob_n2plus_pct, ncob_percentage_of_n1,
-            efx_sfx_used_pct, ncob_used_pct, ecob_used_pct, within_limits, 100)
+            efx_sfx_used_pct, ncob_used_pct, ecob_used_pct, within_limits)
 
 # Example call
 
