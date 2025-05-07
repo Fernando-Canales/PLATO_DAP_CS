@@ -730,12 +730,13 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     effective_efficiency = (detected_fps / total_fps) * 100
     
     # Metric distribution percentages
-    metric_counts = np.zeros(5)  # [EFX_zero, EFX_multi, SFX, NCOB, ECOB]
+    metric_counts = np.zeros(6)  # [EFX_zero, EFX_multi, SFX, NCOB, ECOB]
     metric_counts[0] = (count_efx_zero / n_targets) * 100
     metric_counts[1] = (count_efx_multi / n_targets) * 100  
     metric_counts[2] = (count_sfx / n_targets) * 100
-    metric_counts[3] = (count_ncob / n_targets) * 100
-    metric_counts[4] = (count_ecob / n_targets) * 100
+    metric_counts[3] = (count_ncob_n1 / n_targets) * 100
+    metric_counts[4] = (count_ncob_n2plus / n_targets) * 100
+    metric_counts[5] = (count_ecob / n_targets) * 100
     
     # Resource usage percentages (for on-board constraints)
     # PLATO P5 targets per N-CAM: 80,000
@@ -803,12 +804,14 @@ def calculate_effective_efficiency(data, data_sec, data_ext,
     # Print results
     print(f"Effective efficiency: {effective_efficiency:.2f}%")
     print("\nMetric distribution:")
-    print(f"  EFX_N=0: {metric_counts[0]:.2f}%")
-    print(f"  EFX_N>=2: {metric_counts[1]:.2f}%")
+    print(f"  EFX (N=0): {metric_counts[0]:.2f}%")
+    print(f"  EFX (N>=2): {metric_counts[1]:.2f}%")
     print(f"  EFX: {metric_counts[0] + metric_counts[1]:.2f}%")
     print(f"  SFX: {metric_counts[2]:.2f}%")
-    print(f"  NCOB: {metric_counts[3]:.2f}%")
-    print(f"  ECOB: {metric_counts[4]:.2f}%")
+    print(f"  NCOB (N=1): {metric_counts[3]:.2f}%")
+    print(f"  NCOB (N>=2): {metric_counts[4]:.2f}%")
+    print(f"  NCOB: {metric_counts[3] + metric_counts[4]:.2f}%")
+    print(f"  ECOB: {metric_counts[5]:.2f}%")
     
     print("\nTarget distribution by FP count:")
     print(f"  N=0: {n_counts[0]:.2f}%")
