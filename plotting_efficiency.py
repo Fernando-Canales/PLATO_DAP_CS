@@ -402,7 +402,6 @@ plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fa
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-
 # After loop: plot inset with accumulated data
 #ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="center")
 ax_inset = inset_axes(
