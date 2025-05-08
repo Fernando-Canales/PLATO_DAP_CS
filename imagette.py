@@ -45,7 +45,7 @@ def barycenter(array, mask=None, x=None, y=None, subres=1):
     if isinstance(y, (np.ndarray, np.generic)) == False:
         y = (np.arange(0, array.shape[0]) + 0.5) / float(subres)
 
-    if x.ndim == 1 & y.ndim == 1:
+    if x.ndim == 1 & y.ndim == 1: # type: ignore
         x, y = np.meshgrid(x, y)
 
     if mask is not None:
@@ -160,26 +160,26 @@ def centroid_shift(w, Ik, n_cam, I_t, I_contaminants, sprk, dback, sb, sd, sq, t
 # This function plots the imagette and the PSF
 def ploting_initial(rows, cols, psf, imagette, i, j):
     fig, axs = plt.subplots(rows, cols)
-    axs[0].imshow(psf, origin='lower', interpolation=None)
-    axs[0].set_title(i)
-    axs[1].imshow(imagette, origin='lower')
-    axs[1].set_title(j)
-    axs[1].set_xticks([0, 1, 2, 3, 4, 5])
-    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5])
+    axs[0].imshow(psf, origin='lower', interpolation=None) # type: ignore
+    axs[0].set_title(i) # type: ignore
+    axs[1].imshow(imagette, origin='lower') # type: ignore
+    axs[1].set_title(j) # type: ignore
+    axs[1].set_xticks([0, 1, 2, 3, 4, 5]) # type: ignore
+    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5]) # type: ignore
     fig.tight_layout()
     plt.show()
 
 # This function plots the imagettes for both target and contaminant
 def ploting_imagettes(rows, cols, ft, fc):
-    fig, axs = plt.subplots(rows, cols)
-    axs[0].imshow(ft, origin='lower', cmap='viridis')
-    axs[0].set_title(f'For the Target')
-    axs[0].set_xticks([0, 1, 2, 3, 4, 5])
-    axs[0].set_xticklabels([0, 1, 2, 3, 4, 5])
-    axs[1].imshow(fc, origin='lower')
-    axs[1].set_title(f'For the Contaminant')
-    axs[1].set_xticks([0, 1, 2, 3, 4, 5])
-    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5])
+    fig, axs = plt.subplots(rows, cols) # type: ignore
+    axs[0].imshow(ft, origin='lower', cmap='viridis') # type: ignore
+    axs[0].set_title(f'For the Target') # type: ignore
+    axs[0].set_xticks([0, 1, 2, 3, 4, 5]) # type: ignore
+    axs[0].set_xticklabels([0, 1, 2, 3, 4, 5]) # type: ignore
+    axs[1].imshow(fc, origin='lower') # type: ignore
+    axs[1].set_title(f'For the Contaminant') # type: ignore
+    axs[1].set_xticks([0, 1, 2, 3, 4, 5]) # type: ignore
+    axs[1].set_xticklabels([0, 1, 2, 3, 4, 5]) # type: ignore
     fig.tight_layout()
     plt.show()
 

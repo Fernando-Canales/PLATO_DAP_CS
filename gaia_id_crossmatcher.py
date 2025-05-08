@@ -20,6 +20,7 @@ target_ids = data_nominal_mask[:, 0]
 # Target ID to find
 #target_id = 1911666
 target_id = 1135002
+target_id = 3377361
 #target_id = 1454386
 index_target_id = np.where(target_ids == target_id)[0]
 
@@ -72,7 +73,7 @@ for contaminant_id in contaminant_ids:
 # Plotting
 plt.figure(figsize=(8, 6))
 plt.scatter(contaminant_ras, contaminant_decs, label="Contaminants", color='orange')
-plt.scatter(target_ra, target_dec, label="Target", color='blue', marker='x', s=100)
+plt.scatter(target_ra, target_dec, label="Target", color='blue', marker='x', s=100) # type: ignore
 plt.xlabel("RA (degrees)")
 plt.ylabel("Dec (degrees)")
 plt.title("Target and Contaminants in Focal Plane")
