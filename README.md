@@ -5,4 +5,4 @@
 
 ## Description
 
-This is the main repository of my PhD project at LIRA (LESIA) and MPS. The files in this repository are devoted to my project about the detection of  false planetary transits (False Positives) within the on-board extraction photometry procedure of the [PLATO space mission][https://www.esa.int/Science_Exploration/Space_Science/Plato].
+This is the main repository of my PhD project at LIRA (LESIA) and MPS. The files in this repository are devoted to my project about the detection of  false planetary transits (False Positives) within the on-board extraction photometry procedure of the [PLATO space mission](https://www.esa.int/Science_Exploration/Space_Science/Plato).
