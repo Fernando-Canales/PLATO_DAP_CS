@@ -10,6 +10,7 @@ dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distributi
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
+DIRout ='/home/fercho/double-aperture-photometry/plots_pdfs/'
 # Parameters for the plots
 Pmin = 10
 Pmax = 13
@@ -324,7 +325,7 @@ plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-plt.savefig("DAP_Flux_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+plt.savefig(DIRout + "DAP_Flux_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
 plt.show()
 
 """
@@ -436,7 +437,7 @@ ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
 ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 
-plt.savefig("DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+plt.savefig(DIRout + "DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
 plt.show()
 
     
