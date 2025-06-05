@@ -10,7 +10,9 @@ dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_tran
 #dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
 #dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
 cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
-DIRout ='/home/fercho/double-aperture-photometry/plots_pdfs/'
+#DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/EBs_rate/Distribution_transit_depth_and_durations/'
+#DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Distribution_transit_depth_and_durations/'
+DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Fixed_transit_depth_and_durations/'
 # Parameters for the plots
 Pmin = 10
 Pmax = 13
