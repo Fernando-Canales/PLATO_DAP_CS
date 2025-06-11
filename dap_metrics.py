@@ -40,7 +40,7 @@ Delta_P_max = 15.
 # Small change to consider EB occurrence rate
 eb_occurrence_rate = 0.01 # 1% based from Prša et al. (Kepler + TESS)
 use_realistic_eb_rate = False # Set to False to use original assumption about all contaminants being EBs
-max_number_of_eb = 500 # maximum number of contaminants for each imagette
+max_number_of_contaminants = 500
 # Parameters for the magnitude intervals
 n_tar = 1000                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
@@ -137,9 +137,22 @@ for i in range(nP):
         x_c = x_star[n]                # x-coordinate of a given contaminant in the focal plane
         y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane               
         n_c_total = len(x_c)           # number of contaminants for a given TARGET
-        if n_c_total > max_number_of_eb:
-            Delta_P_sorted = np.sort(Delta_P[m])
-            m = m & (Delta_P < Delta_P_sorted[max_number_of_eb])
+
+        if n_c_total > max_number_of_contaminants:
+            print(f"Target {ID_target[k]} has {n_c_total} contaminants. Limiting to {max_number_of_contaminants} brightest")
+
+            # We sort by magnitude difference (Delta P) and keep only the brightest
+            Delta_P_contaminants = Delta_P[n]
+            sorted_indices_contaminants = np.argsort(Delta_P_contaminants)
+            keep_indices = sorted_indices_contaminants[:max_number_of_contaminants]
+
+            # Update arrays to keep only selected contaminants
+            n = n[keep_indices]
+            m_c = m_c[keep_indices]
+            x_c = x_c[keep_indices]
+            y_c = y_c[keep_indices]
+            n_c_total = max_number_of_contaminants
+        # Now get the IDs and other properties for the (possibly limited) set of contaminants   
         ID_contaminants = ID[m] # IDs of the contaminant stars
         x_c_im = x_c - i0              # x-coordinate of a given contaminant inside the imagette (window)
         y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
