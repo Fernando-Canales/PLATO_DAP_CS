@@ -17,8 +17,8 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
-DIRout = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
+#DIRout = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -39,7 +39,8 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 Delta_P_max = 15.
 # Small change to consider EB occurrence rate
 eb_occurrence_rate = 0.01 # 1% based from Prša et al. (Kepler + TESS)
-use_realistic_eb_rate = True # Set to False to use original assumption about all contaminants being EBs
+use_realistic_eb_rate = False # Set to False to use original assumption about all contaminants being EBs
+max_number_of_eb = 500 # maximum number of contaminants for each imagette
 # Parameters for the magnitude intervals
 n_tar = 1000                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
@@ -100,6 +101,7 @@ for i in range(nP):
     # We convert the coordinates of the randomly chosen targets to mm to obtain the vignetting
     x_tar_mm, y_tar_mm = from_pix_2_mm(x_tar, y_tar)
 
+
     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
     print('Beginning Calculations for Targets of Magnitude:', Pi, '\n')
     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
@@ -129,16 +131,15 @@ for i in range(nP):
         # Now we find all the contaminants surrounding each TARGET. We put a distance condition (10 pixels)
         dist = np.sqrt((x_star - x_tar[k]) ** 2 + (y_star - y_tar[k]) ** 2)
 
-        #m = (dist > 0) & (dist < 10)   # mask containing the distance condition for contaminants
         m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max) & (data[:, 2] > 0) # mask containing the distance condition for contaminants
         n = np.where(m)[0]             # index of the contaminants
         m_c = data[:, 2][n]            # magnitude of each contaminant star for a given TARGET
         x_c = x_star[n]                # x-coordinate of a given contaminant in the focal plane
         y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane               
         n_c_total = len(x_c)           # number of contaminants for a given TARGET
-        #if n_c > n_c_max:
-        #    Delta_P_sorted = np.sort(Delta_P[m])
-        #    m = m & (Delta_P < Delta_P_sorted[n_c_max])
+        if n_c_total > max_number_of_eb:
+            Delta_P_sorted = np.sort(Delta_P[m])
+            m = m & (Delta_P < Delta_P_sorted[n_c_total])
         ID_contaminants = ID[m] # IDs of the contaminant stars
         x_c_im = x_c - i0              # x-coordinate of a given contaminant inside the imagette (window)
         y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
@@ -226,7 +227,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(transit_duration)  # Fill the array with the fixed value
