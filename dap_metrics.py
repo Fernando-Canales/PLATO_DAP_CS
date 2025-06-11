@@ -17,7 +17,8 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
+DIRout = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -36,6 +37,9 @@ transit_duration = 6.72*0.46**2   # transit duration in hours
 ntr = 3        # number of transits in one hour
 distance_max = 7 # maximum distance in pixels, from the target, to a star in the window in order to be considered a contaminant
 Delta_P_max = 15.
+# Small change to consider EB occurrence rate
+eb_occurrence_rate = 0.01 # 1% based from Prša et al. (Kepler + TESS)
+use_realistic_eb_rate = True # Set to False to use original assumption about all contaminants being EBs
 # Parameters for the magnitude intervals
 n_tar = 1000                            # number of targets per magnitude interval
 Pmin = 10                               # minimum magnitude
@@ -130,8 +134,8 @@ for i in range(nP):
         n = np.where(m)[0]             # index of the contaminants
         m_c = data[:, 2][n]            # magnitude of each contaminant star for a given TARGET
         x_c = x_star[n]                # x-coordinate of a given contaminant in the focal plane
-        y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane
-        n_c = len(x_c)                 # number of contaminants for a given TARGET
+        y_c = y_star[n]                # y-coordinate of a given contaminant in the focal plane               
+        n_c_total = len(x_c)           # number of contaminants for a given TARGET
         #if n_c > n_c_max:
         #    Delta_P_sorted = np.sort(Delta_P[m])
         #    m = m & (Delta_P < Delta_P_sorted[n_c_max])
@@ -140,18 +144,70 @@ for i in range(nP):
         y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
         offx_c = x_c_im - pxc[psf_idx] # x-coordinate of the offset between the center of each contaminant and each PSF
         offy_c = y_c_im - pyc[psf_idx] # y-coordinate of the offset between the center of each contaminant and each PSF
+        
+        # Changes for the EB occurrence rate
+        if use_realistic_eb_rate:
+            np.random.seed(300 + k)
 
-        # Now we have to build an 'imagette' for every contaminant
-        Ic = np.zeros((n_c, 6, 6))
-        for o in range(1, n_c + 1):
+            # Now, the magic, only SOME contaminants are EBs in each imagette
+            n_c_actual_ebs = np.random.binomial(n_c_total, eb_occurrence_rate)
+
+            if n_c_actual_ebs == 0:
+                # No EBs for this target
+                save_info = np.zeros(221)
+                save_info[0] =  ID_t # Target ID
+                save_info[1] = m_t # Target magnitude
+                save_info[2] = 0 # n_c
+                save_info[3] = 0 # n_bad = 0
+
+                save_info_sec = np.zeros(20)
+                save_info_sec[0] = ID_t
+                save_info_sec[1] = m_t
+
+                save_info_ext = np.zeros(249)
+                save_info_ext[0] = ID_t
+                save_info_ext[1] = m_t
+                
+                save_info_bray = np.zeros(8)
+                save_info_bray[0] = ID_t
+                save_info_bray[1] = m_t
+                save_info_bray[2] = 0  # n_c = 0
+                save_info_bray[4] = 0  # n_bad = 0
+
+                return save_info, save_info_sec, save_info_ext, save_info_bray
+            
+            else:
+                # Randomly select which contaminants are EBs
+                if n_c_actual_ebs < n_c_total:
+                    eb_indices = np.random.choice(n_c_total, size=n_c_actual_ebs, replace=False)
+                    # Filter all contaminant arrays to include only EBs
+                    m_c = m_c[eb_indices]
+                    x_c = x_c[eb_indices]
+                    y_c = y_c[eb_indices]
+                    ID_contaminants = ID_contaminants[eb_indices]
+                    x_c_im = x_c_im[eb_indices]
+                    y_c_im = y_c_im[eb_indices]
+                    offx_c = offx_c[eb_indices]
+                    offy_c = offy_c[eb_indices]
+
+                n_c = n_c_actual_ebs # Set n_c to number of actual EBs
+        
+        else:
+            # Original assumption of all contaminants being EBs
+            n_c = n_c_total
+
+        # Now we have to build an 'imagette' for every EB contaminant
+        Ic = np.zeros((n_c, 6, 6))  # Only for actual EB contaminants
+        for o in range(1, n_c + 1):  # Only process EB contaminants
             # Now we make sure to deal only with stars with positive magnitudes
             if m_c[o - 1] > 0:
-                # Then we compute the imagette for each contaminant by integrating the b-spline decomposition of the PSF
+                # Then we compute the imagette for each EB contaminant by integrating the b-spline decomposition of the PSF
                 Ic[o - 1, :, :] = spline2dbase.Spline2Imagette(psfbs[psf_idx], bsres, size_im_x, size_im_y, offx=offx_c[o - 1], offy=offy_c[o - 1])
-                # Let's obtain the value of the reference flux for every contaminant star
+                # Let's obtain the value of the reference flux for every EB contaminant star
                 f_ref_c = reference_flux_contaminant(f_ref_t, m_c[o - 1], m_t)
-                # Let's calculate the Intensity per pixel of the imagette of every contaminant star
+                # Let's calculate the Intensity per pixel of the imagette of every EB contaminant star
                 Ic[o - 1, :, :] = f_ref_c * Ic[o - 1]
+
 
         Ic_acc = np.sum(Ic, axis=0)                                                  # numpy array containing the contribution from all contaminants
         f_tot = It + Ic_acc                                                          # total flux of an imagette (TARGET + all contaminants)
@@ -170,7 +226,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(transit_duration)  # Fill the array with the fixed value
