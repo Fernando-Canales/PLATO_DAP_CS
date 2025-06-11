@@ -139,7 +139,7 @@ for i in range(nP):
         n_c_total = len(x_c)           # number of contaminants for a given TARGET
         if n_c_total > max_number_of_eb:
             Delta_P_sorted = np.sort(Delta_P[m])
-            m = m & (Delta_P < Delta_P_sorted[n_c_total])
+            m = m & (Delta_P < Delta_P_sorted[max_number_of_eb])
         ID_contaminants = ID[m] # IDs of the contaminant stars
         x_c_im = x_c - i0              # x-coordinate of a given contaminant inside the imagette (window)
         y_c_im = y_c - j0              # y-coordinate of a given contaminant inside the imagette (window)
