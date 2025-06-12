@@ -1,0 +1,684 @@
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
+from matplotlib.ticker import FuncFormatter  # type: ignore
+
+from imagette import ran_unique_int
+
+# ============================================================================
+# Configuration 
+# ============================================================================
+# Data directories - point to EB rate results
+dataDIR = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
+cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
+DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/EBs_rate/Distribution_transit_depth_and_durations/'
+
+# Parameters for the plots
+Pmin = 10
+Pmax = 13
+binsize = 0.5
+nP = int((Pmax - Pmin) / binsize + 1)
+fsize = 14
+flux_thresh_nom_mask, cob_thresh = 7.1, 3 
+flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
+n_tar = 1000
+depth_sig_scaling = 3
+gamma_factor_significance = 1
+td_ref = 6.72*0.46**2
+dback_ref = 132000
+ntr = 3
+
+# ============================================================================
+# Helper Functions for EB Occurrence Rate
+# ============================================================================
+def get_actual_eb_count(sprk_array):
+    """
+    Determine the actual number of EBs for each target based on non-zero SPR values.
+    
+    Parameters:
+    -----------
+    sprk_array : numpy array of shape (n_targets, 10)
+        Array containing SPR values for up to 10 contaminants per target
+        
+    Returns:
+    --------
+    numpy array of shape (n_targets,)
+        Actual number of EBs per target
+    """
+    return np.sum(sprk_array > 0, axis=1)
+
+def create_valid_eb_mask(sprk_array):
+    """
+    Create a boolean mask indicating valid EB positions.
+    
+    Parameters:
+    -----------
+    sprk_array : numpy array of shape (n_targets, 10)
+        Array containing SPR values for up to 10 contaminants per target
+        
+    Returns:
+    --------
+    numpy array of shape (n_targets, 10)
+        Boolean mask where True indicates a valid EB
+    """
+    return sprk_array > 0
+
+def print_eb_statistics(actual_eb_counts, mag):
+    """Print statistics about EB distribution."""
+    print("\n" + "="*60)
+    print("EB OCCURRENCE RATE STATISTICS")
+    print("="*60)
+    print(f"Total targets analyzed: {len(actual_eb_counts)}")
+    print(f"Maximum EBs in any target: {int(np.max(actual_eb_counts))}")
+    print(f"Average EBs per target: {np.mean(actual_eb_counts):.2f}")
+    print(f"Median EBs per target: {np.median(actual_eb_counts):.1f}")
+    print(f"\nEB Distribution:")
+    print(f"  Targets with 0 EBs: {np.sum(actual_eb_counts == 0)} ({np.sum(actual_eb_counts == 0)/len(actual_eb_counts)*100:.1f}%)")
+    print(f"  Targets with 1 EB: {np.sum(actual_eb_counts == 1)} ({np.sum(actual_eb_counts == 1)/len(actual_eb_counts)*100:.1f}%)")
+    print(f"  Targets with 2 EBs: {np.sum(actual_eb_counts == 2)} ({np.sum(actual_eb_counts == 2)/len(actual_eb_counts)*100:.1f}%)")
+    print(f"  Targets with 3+ EBs: {np.sum(actual_eb_counts >= 3)} ({np.sum(actual_eb_counts >= 3)/len(actual_eb_counts)*100:.1f}%)")
+    print(f"  Targets with 5+ EBs: {np.sum(actual_eb_counts >= 5)} ({np.sum(actual_eb_counts >= 5)/len(actual_eb_counts)*100:.1f}%)")
+    print(f"  Targets with 10+ EBs: {np.sum(actual_eb_counts >= 10)} ({np.sum(actual_eb_counts == 10)/len(actual_eb_counts)*100:.1f}%)")
+    
+    # Statistics by magnitude bin
+    print(f"\nEB Distribution by Magnitude:")
+    for i in range(nP):
+        Pi = Pmin + i * binsize
+        m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+        avg_ebs = np.mean(actual_eb_counts[m])
+        print(f"  P = {Pi:.1f}: Average {avg_ebs:.2f} EBs per target")
+    print("="*60 + "\n")
+
+# ============================================================================
+# Load Data
+# ============================================================================
+print("Loading data files...")
+data_catalogue = np.load(cataDIR + 'SFP_DR3_20230101.npy')
+magnitude_all_stars = data_catalogue[:, 2]
+data = np.load(dataDIR + 'targets_P5.npy')
+data_sec = np.load(dataDIR + 'targets_P5_secondary.npy')
+data_ext = np.load(dataDIR + 'targets_P5_extended.npy')
+data_bray = np.load(dataDIR + 'targets_P5_bray.npy')
+
+# ============================================================================
+# Extract Data Arrays
+# ============================================================================
+n = data.shape[0]
+mag = data[:, 1]
+n_bad = data[:, 8]
+mask_p5 = (mag >= 10) & (mag <= 13)
+
+# Get all the metrics
+eta_t = data[:, 12]
+eta_t_6_cameras = data[:, 45]
+delta_obs_t = data[:, 13]
+eta_c = data_sec[:, 6]
+eta_c_6_cameras = data_sec[:, 11]
+delta_obs_c = data_sec[:, 7]
+nsr1h = data[:, 7]
+nsr1h_6_cameras = data[:, 148]
+nsr1h_sec = data_sec[:, 4]
+nsr1h_sec_6_cameras = data_sec[:, 18]
+
+# Get SPR values for first 10 contaminants
+SPRK10_first = data[:, 17:27]
+td_from_dap = data[:, 126:136]
+dback_from_dap = data[:, 136:146]
+eta_cob_ext_10first_6_cameras = data_ext[:, 75:85]
+sigma_cob_ext_10first_6_cameras = data_ext[:, 85:95]
+delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
+gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
+mag_target_10first_contaminants = data[:, 169:179]
+dist_target_to_10first_contaminants = data[:, 179:189]
+eta_cob_nom_10first_6_cameras = data[:, 76:86]
+sigma_cob_10first_6_cameras = data[:, 86:96]
+
+
+# Get actual EB counts and create valid EB mask
+actual_eb_counts = get_actual_eb_count(SPRK10_first)
+valid_eb_mask = create_valid_eb_mask(SPRK10_first)
+
+# Print EB statistics
+print_eb_statistics(actual_eb_counts, mag)
+
+# ============================================================================
+# Compute Eta Arrays for Actual EBs Only
+# ============================================================================
+print("Computing eta arrays for actual EBs...")
+
+# Initialize arrays
+eta_nom_bt_24_cameras = np.zeros((n, 10))
+eta_nom_bt_6_cameras = np.zeros((n, 10))
+eta_ext_bt_24_cameras = np.zeros((n, 10))
+eta_ext_bt_6_cameras = np.zeros((n, 10))
+delta_obs = np.zeros((n, 10))
+delta_obs_ext = np.zeros((n, 10))
+
+# Compute values only for actual EBs
+for i in range(n):
+    n_ebs = actual_eb_counts[i]
+    if n_ebs > 0:
+        # Get values for actual EBs only
+        dback = dback_from_dap[i, :n_ebs]
+        td = td_from_dap[i, :n_ebs]
+        
+        # Compute eta values
+        eta_nom_bt_24_cameras[i, :n_ebs] = (gamma_factor_significance * dback * 
+                                            data[i, 17:17+n_ebs] * np.sqrt(td * ntr) / 
+                                            (data[i, 7] * (1 - data[i, 11])))
+        eta_nom_bt_6_cameras[i, :n_ebs] = (gamma_factor_significance * dback * 
+                                           data[i, 17:17+n_ebs] * np.sqrt(td * ntr) / 
+                                           (data[i, 148] * (1 - data[i, 11])))
+        eta_ext_bt_24_cameras[i, :n_ebs] = (gamma_factor_significance * dback * 
+                                            data_ext[i, 14:14+n_ebs] * np.sqrt(td * ntr) / 
+                                            (data_ext[i, 4] * (1 - data_ext[i, 13])))
+        eta_ext_bt_6_cameras[i, :n_ebs] = (gamma_factor_significance * dback * 
+                                           data_ext[i, 14:14+n_ebs] * np.sqrt(td * ntr) / 
+                                           (data_ext[i, 44] * (1 - data_ext[i, 13])))
+        
+        delta_obs[i, :n_ebs] = dback * SPRK10_first[i, :n_ebs]
+        delta_obs_ext[i, :n_ebs] = dback * data_ext[i, 14:14+n_ebs]
+
+# Save eta arrays
+np.save(dataDIR + 'eta_bt_24_cameras_eb_rate.npy', eta_nom_bt_24_cameras)
+np.save(dataDIR + 'eta_nom_bt_6_cameras_eb_rate.npy', eta_nom_bt_6_cameras)
+np.save(dataDIR + 'eta_ext_bt_24_cameras_eb_rate.npy', eta_ext_bt_24_cameras)
+np.save(dataDIR + 'eta_ext_bt_6_cameras_eb_rate.npy', eta_ext_bt_6_cameras)
+
+# ============================================================================
+# Prepare for Efficiency Calculations
+# ============================================================================
+# Get other needed arrays
+eta_cob = data[:, 15]
+eta_cob_6_cameras = data[:, 41]
+eta_cob_sec_24_cameras = data_sec[:, 9]
+eta_cob_sec_6_cameras = data_sec[:, 12]
+eta_cob_nom_10first_24_cameras = data[:, 46:56]
+eta_cob_ext_10first_24_cameras = data_ext[:, 45:55]
+
+# COB metrics
+delta_cob = data[:, 14]
+delta_cob_6_cameras = data[:, 42]
+delta_cob_sec = data_sec[:, 8]
+delta_cob_sec_6_cameras = data_sec[:, 13]
+sigma_cob_sec_24_cameras = data_sec[:, 10]
+sigma_cob_sec_6_cameras = data_sec[:, 14]
+
+# Signal depth calculations
+sig_depth_secondary_mask_24_cameras = nsr1h_sec*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # type: ignore
+sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # type: ignore
+sig_depth_extended_mask_24_cameras = data_ext[:, 4]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr)
+sig_depth_extended_mask_6_cameras = data_ext[:, 44]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr)
+sig_depth_nominal_mask_24_cameras = data[:, 7]*(1 - data[:, 11])/np.sqrt(td_ref*ntr)
+sig_depth_nominal_mask_6_cameras = data[:, 148]*(1 - data[:, 11])/np.sqrt(td_ref*ntr)
+
+# Reshape for 10 contaminants
+sig_depth_24_cameras_10first = np.repeat(sig_depth_nominal_mask_24_cameras[:, np.newaxis], 10, axis=1)
+sig_depth_24_cameras_10first = np.sqrt(sig_depth_24_cameras_10first**2 + 
+                                       np.repeat(sig_depth_extended_mask_24_cameras[:, np.newaxis], 10, axis=1)**2)
+
+# Detection conditions (for single contaminant)
+fp_single_contaminant_24_cameras = (eta_t > flux_thresh_nom_mask)
+fp_single_contaminant_6_cameras = (eta_t_6_cameras > flux_thresh_nom_mask)
+secondary_mask_conditions_24_cameras = ((eta_c > flux_thresh_sec_mask) & 
+                                       (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras**2 + sig_depth_nominal_mask_24_cameras**2)) & 
+                                       fp_single_contaminant_24_cameras)
+secondary_mask_conditions_6_cameras = ((eta_c_6_cameras > flux_thresh_sec_mask) & 
+                                      (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras**2 + sig_depth_nominal_mask_6_cameras**2)) & 
+                                      fp_single_contaminant_6_cameras)
+secondary_mask_conditions_cob_24_cameras = ((eta_cob_sec_24_cameras > cob_thresh) & 
+                                           (delta_cob_sec > 10*sigma_cob_sec_24_cameras) & 
+                                           fp_single_contaminant_24_cameras)
+secondary_mask_conditions_cob_6_cameras = ((eta_cob_sec_6_cameras > cob_thresh) & 
+                                          (delta_cob_sec_6_cameras > 10*sigma_cob_sec_6_cameras) & 
+                                          fp_single_contaminant_6_cameras)
+
+# ============================================================================
+# Plot 1: Flux Efficiency vs Magnitude
+# ============================================================================
+print("\nCreating flux efficiency plot...")
+
+plt.figure(figsize=(10, 8))
+
+# Store values for plotting
+Pi_values = []
+eff_sec_values = []
+eff_sec_6_cameras_values = []
+eff_ext_overall_24_cameras_values = []
+eff_ext_overall_6_cameras_values = []
+
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    Pi_values.append(Pi)
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    
+    # Count FPs with valid EBs
+    fp_ext_overall_24_cameras = ((eta_nom_bt_24_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m, :].sum()
+    fp_ext_overall_6_cameras = ((eta_nom_bt_6_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m, :].sum()
+    
+    # Calculate efficiencies
+    if fp_ext_overall_24_cameras > 0:
+        eff_ext_overall_24_cameras = (((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
+                                      (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
+                                      (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                                      valid_eb_mask)[m, :].sum() / fp_ext_overall_24_cameras * 100)
+    else:
+        eff_ext_overall_24_cameras = 0
+        
+    if fp_ext_overall_6_cameras > 0:
+        eff_ext_overall_6_cameras = (((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & 
+                                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
+                                     (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
+                                     valid_eb_mask)[m, :].sum() / fp_ext_overall_6_cameras * 100)
+    else:
+        eff_ext_overall_6_cameras = 0
+    
+    eff_sec = (secondary_mask_conditions_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100 if fp_single_contaminant_24_cameras[m].sum() > 0 else 0
+    eff_sec_6_cameras = (secondary_mask_conditions_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100 if fp_single_contaminant_6_cameras[m].sum() > 0 else 0
+    
+    # Store values
+    eff_sec_values.append(eff_sec)
+    eff_sec_6_cameras_values.append(eff_sec_6_cameras)
+    eff_ext_overall_24_cameras_values.append(eff_ext_overall_24_cameras)
+    eff_ext_overall_6_cameras_values.append(eff_ext_overall_6_cameras)
+    
+    # Calculate errors
+    n_targets_bin = m.sum()
+    error_sec = np.sqrt(eff_sec * (100 - eff_sec) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_sec_6_cameras = np.sqrt(eff_sec_6_cameras * (100 - eff_sec_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_ext = np.sqrt(eff_ext_overall_24_cameras * (100 - eff_ext_overall_24_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_ext_6_cameras = np.sqrt(eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    
+    # Plot with error bars
+    plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', 
+                capsize=5, label='Sec. Mask (24 cameras)' if i == 0 else "", markersize=4)
+    plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', 
+                ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if i == 0 else "", markersize=4)
+    plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error_ext, fmt='s', color='blue', 
+                ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if i == 0 else "", markersize=4)
+    plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_ext_6_cameras, fmt='s', color='red', 
+                ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if i == 0 else "", markersize=4)
+
+# Connect points with lines
+plt.plot(Pi_values, eff_sec_values, color='purple', linestyle='-', linewidth=1)
+plt.plot(Pi_values, eff_sec_6_cameras_values, color='green', linestyle='-', linewidth=1)
+plt.plot(Pi_values, eff_ext_overall_24_cameras_values, color='blue', linestyle='-', linewidth=1)
+plt.plot(Pi_values, eff_ext_overall_6_cameras_values, color='red', linestyle='-', linewidth=1)
+
+# Add shaded regions and lines
+plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
+plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
+plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+
+# Labels and formatting
+plt.ylim(47, 100)
+plt.xlim(9.9, 13.1)
+plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
+plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
+plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
+plt.xlabel('P Magnitude', fontsize=fsize)
+plt.ylabel('Efficiency [%]', fontsize=fsize)
+plt.title('DAP Flux Efficiency (EB Occurrence Rate = 1%)', fontsize=fsize+2)
+plt.tight_layout(rect=[0, 0, 1, 0.88])
+plt.savefig(DIRout + "DAP_Flux_efficiency_EB_rate.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ============================================================================
+# Plot 2: COB Efficiency vs Magnitude
+# ============================================================================
+print("\nCreating COB efficiency plot...")
+
+plt.figure(figsize=(10, 8))
+
+# Initialize lists to store data points for the inset
+Pi_values_cob = []
+eff_ext_cob_overall_values = []
+eff_ext_cob_overall_6_cameras_values = []
+eff_cob_values = []
+eff_cob_6_cameras_values = []
+
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    Pi_values_cob.append(Pi)
+    
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    s_24_cameras = ((eta_nom_bt_24_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m,:].sum()
+    s_6_cameras = ((eta_nom_bt_6_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m,:].sum()
+    
+    # Calculate COB efficiencies
+    if s_24_cameras > 0:
+        eff_ext_cob_overall = (((eta_cob_ext_10first_24_cameras > cob_thresh) & 
+                               (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                               valid_eb_mask)[m,:].sum() / s_24_cameras * 100.)
+        eff_cob = (((eta_cob_nom_10first_24_cameras > cob_thresh) & 
+                   (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                   valid_eb_mask)[m,:].sum() / s_24_cameras * 100.)
+    else:
+        eff_ext_cob_overall = 0
+        eff_cob = 0
+        
+    if s_6_cameras > 0:
+        eff_ext_cob_overall_6_cameras = (((eta_cob_ext_10first_6_cameras > cob_thresh) & # type: ignore
+                                         (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
+                                         valid_eb_mask)[m,:].sum() / s_6_cameras * 100.)
+        eff_cob_6_cameras = (((eta_cob_nom_10first_6_cameras > cob_thresh) & # type: ignore
+                            (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
+                            valid_eb_mask)[m,:].sum() / s_6_cameras * 100.)
+    else:
+        eff_ext_cob_overall_6_cameras = 0
+        eff_cob_6_cameras = 0
+        
+    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100 if fp_single_contaminant_24_cameras[m].sum() > 0 else 0
+    eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100 if fp_single_contaminant_6_cameras[m].sum() > 0 else 0
+
+    # Store values for the inset plot
+    eff_ext_cob_overall_values.append(eff_ext_cob_overall)
+    eff_ext_cob_overall_6_cameras_values.append(eff_ext_cob_overall_6_cameras)
+    eff_cob_values.append(eff_cob)
+    eff_cob_6_cameras_values.append(eff_cob_6_cameras)
+    
+    # Computing the errors
+    n_targets_bin = m.sum()
+    error_ext_cob = np.sqrt(eff_ext_cob_overall * (100 - eff_ext_cob_overall) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_ext_cob_6_cameras = np.sqrt(eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_cob = np.sqrt(eff_cob * (100 - eff_cob) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_cob_6_cameras = np.sqrt(eff_cob_6_cameras * (100 - eff_cob_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / n_targets_bin) if n_targets_bin > 0 else 0
+    error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
+    
+    # Plot with error bars
+    plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", 
+                color='blue', ecolor='blue', capsize=5, markersize=4)
+    plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", 
+                color='red', ecolor='red', capsize=5, markersize=4)
+    plt.errorbar(Pi, eff_cob, fmt='*', yerr=error_cob, label='Nom. Mask (24 cameras)' if i == 0 else "", 
+                color='orange', ecolor='orange', capsize=5, markersize=4)
+    plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", 
+                color='olive', ecolor='olive', capsize=5, markersize=4)
+    plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", 
+                color='purple', ecolor='purple', capsize=5, markersize=4)
+    plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", 
+                color='green', ecolor='green', capsize=5, markersize=4)
+
+# Connect points with lines
+plt.plot(Pi_values_cob, eff_ext_cob_overall_values, color='blue', linestyle='-')
+plt.plot(Pi_values_cob, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
+plt.plot(Pi_values_cob, eff_cob_values, color='orange', linestyle='-')
+plt.plot(Pi_values_cob, eff_cob_6_cameras_values, color='olive', linestyle='-')
+
+# Add shaded regions and lines
+plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
+plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
+plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+
+# Add inset for zoomed view
+ax_inset = inset_axes(
+    plt.gca(), 
+    width=1.9,    # Width in inches
+    height=0.5,   # Height in inches
+    loc="center", 
+    bbox_to_anchor=(0.48, 0.8),
+    bbox_transform=plt.gca().transAxes
+)
+ax_inset.plot(Pi_values_cob, eff_ext_cob_overall_values, 's-', color='blue', linewidth=1.5)
+ax_inset.plot(Pi_values_cob, eff_ext_cob_overall_6_cameras_values, 's-', color='red', linewidth=1.5)
+ax_inset.plot(Pi_values_cob, eff_cob_values, '*-', color='orange', linewidth=1.5)
+ax_inset.plot(Pi_values_cob, eff_cob_6_cameras_values, '*-', color='olive', linewidth=1.5)
+
+# Set inset plot limits and appearance
+ax_inset.set_ylim(95, 100)
+ax_inset.set_xlim(9.9, 13.1)
+ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
+ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
+plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
+
+# Labels and formatting
+plt.ylim(47, 100)
+plt.xlim(9.9, 13.1)
+plt.text(10., 71.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
+plt.text(11.1, 66.5, 'On-board light curve process. region', color='red', weight='bold')
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
+plt.xlabel('P Magnitude', fontsize=fsize)
+plt.ylabel('Efficiency [%]', fontsize=fsize)
+plt.title('DAP COB Efficiency (EB Occurrence Rate = 1%)', fontsize=fsize+2)
+plt.tight_layout(rect=[0, 0, 1, 0.88])
+plt.savefig(DIRout + "DAP_CS_efficiency_EB_rate.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ============================================================================
+# Weighted Efficiency Calculations
+# ============================================================================
+print("\nCalculating weighted efficiencies across all magnitude bins...")
+
+# Load star catalogue for weighting
+mag_value, star_count = np.loadtxt(dataDIR + 'star_count.txt', unpack=True, usecols=[0, 1])
+
+# Calculate weights based on star distribution
+star_counts = np.zeros(nP, dtype=int)
+total_stars = 0
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    mask_bin = (magnitude_all_stars >= Pi - binsize / 2.) & (magnitude_all_stars <= Pi + binsize / 2.)
+    star_counts[i] = mask_bin.sum()
+    total_stars += star_counts[i]
+
+weights = star_counts / float(total_stars)
+
+# Define detection conditions for all contaminants (with EB mask)
+nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & valid_eb_mask
+nfp_ext_mask = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
+                (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & 
+                (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                valid_eb_mask)
+nfp_nom_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & 
+               (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+               valid_eb_mask)
+nfp_ext_cob = ((eta_cob_ext_10first_24_cameras > cob_thresh) & 
+               (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+               valid_eb_mask)
+nfp_sec_mask = secondary_mask_conditions_24_cameras
+nfp_sec_cob = secondary_mask_conditions_cob_24_cameras
+
+# Initialize weighted sums
+weighted_eff_ext_flux = 0
+weighted_eff_sec_flux = 0
+weighted_eff_nom_cob = 0
+weighted_eff_ext_cob = 0
+weighted_eff_sec_cob = 0
+weighted_variance_eff_ext_flux = 0
+weighted_variance_eff_sec_flux = 0
+weighted_variance_eff_nom_cob = 0
+weighted_variance_eff_ext_cob = 0
+weighted_variance_eff_sec_cob = 0
+
+# Calculate weighted efficiencies
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize / 2.) & (mag <= Pi + binsize / 2.)
+    n_targets_bin = m.sum()
+    
+    # Count FPs and detections
+    fp_count = nfp[m].sum()
+    fp_single = fp_single_contaminant_24_cameras[m].sum()
+    
+    # Calculate efficiencies
+    if fp_count > 0:
+        eff_ext_flux = nfp_ext_mask[m].sum() / fp_count * 100.
+        eff_nom_cob = nfp_nom_cob[m].sum() / fp_count * 100.
+        eff_ext_cob = nfp_ext_cob[m].sum() / fp_count * 100.
+    else:
+        eff_ext_flux = 0
+        eff_nom_cob = 0
+        eff_ext_cob = 0
+        
+    if fp_single > 0:
+        eff_sec_flux = nfp_sec_mask[m].sum() / fp_single * 100
+        eff_sec_cob = nfp_sec_cob[m].sum() / fp_single * 100
+    else:
+        eff_sec_flux = 0
+        eff_sec_cob = 0
+    
+    # Accumulate weighted sums
+    weighted_eff_ext_flux += weights[i] * eff_ext_flux
+    weighted_eff_sec_flux += weights[i] * eff_sec_flux
+    weighted_eff_nom_cob += weights[i] * eff_nom_cob
+    weighted_eff_ext_cob += weights[i] * eff_ext_cob
+    weighted_eff_sec_cob += weights[i] * eff_sec_cob
+    
+    # Calculate and accumulate variances
+    if n_targets_bin > 0:
+        weighted_variance_eff_ext_flux += weights[i] * (eff_ext_flux * (100 - eff_ext_flux)) / n_targets_bin
+        weighted_variance_eff_sec_flux += weights[i] * (eff_sec_flux * (100 - eff_sec_flux)) / n_targets_bin
+        weighted_variance_eff_nom_cob += weights[i] * (eff_nom_cob * (100 - eff_nom_cob)) / n_targets_bin
+        weighted_variance_eff_ext_cob += weights[i] * (eff_ext_cob * (100 - eff_ext_cob)) / n_targets_bin
+        weighted_variance_eff_sec_cob += weights[i] * (eff_sec_cob * (100 - eff_sec_cob)) / n_targets_bin
+
+# Compute errors
+weighted_error_eff_ext_flux = np.sqrt(weighted_variance_eff_ext_flux)
+weighted_error_eff_sec_flux = np.sqrt(weighted_variance_eff_sec_flux)
+weighted_error_eff_nom_cob = np.sqrt(weighted_variance_eff_nom_cob)
+weighted_error_eff_ext_cob = np.sqrt(weighted_variance_eff_ext_cob)
+weighted_error_eff_sec_cob = np.sqrt(weighted_variance_eff_sec_cob)
+
+# Print weighted efficiency results
+print("\n" + "="*60)
+print("WEIGHTED EFFICIENCY RESULTS (EB Occurrence Rate = 1%)")
+print("="*60)
+print(f"Extended flux efficiency: {weighted_eff_ext_flux:.2f}% ± {weighted_error_eff_ext_flux:.2f}%")
+print(f"Secondary flux efficiency: {weighted_eff_sec_flux:.2f}% ± {weighted_error_eff_sec_flux:.2f}%")
+print(f"Nominal COB efficiency: {weighted_eff_nom_cob:.2f}% ± {weighted_error_eff_nom_cob:.2f}%")
+print(f"Extended COB efficiency: {weighted_eff_ext_cob:.2f}% ± {weighted_error_eff_ext_cob:.2f}%")
+print(f"Secondary COB efficiency: {weighted_eff_sec_cob:.2f}% ± {weighted_error_eff_sec_cob:.2f}%")
+print("="*60)
+
+# ============================================================================
+# Effective Efficiency Calculation (Adapted for EB Rate)
+# ============================================================================
+print("\nCalculating effective efficiency with optimal metric assignment...")
+
+def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext, 
+                                          eta_nom_bt_24_cameras, eta_ext_bt_24_cameras,
+                                          eta_c, eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras,
+                                          fp_single_contaminant_24_cameras, secondary_mask_conditions_24_cameras,
+                                          flux_thresh_nom_mask, flux_thresh_ext_mask, flux_thresh_sec_mask, cob_thresh,
+                                          delta_obs, delta_obs_ext, delta_obs_t, sig_depth_24_cameras_10first,
+                                          depth_sig_scaling, Nmax_threshold, valid_eb_mask):
+    """
+    Calculate the effective efficiency for EB occurrence rate scenario.
+    Adapted to handle variable numbers of EBs per target.
+    """
+    mag = data[:, 1]
+    n_bad = data[:, 8]
+    n_targets = len(mag)
+    
+    # Arrays to store assigned metrics and detected FPs
+    assigned_metrics = np.empty(n_targets, dtype='U4')
+    fps_detected_by_assigned = np.zeros(n_targets)
+    total_fps_per_target = np.zeros(n_targets)
+    
+    # Counters
+    count_efx = 0
+    count_sfx = 0
+    count_ncob = 0
+    count_ecob = 0
+    count_none = 0
+    
+    total_fps = 0
+    detected_fps = 0
+    
+    # Detection capabilities with EB mask
+    efx_detection = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
+                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
+                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                     valid_eb_mask)
+    
+    sfx_detection = secondary_mask_conditions_24_cameras
+    
+    ncob_detection = ((eta_cob_nom_10first_24_cameras > cob_thresh) & 
+                      (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                      valid_eb_mask)
+    
+    ecob_detection = ((eta_cob_ext_10first_24_cameras > cob_thresh) & 
+                      (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
+                      valid_eb_mask)
+    
+    # Process each target
+    for i in range(n_targets):
+        N = int(n_bad[i])
+        total_fps_per_target[i] = N
+        total_fps += N
+        
+        if N > Nmax_threshold:
+            assigned_metrics[i] = "NONE"
+            count_none += 1
+            fps_detected_by_assigned[i] = 0
+            
+        elif N == 0:
+            assigned_metrics[i] = "EFX"
+            count_efx += 1
+            fps_detected_by_assigned[i] = 0
+            
+        elif N == 1:
+            if sfx_detection[i]:
+                assigned_metrics[i] = "SFX"
+                count_sfx += 1
+                fps_detected_by_assigned[i] = 1
+            else:
+                assigned_metrics[i] = "NCOB"
+                count_ncob += 1
+                fps_detected_by_assigned[i] = 1
+            detected_fps += fps_detected_by_assigned[i]
+                    
+        else:  # 1 < N ≤ Nmax_threshold
+            # Count detections for each method
+            efx_count = np.sum(efx_detection[i])
+            ncob_count = np.sum(ncob_detection[i])
+            ecob_count = np.sum(ecob_detection[i])
+            
+            # Assign best method
+            if efx_count >= ncob_count and efx_count >= ecob_count:
+                assigned_metrics[i] = "EFX"
+                count_efx += 1
+                fps_detected_by_assigned[i] = efx_count
+            elif ncob_count >= ecob_count:
+                assigned_metrics[i] = "NCOB"
+                count_ncob += 1
+                fps_detected_by_assigned[i] = ncob_count
+            else:
+                assigned_metrics[i] = "ECOB"
+                count_ecob += 1
+                fps_detected_by_assigned[i] = ecob_count
+            detected_fps += fps_detected_by_assigned[i]
+    
+    # Calculate effective efficiency
+    effective_efficiency = (detected_fps / total_fps) * 100 if total_fps > 0 else 0
+    
+    print(f"\nEffective efficiency (EB rate): {effective_efficiency:.2f}%")
+    print(f"Total FPs: {total_fps}")
+    print(f"Detected FPs: {detected_fps}")
+    print(f"\nMetric assignments:")
+    print(f"  EFX: {count_efx} ({count_efx/n_targets*100:.1f}%)")
+    print(f"  SFX: {count_sfx} ({count_sfx/n_targets*100:.1f}%)")
+    print(f"  NCOB: {count_ncob} ({count_ncob/n_targets*100:.1f}%)")
+    print(f"  ECOB: {count_ecob} ({count_ecob/n_targets*100:.1f}%)")
+    print(f"  None (>threshold): {count_none} ({count_none/n_targets*100:.1f}%)")
+    
+    return effective_efficiency, assigned_metrics
+
+# Call the function
+results = calculate_effective_efficiency_eb_rate(
+    data, data_sec, data_ext,
+    eta_nom_bt_24_cameras, eta_ext_bt_24_cameras,
+    eta_c, eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras,
+    fp_single_contaminant_24_cameras, secondary_mask_conditions_24_cameras,
+    flux_thresh_nom_mask, flux_thresh_ext_mask, flux_thresh_sec_mask, cob_thresh,
+    delta_obs, delta_obs_ext, delta_obs_t, sig_depth_24_cameras_10first, 
+    depth_sig_scaling, 100, valid_eb_mask
+)
+
+print("\n" + "="*60)
+print("Processing complete!")
+print(f"Results saved to: {DIRout}")
+print("="*60)

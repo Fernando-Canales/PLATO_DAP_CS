@@ -17,8 +17,8 @@ cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # director
 PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
 #PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
 #DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/different_PSFs_temperatures/6500K_PSF/'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
-#DIRout = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
+#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
+DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
 # Parameters for the imagette and PSF decomposition
 size_im_x = 6  # size of the imagette (x-direction)
 size_im_y = 6  # size of the imagette (y-direction)
@@ -39,7 +39,7 @@ distance_max = 7 # maximum distance in pixels, from the target, to a star in the
 Delta_P_max = 15.
 # Small change to consider EB occurrence rate
 eb_occurrence_rate = 0.01 # 1% based from Prša et al. (Kepler + TESS)
-use_realistic_eb_rate = False # Set to False to use original assumption about all contaminants being EBs
+use_realistic_eb_rate = True # Set to False to use original assumption about all contaminants being EBs
 max_number_of_contaminants = 500
 # Parameters for the magnitude intervals
 n_tar = 1000                            # number of targets per magnitude interval
@@ -240,7 +240,7 @@ for i in range(nP):
         td = np.zeros(n_c)
         
         # Define whether to use fixed values or random values from the catalogue
-        use_fixed_values = True  # Change to False if you want to use random values from the catalogue
+        use_fixed_values = False  # Change to False if you want to use random values from the catalogue
         if use_fixed_values:
             # Case 1: Use fixed values
             td.fill(transit_duration)  # Fill the array with the fixed value
@@ -491,6 +491,9 @@ for i in range(nP):
         # The number of false positives given by the extended mask such that eta_ext > eta_t is given by
         # n_eff_ext = len(np.where((sprk_ext > SPR_crit_ext) & (sprk[index_contaminant_highest_sprk] > SPR_crit) & (sprk_ext > sprk[index_contaminant_highest_sprk])
         # )[0])
+        # Add this after filling the 10first arrays (around line 390):
+        if n_c < 10:
+            print(f"Target {ID_t}: n_c={n_c}, non-zero SPRk values: {np.sum(sprk_10first > 0)}")
         print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         print('Target ID = ', ID_target[k])
         print('P magnitude of the target=', m_t)
