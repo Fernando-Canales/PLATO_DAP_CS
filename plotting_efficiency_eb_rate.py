@@ -325,127 +325,248 @@ plt.savefig(DIRout + "DAP_Flux_efficiency_EB_rate.pdf", format='pdf', bbox_inche
 plt.show()
 
 # ============================================================================
-# Plot 2: COB Efficiency vs Magnitude
+# Plot 2: COB Efficiency vs Magnitude - Fixed Implementation
 # ============================================================================
 print("\nCreating COB efficiency plot...")
 
 plt.figure(figsize=(10, 8))
 
-# Initialize lists to store data points for the inset
+# Initialize lists to store data points
 Pi_values_cob = []
 eff_ext_cob_overall_values = []
 eff_ext_cob_overall_6_cameras_values = []
 eff_cob_values = []
 eff_cob_6_cameras_values = []
+eff_cob_sec_values = []
+eff_cob_sec_6_cameras_values = []
 
+# Arrays to store values for lines (only non-zero points)
+plot_data = {
+    'ext_24': {'pi': [], 'eff': [], 'err': []},
+    'ext_6': {'pi': [], 'eff': [], 'err': []},
+    'nom_24': {'pi': [], 'eff': [], 'err': []},
+    'nom_6': {'pi': [], 'eff': [], 'err': []},
+    'sec_24': {'pi': [], 'eff': [], 'err': []},
+    'sec_6': {'pi': [], 'eff': [], 'err': []}
+}
+
+# Process each magnitude bin
 for i in range(nP):
     Pi = Pmin + i * binsize
     Pi_values_cob.append(Pi)
     
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    
+    # Count targets with actual EBs for this magnitude bin
+    targets_with_ebs = (actual_eb_counts[m] > 0).sum()
+    n_targets_bin = m.sum()
+    
+    print(f"P={Pi:.1f}: {n_targets_bin} targets, {targets_with_ebs} with EBs")
+    
+    # Calculate denominators
     s_24_cameras = ((eta_nom_bt_24_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m,:].sum()
     s_6_cameras = ((eta_nom_bt_6_cameras > flux_thresh_nom_mask) & valid_eb_mask)[m,:].sum()
+    fp_single = fp_single_contaminant_24_cameras[m].sum()
+    fp_single_6 = fp_single_contaminant_6_cameras[m].sum()
     
-    # Calculate COB efficiencies
+    # Calculate COB efficiencies with zero checks
+    # Extended COB 24 cameras
     if s_24_cameras > 0:
         eff_ext_cob_overall = (((eta_cob_ext_10first_24_cameras > cob_thresh) & 
                                (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
                                valid_eb_mask)[m,:].sum() / s_24_cameras * 100.)
+        error_ext_cob = np.sqrt(eff_ext_cob_overall * (100 - eff_ext_cob_overall) / max(targets_with_ebs, 1))
+        if eff_ext_cob_overall > 0:
+            plot_data['ext_24']['pi'].append(Pi)
+            plot_data['ext_24']['eff'].append(eff_ext_cob_overall)
+            plot_data['ext_24']['err'].append(error_ext_cob)
+    else:
+        eff_ext_cob_overall = 0
+        error_ext_cob = 0
+    
+    # Nominal COB 24 cameras    
+    if s_24_cameras > 0:
         eff_cob = (((eta_cob_nom_10first_24_cameras > cob_thresh) & 
                    (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
                    valid_eb_mask)[m,:].sum() / s_24_cameras * 100.)
+        error_cob = np.sqrt(eff_cob * (100 - eff_cob) / max(targets_with_ebs, 1))
+        if eff_cob > 0:
+            plot_data['nom_24']['pi'].append(Pi)
+            plot_data['nom_24']['eff'].append(eff_cob)
+            plot_data['nom_24']['err'].append(error_cob)
     else:
-        eff_ext_cob_overall = 0
         eff_cob = 0
-        
+        error_cob = 0
+    
+    # Extended COB 6 cameras
     if s_6_cameras > 0:
-        eff_ext_cob_overall_6_cameras = (((eta_cob_ext_10first_6_cameras > cob_thresh) & # type: ignore
+        eff_ext_cob_overall_6_cameras = (((eta_cob_ext_10first_6_cameras > cob_thresh) & 
                                          (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
                                          valid_eb_mask)[m,:].sum() / s_6_cameras * 100.)
-        eff_cob_6_cameras = (((eta_cob_nom_10first_6_cameras > cob_thresh) & # type: ignore
-                            (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
-                            valid_eb_mask)[m,:].sum() / s_6_cameras * 100.)
+        error_ext_cob_6_cameras = np.sqrt(eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras) / max(targets_with_ebs, 1))
+        if eff_ext_cob_overall_6_cameras > 0:
+            plot_data['ext_6']['pi'].append(Pi)
+            plot_data['ext_6']['eff'].append(eff_ext_cob_overall_6_cameras)
+            plot_data['ext_6']['err'].append(error_ext_cob_6_cameras)
     else:
         eff_ext_cob_overall_6_cameras = 0
+        error_ext_cob_6_cameras = 0
+    
+    # Nominal COB 6 cameras
+    if s_6_cameras > 0:
+        eff_cob_6_cameras = (((eta_cob_nom_10first_6_cameras > cob_thresh) & 
+                            (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & 
+                            valid_eb_mask)[m,:].sum() / s_6_cameras * 100.)
+        error_cob_6_cameras = np.sqrt(eff_cob_6_cameras * (100 - eff_cob_6_cameras) / max(targets_with_ebs, 1))
+        if eff_cob_6_cameras > 0:
+            plot_data['nom_6']['pi'].append(Pi)
+            plot_data['nom_6']['eff'].append(eff_cob_6_cameras)
+            plot_data['nom_6']['err'].append(error_cob_6_cameras)
+    else:
         eff_cob_6_cameras = 0
-        
-    eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100 if fp_single_contaminant_24_cameras[m].sum() > 0 else 0
-    eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100 if fp_single_contaminant_6_cameras[m].sum() > 0 else 0
+        error_cob_6_cameras = 0
+    
+    # Secondary COB 24 cameras
+    if fp_single > 0:
+        eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single) * 100
+        error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / max(targets_with_ebs, 1))
+        if eff_cob_sec > 0:
+            plot_data['sec_24']['pi'].append(Pi)
+            plot_data['sec_24']['eff'].append(eff_cob_sec)
+            plot_data['sec_24']['err'].append(error_cob_sec)
+    else:
+        eff_cob_sec = 0
+        error_cob_sec = 0
+    
+    # Secondary COB 6 cameras    
+    if fp_single_6 > 0:
+        eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_6) * 100
+        error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / max(targets_with_ebs, 1))
+        if eff_cob_sec_6_cameras > 0:
+            plot_data['sec_6']['pi'].append(Pi)
+            plot_data['sec_6']['eff'].append(eff_cob_sec_6_cameras)
+            plot_data['sec_6']['err'].append(error_cob_sec_6_cameras)
+    else:
+        eff_cob_sec_6_cameras = 0
+        error_cob_sec_6_cameras = 0
 
-    # Store values for the inset plot
+    # Store all values (including zeros) for completeness
     eff_ext_cob_overall_values.append(eff_ext_cob_overall)
     eff_ext_cob_overall_6_cameras_values.append(eff_ext_cob_overall_6_cameras)
     eff_cob_values.append(eff_cob)
     eff_cob_6_cameras_values.append(eff_cob_6_cameras)
-    
-    # Computing the errors
-    n_targets_bin = m.sum()
-    error_ext_cob = np.sqrt(eff_ext_cob_overall * (100 - eff_ext_cob_overall) / n_targets_bin) if n_targets_bin > 0 else 0
-    error_ext_cob_6_cameras = np.sqrt(eff_ext_cob_overall_6_cameras * (100 - eff_ext_cob_overall_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
-    error_cob = np.sqrt(eff_cob * (100 - eff_cob) / n_targets_bin) if n_targets_bin > 0 else 0
-    error_cob_6_cameras = np.sqrt(eff_cob_6_cameras * (100 - eff_cob_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
-    error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / n_targets_bin) if n_targets_bin > 0 else 0
-    error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / n_targets_bin) if n_targets_bin > 0 else 0
-    
-    # Plot with error bars
-    plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", 
-                color='blue', ecolor='blue', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", 
-                color='red', ecolor='red', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob, fmt='*', yerr=error_cob, label='Nom. Mask (24 cameras)' if i == 0 else "", 
-                color='orange', ecolor='orange', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", 
-                color='olive', ecolor='olive', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", 
-                color='purple', ecolor='purple', capsize=5, markersize=4)
-    plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", 
-                color='green', ecolor='green', capsize=5, markersize=4)
+    eff_cob_sec_values.append(eff_cob_sec)
+    eff_cob_sec_6_cameras_values.append(eff_cob_sec_6_cameras)
 
-# Connect points with lines
-plt.plot(Pi_values_cob, eff_ext_cob_overall_values, color='blue', linestyle='-')
-plt.plot(Pi_values_cob, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
-plt.plot(Pi_values_cob, eff_cob_values, color='orange', linestyle='-')
-plt.plot(Pi_values_cob, eff_cob_6_cameras_values, color='olive', linestyle='-')
+# Now plot the data - only plot if there's data to show
+# Extended COB 24 cameras
+if len(plot_data['ext_24']['pi']) > 0:
+    plt.errorbar(plot_data['ext_24']['pi'], plot_data['ext_24']['eff'], 
+                yerr=plot_data['ext_24']['err'], fmt='s', color='blue', 
+                ecolor='blue', capsize=5, markersize=4, label='Ext. Mask (24 cameras)')
+    if len(plot_data['ext_24']['pi']) > 1:
+        plt.plot(plot_data['ext_24']['pi'], plot_data['ext_24']['eff'], 
+                color='blue', linestyle='-', linewidth=1, alpha=0.5)
+
+# Extended COB 6 cameras
+if len(plot_data['ext_6']['pi']) > 0:
+    plt.errorbar(plot_data['ext_6']['pi'], plot_data['ext_6']['eff'], 
+                yerr=plot_data['ext_6']['err'], fmt='s', color='red', 
+                ecolor='red', capsize=5, markersize=4, label='Ext. Mask (6 cameras)')
+    if len(plot_data['ext_6']['pi']) > 1:
+        plt.plot(plot_data['ext_6']['pi'], plot_data['ext_6']['eff'], 
+                color='red', linestyle='-', linewidth=1, alpha=0.5)
+
+# Nominal COB 24 cameras
+if len(plot_data['nom_24']['pi']) > 0:
+    plt.errorbar(plot_data['nom_24']['pi'], plot_data['nom_24']['eff'], 
+                yerr=plot_data['nom_24']['err'], fmt='*', color='orange', 
+                ecolor='orange', capsize=5, markersize=8, label='Nom. Mask (24 cameras)')
+    if len(plot_data['nom_24']['pi']) > 1:
+        plt.plot(plot_data['nom_24']['pi'], plot_data['nom_24']['eff'], 
+                color='orange', linestyle='-', linewidth=1, alpha=0.5)
+
+# Nominal COB 6 cameras
+if len(plot_data['nom_6']['pi']) > 0:
+    plt.errorbar(plot_data['nom_6']['pi'], plot_data['nom_6']['eff'], 
+                yerr=plot_data['nom_6']['err'], fmt='*', color='olive', 
+                ecolor='olive', capsize=5, markersize=8, label='Nom. Mask (6 cameras)')
+    if len(plot_data['nom_6']['pi']) > 1:
+        plt.plot(plot_data['nom_6']['pi'], plot_data['nom_6']['eff'], 
+                color='olive', linestyle='-', linewidth=1, alpha=0.5)
+
+# Secondary COB 24 cameras
+if len(plot_data['sec_24']['pi']) > 0:
+    plt.errorbar(plot_data['sec_24']['pi'], plot_data['sec_24']['eff'], 
+                yerr=plot_data['sec_24']['err'], fmt='o', color='purple', 
+                ecolor='purple', capsize=5, markersize=4, label='Sec. Mask (24 cameras)')
+    if len(plot_data['sec_24']['pi']) > 1:
+        plt.plot(plot_data['sec_24']['pi'], plot_data['sec_24']['eff'], 
+                color='purple', linestyle='-', linewidth=1, alpha=0.5)
+
+# Secondary COB 6 cameras
+if len(plot_data['sec_6']['pi']) > 0:
+    plt.errorbar(plot_data['sec_6']['pi'], plot_data['sec_6']['eff'], 
+                yerr=plot_data['sec_6']['err'], fmt='o', color='green', 
+                ecolor='green', capsize=5, markersize=4, label='Sec. Mask (6 cameras)')
+    if len(plot_data['sec_6']['pi']) > 1:
+        plt.plot(plot_data['sec_6']['pi'], plot_data['sec_6']['eff'], 
+                color='green', linestyle='-', linewidth=1, alpha=0.5)
 
 # Add shaded regions and lines
-plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
-plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
-plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
-plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+plt.fill_between([9, 11.7], [20, 20], [100, 100], color='aqua', alpha=0.1) # type: ignore
+plt.fill_between([11, 13.4], [20, 20], [100, 100], color='plum', alpha=0.1) # type: ignore
+plt.vlines(11.7, ymin=20, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=20, ymax=100, linestyles='dashdot', colors='red') # type: ignore
 
-# Add inset for zoomed view
-ax_inset = inset_axes(
-    plt.gca(), 
-    width=1.9,    # Width in inches
-    height=0.5,   # Height in inches
-    loc="center", 
-    bbox_to_anchor=(0.48, 0.8),
-    bbox_transform=plt.gca().transAxes
-)
-ax_inset.plot(Pi_values_cob, eff_ext_cob_overall_values, 's-', color='blue', linewidth=1.5)
-ax_inset.plot(Pi_values_cob, eff_ext_cob_overall_6_cameras_values, 's-', color='red', linewidth=1.5)
-ax_inset.plot(Pi_values_cob, eff_cob_values, '*-', color='orange', linewidth=1.5)
-ax_inset.plot(Pi_values_cob, eff_cob_6_cameras_values, '*-', color='olive', linewidth=1.5)
+# Add inset plot if there's enough data in the high-efficiency range
+high_eff_data = any(max(vals) > 90 if vals else 0 for vals in 
+                   [plot_data[key]['eff'] for key in plot_data])
 
-# Set inset plot limits and appearance
-ax_inset.set_ylim(95, 100)
-ax_inset.set_xlim(9.9, 13.1)
-ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
-ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
-plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
+if high_eff_data:
+    ax_inset = inset_axes(plt.gca(), width=1.9, height=0.5, loc="center", 
+                         bbox_to_anchor=(0.48, 0.8), bbox_transform=plt.gca().transAxes)
+    
+    # Plot in inset only if data exists
+    for key, color, marker in [('ext_24', 'blue', 's'), ('ext_6', 'red', 's'),
+                               ('nom_24', 'orange', '*'), ('nom_6', 'olive', '*')]:
+        if len(plot_data[key]['pi']) > 0:
+            ax_inset.plot(plot_data[key]['pi'], plot_data[key]['eff'], 
+                         marker=marker, color=color, linestyle='-', linewidth=1.5, markersize=3)
+    
+    ax_inset.set_ylim(99, 100)
+    ax_inset.set_xlim(9.9, 13.1)
+    ax_inset.set_yticks([99, 99.2, 99.4, 99.6, 99.8, 100])
+    ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
+    plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 
 # Labels and formatting
-plt.ylim(47, 100)
+plt.ylim(20, 100)
 plt.xlim(9.9, 13.1)
-plt.text(10., 71.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-plt.text(11.1, 66.5, 'On-board light curve process. region', color='red', weight='bold')
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
+plt.text(10., 55, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold', fontsize=12)
+plt.text(11.1, 55, 'On-board light curve\nprocessing region', color='red', weight='bold', fontsize=12)
+
+
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 plt.title('DAP COB Efficiency (EB Occurrence Rate = 1%)', fontsize=fsize+2)
-plt.tight_layout(rect=[0, 0, 1, 0.88])
+plt.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+# Save figure
+plt.tight_layout()
 plt.savefig(DIRout + "DAP_CS_efficiency_EB_rate.pdf", format='pdf', bbox_inches='tight')
 plt.show()
+
+# Print summary statistics
+print("\nCOB Efficiency Summary:")
+print("-" * 50)
+for key, label in [('ext_24', 'Extended 24-cam'), ('ext_6', 'Extended 6-cam'),
+                   ('nom_24', 'Nominal 24-cam'), ('nom_6', 'Nominal 6-cam'),
+                   ('sec_24', 'Secondary 24-cam'), ('sec_6', 'Secondary 6-cam')]:
+    if len(plot_data[key]['eff']) > 0:
+        avg_eff = np.mean(plot_data[key]['eff'])
+        print(f"{label}: Average {avg_eff:.1f}% (from {len(plot_data[key]['eff'])} magnitude bins with data)")
+    else:
+        print(f"{label}: No data points")
 
 # ============================================================================
 # Weighted Efficiency Calculations
