@@ -514,31 +514,10 @@ if len(plot_data['sec_6']['pi']) > 0:
                 color='green', linestyle='-', linewidth=1, alpha=0.5)
 
 # Add shaded regions and lines
-plt.fill_between([9, 11.7], [20, 20], [100, 100], color='aqua', alpha=0.1) # type: ignore
-plt.fill_between([11, 13.4], [20, 20], [100, 100], color='plum', alpha=0.1) # type: ignore
-plt.vlines(11.7, ymin=20, ymax=100, linestyles='dashed', colors='green') # type: ignore
-plt.vlines(11, ymin=20, ymax=100, linestyles='dashdot', colors='red') # type: ignore
-
-# Add inset plot if there's enough data in the high-efficiency range
-high_eff_data = any(max(vals) > 90 if vals else 0 for vals in 
-                   [plot_data[key]['eff'] for key in plot_data])
-
-if high_eff_data:
-    ax_inset = inset_axes(plt.gca(), width=1.9, height=0.5, loc="center", 
-                         bbox_to_anchor=(0.48, 0.8), bbox_transform=plt.gca().transAxes)
-    
-    # Plot in inset only if data exists
-    for key, color, marker in [('ext_24', 'blue', 's'), ('ext_6', 'red', 's'),
-                               ('nom_24', 'orange', '*'), ('nom_6', 'olive', '*')]:
-        if len(plot_data[key]['pi']) > 0:
-            ax_inset.plot(plot_data[key]['pi'], plot_data[key]['eff'], 
-                         marker=marker, color=color, linestyle='-', linewidth=1.5, markersize=3)
-    
-    ax_inset.set_ylim(99, 100)
-    ax_inset.set_xlim(9.9, 13.1)
-    ax_inset.set_yticks([99, 99.2, 99.4, 99.6, 99.8, 100])
-    ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
-    plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
+plt.fill_between([9, 11.7], [0, 0], [100, 100], color='aqua', alpha=0.1) # type: ignore
+plt.fill_between([11, 13.4], [0, 0], [100, 100], color='plum', alpha=0.1) # type: ignore
+plt.vlines(11.7, ymin=0, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=0, ymax=100, linestyles='dashdot', colors='red') # type: ignore
 
 # Labels and formatting
 plt.ylim(20, 100)
@@ -546,13 +525,17 @@ plt.xlim(9.9, 13.1)
 plt.text(10., 55, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold', fontsize=12)
 plt.text(11.1, 55, 'On-board light curve\nprocessing region', color='red', weight='bold', fontsize=12)
 
+# Only show legend if there are labeled artists - place it outside the plot
+if plt.gca().get_legend_handles_labels()[0]:
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
 
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 plt.title('DAP COB Efficiency (EB Occurrence Rate = 1%)', fontsize=fsize+2)
 plt.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+
 # Save figure
-plt.tight_layout()
+plt.tight_layout(rect=[0, 0, 1, 0.88])  # Leave space for legend below
 plt.savefig(DIRout + "DAP_CS_efficiency_EB_rate.pdf", format='pdf', bbox_inches='tight')
 plt.show()
 
