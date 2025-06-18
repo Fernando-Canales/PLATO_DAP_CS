@@ -678,16 +678,19 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     n_targets = len(mag)
     
     # Arrays to store assigned metrics and detected FPs
-    assigned_metrics = np.empty(n_targets, dtype='U4')
+    assigned_metrics = np.empty(n_targets, dtype='U4') # EFX, SFX, NCOB, ECOB, SCOB
     fps_detected_by_assigned = np.zeros(n_targets)
     total_fps_per_target = np.zeros(n_targets)
     
     # Counters
-    count_efx = 0
-    count_sfx = 0
-    count_ncob = 0
-    count_ecob = 0
-    count_none = 0
+    count_efx_zero = 0 # Count of EFX assigned to targets with N = 0
+    count_efx_multi = 0 # Count of EFX assigned to targets with N ≥ 2 
+    count_sfx = 0 # Count of assigned SFX
+    count_ncob = 0 # Counf of assigned NCOB
+    count_ncob_single = 0 # Count of NCOB assigned to targets with N = 1
+    count_ncob_multi = 0 # Count of NCOB assignted to targets with N ≥ 2
+    count_ecob = 0 # Counf of assigned ECOB
+    count_none = 0 # For cases with N > threshold
     
     total_fps = 0
     detected_fps = 0
@@ -704,9 +707,7 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
                       (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
                       valid_eb_mask)
     
-    ecob_detection = ((eta_cob_ext_10first_24_cameras > cob_thresh) & 
-                      (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & 
-                      valid_eb_mask)
+    ecob_detection = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & valid_eb_mask)
     
     # Process each target
     for i in range(n_targets):
@@ -721,7 +722,7 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
             
         elif N == 0:
             assigned_metrics[i] = "EFX"
-            count_efx += 1
+            count_efx_zero += 1
             fps_detected_by_assigned[i] = 0
             
         elif N == 1:
@@ -732,6 +733,7 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
             else:
                 assigned_metrics[i] = "NCOB"
                 count_ncob += 1
+                count_ncob_single += 1
                 fps_detected_by_assigned[i] = 1
             detected_fps += fps_detected_by_assigned[i]
                     
@@ -744,7 +746,7 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
             # Assign best method
             if efx_count >= ncob_count and efx_count >= ecob_count:
                 assigned_metrics[i] = "EFX"
-                count_efx += 1
+                count_efx_multi += 1
                 fps_detected_by_assigned[i] = efx_count
             elif ncob_count >= ecob_count:
                 assigned_metrics[i] = "NCOB"
@@ -758,18 +760,133 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     
     # Calculate effective efficiency
     effective_efficiency = (detected_fps / total_fps) * 100 if total_fps > 0 else 0
+
+    # Metric distribution percentages
+    metric_counts = np.zeros(6) # [EFX_zero, EFX_multi, SFX, NCOB_one, NCOB_multi, ECOB]
+    metric_counts[0] = (count_efx_zero / n_targets) * 100
+    metric_counts[1] = (count_efx_multi / n_targets) * 100
+    metric_counts[2] = (count_sfx / n_targets) * 100
+    metric_counts[3] = (count_ncob_single / n_targets) * 100
+    metric_counts[4] = (count_ncob_multi / n_targets) * 100
+    metric_counts[5] = (count_ecob / n_targets) * 100
+
+    # Resource usage percentages (for on-board constraints)
+    # PLATO P5 targets per N-CAM: 80,000
+    total_p5_targets_per_cam = 80000
+
+    # Resource limits as absolute numbers and percentages
+    efx_sfx_limit = 45000  # Maximum for flux measurements, either extended or secondary (no on-board distinction)
+    efx_sfx_limit_pct = (efx_sfx_limit / total_p5_targets_per_cam) * 100  # 56.25%
     
-    print(f"\nEffective efficiency (EB rate): {effective_efficiency:.2f}%")
-    print(f"Total FPs: {total_fps}")
-    print(f"Detected FPs: {detected_fps}")
-    print(f"\nMetric assignments:")
-    print(f"  EFX: {count_efx} ({count_efx/n_targets*100:.1f}%)")
-    print(f"  SFX: {count_sfx} ({count_sfx/n_targets*100:.1f}%)")
-    print(f"  NCOB: {count_ncob} ({count_ncob/n_targets*100:.1f}%)")
-    print(f"  ECOB: {count_ecob} ({count_ecob/n_targets*100:.1f}%)")
-    print(f"  None (>threshold): {count_none} ({count_none/n_targets*100:.1f}%)")
+    ncob_limit = 7400  # Maximum for nominal COB
+    ncob_limit_pct = (ncob_limit / total_p5_targets_per_cam) * 100  # 9.25%
     
-    return effective_efficiency, assigned_metrics
+    ecob_limit = 7400  # Maximum for extended COB
+    ecob_limit_pct = (ecob_limit / total_p5_targets_per_cam) * 100  # 9.25%
+
+    # Calculate assignment percentages
+    efx_total = count_efx_zero + count_efx_multi
+    efx_sfx_used_pct = ((efx_total + count_sfx) / n_targets) * 100
+    ncob_used_pct = (count_ncob / n_targets) * 100
+    ecob_used_pct = (count_ecob / n_targets) * 100
+
+    # Check if usage percentages would exceed limits
+    within_limits = (efx_sfx_used_pct <= efx_sfx_limit_pct) and \
+                    (ncob_used_pct <= ncob_limit_pct) and \
+                    (ecob_used_pct <= ecob_limit_pct)
+    
+    # Distribution of targets by N value
+    n_counts = np.zeros(3)  # [N=0, N=1, N≥2]
+    n_counts[0] = np.sum(n_bad == 0) / n_targets * 100
+    n_counts[1] = np.sum(n_bad == 1) / n_targets * 100
+    n_counts[2] = np.sum(n_bad >= 2) / n_targets * 100
+    
+    # Calculate detection efficiency by detection method
+    method_efficiencies = np.zeros(5)  # [EFX, SFX, NCOB, ECOB, Overall]
+
+    if np.sum(assigned_metrics == "EFX") > 0:
+        method_efficiencies[0] = np.sum(fps_detected_by_assigned[assigned_metrics == "EFX"]) / np.sum(total_fps_per_target[assigned_metrics == "EFX"]) * 100
+    
+    if np.sum(assigned_metrics == "SFX") > 0:
+        method_efficiencies[1] = np.sum(fps_detected_by_assigned[assigned_metrics == "SFX"]) / np.sum(total_fps_per_target[assigned_metrics == "SFX"]) * 100
+    
+    if np.sum(assigned_metrics == "NCOB") > 0:
+        method_efficiencies[2] = np.sum(fps_detected_by_assigned[assigned_metrics == "NCOB"]) / np.sum(total_fps_per_target[assigned_metrics == "NCOB"]) * 100
+    
+    if np.sum(assigned_metrics == "ECOB") > 0:
+        method_efficiencies[3] = np.sum(fps_detected_by_assigned[assigned_metrics == "ECOB"]) / np.sum(total_fps_per_target[assigned_metrics == "ECOB"]) * 100
+    
+    method_efficiencies[4] = effective_efficiency  # Overall efficiency
+    
+    # Calculate NCOB breakdown percentages
+    ncob_single_pct = (count_ncob_single / n_targets) * 100
+    ncob_multi_pct = (count_ncob_multi / n_targets) * 100
+
+    # Calculate EFX breakdown percentages
+    efx_zero_pct = (count_efx_zero / n_targets) * 100
+    efx_multi_pct = (count_efx_multi / n_targets) * 100
+
+    # Calculate what percentage of N=1 targets get NCOB
+    n1_targets = np.sum(n_bad == 1)
+    if n1_targets > 0:
+        ncob_percentage_of_n1 = (count_ncob_single / n1_targets) * 100
+    else:
+        ncob_percentage_of_n1 = 0
+
+    # Print results
+    print(f"Effective efficiency: {effective_efficiency:.2f}%")
+    print("\nMetric distribution:")
+    print(f"  EFX (N=0): {metric_counts[0]:.2f}%")
+    print(f"  EFX (N>=2): {metric_counts[1]:.2f}%")
+    print(f"  EFX: {metric_counts[0] + metric_counts[1]:.2f}%")
+    print(f"  SFX: {metric_counts[2]:.2f}%")
+    print(f"  NCOB (N=1): {metric_counts[3]:.2f}%")
+    print(f"  NCOB (N>=2): {metric_counts[4]:.2f}%")
+    print(f"  NCOB: {metric_counts[3] + metric_counts[4]:.2f}%")
+    print(f"  ECOB: {metric_counts[5]:.2f}%")
+    
+    print("\nTarget distribution by FP count:")
+    print(f"  N=0: {n_counts[0]:.2f}%")
+    print(f"  N=1: {n_counts[1]:.2f}%")
+    print(f"  N≥2: {n_counts[2]:.2f}%")
+    
+    print("\nDetailed NCOB and EFX distribution:")
+    print(f"  NCOB (N=1): {count_ncob_single} targets ({ncob_single_pct:.2f}% of all targets)")
+    print(f"  NCOB (N≥2): {count_ncob_multi} targets ({ncob_multi_pct:.2f}% of all targets)")
+    print(f"  NCOB (Total): {count_ncob} targets ({(count_ncob/n_targets)*100:.2f}% of all targets)")
+    print(f"  {ncob_percentage_of_n1:.2f}% of N=1 targets are assigned NCOB")
+    print(f"  EFX (N = 0): {count_efx_zero} targets ({efx_zero_pct:.2f}% of all targets)")
+    print(f"  EFX (N >= 2): {count_efx_multi} targets ({efx_multi_pct:.2f}% of all targets)")
+    
+    print("\nResource usage (as % of all targets):")
+    print(f"  EFX+SFX: {efx_sfx_used_pct:.2f}% (limit: {efx_sfx_limit_pct:.2f}%)")
+    print(f"  NCOB: {ncob_used_pct:.2f}% (limit: {ncob_limit_pct:.2f}%)")
+    print(f"  ECOB: {ecob_used_pct:.2f}% (limit: {ecob_limit_pct:.2f}%)")
+    print(f"  Within limits: {within_limits}")
+    
+    print("\nMethod efficiency for assigned targets:")
+    print(f"  EFX: {method_efficiencies[0]:.2f}%")
+    print(f"  SFX: {method_efficiencies[1]:.2f}%")
+    print(f"  NCOB: {method_efficiencies[2]:.2f}%")
+    print(f"  ECOB: {method_efficiencies[3]:.2f}%")
+    print(f"  Overall: {method_efficiencies[4]:.2f}%")
+
+    # After the assignment loop, check:
+    print("\nEFX assignment breakdown:")
+    print(f"  Targets with N=0 assigned EFX: {np.sum((n_bad == 0) & (assigned_metrics == 'EFX'))}")
+    print(f"  Targets with N=1 assigned EFX: {np.sum((n_bad == 1) & (assigned_metrics == 'EFX'))}")  
+    print(f"  Targets with N≥2 assigned EFX: {np.sum((n_bad >= 2) & (assigned_metrics == 'EFX'))}")
+
+    # Also check what N≥2 targets are getting:
+    n2_plus_mask = n_bad >= 2
+    if n2_plus_mask.sum() > 0:
+        print(f"\nFor {n2_plus_mask.sum()} targets with N≥2:")
+        for method in ['EFX', 'SFX', 'NCOB', 'ECOB']:
+            count = np.sum((n2_plus_mask) & (assigned_metrics == method)) # type: ignore
+            print(f"  {method}: {count}") # type: ignore
+    
+    return (effective_efficiency, assigned_metrics, metric_counts, n_counts, method_efficiencies, total_fps, detected_fps, n_targets, count_ncob_single, count_ncob_multi,
+            ncob_single_pct, ncob_multi_pct, ncob_percentage_of_n1, efx_sfx_used_pct, ncob_used_pct, ecob_used_pct, within_limits)
 
 # Call the function
 results = calculate_effective_efficiency_eb_rate(
