@@ -306,13 +306,13 @@ plt.plot(Pi_values, eff_ext_overall_24_cameras_values, color='blue', linestyle='
 plt.plot(Pi_values, eff_ext_overall_6_cameras_values, color='red', linestyle='-', linewidth=1)
 
 # Add shaded regions and lines
-plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
-plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
-plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
-plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+plt.fill_between([9, 11.7], [30, 30], [100, 100], color='aqua', alpha=0.1) # type: ignore
+plt.fill_between([11, 13.4], [30, 30], [100, 100], color='plum', alpha=0.1) # type: ignore
+plt.vlines(11.7, ymin=30, ymax=100, linestyles='dashed', colors='green') # type: ignore
+plt.vlines(11, ymin=30, ymax=100, linestyles='dashdot', colors='red') # type: ignore
 
 # Labels and formatting
-plt.ylim(47, 100)
+plt.ylim(30, 100)
 plt.xlim(9.9, 13.1)
 plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
 plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
@@ -818,6 +818,8 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     
     method_efficiencies[4] = effective_efficiency  # Overall efficiency
     
+    # Calculate ECOB breakdown percentages
+    ecob_pct = (count_ecob / n_targets) * 100
     # Calculate NCOB breakdown percentages
     ncob_single_pct = (count_ncob_single / n_targets) * 100
     ncob_multi_pct = (count_ncob_multi / n_targets) * 100
@@ -826,14 +828,25 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     efx_zero_pct = (count_efx_zero / n_targets) * 100
     efx_multi_pct = (count_efx_multi / n_targets) * 100
 
-    # Calculate what percentage of N=1 targets get NCOB
+    # Calculate SFX breakdown percentages
+    sfx_pct = (count_sfx / n_targets) * 100
+
+    # Calculate what percentage of N=1 targets get NCOB and SFX
     n1_targets = np.sum(n_bad == 1)
     if n1_targets > 0:
         ncob_percentage_of_n1 = (count_ncob_single / n1_targets) * 100
+        sfx_percentage_of_n1 = (count_sfx / n1_targets) * 100
     else:
         ncob_percentage_of_n1 = 0
+        sfx_percentage_of_n1 = 0
 
     # Print results
+
+    print("====================================================")
+    print("=                                                  =")
+    print("=  Effective efficiency  and strategy computation  =")
+    print("=                                                  =")
+    print("====================================================")
     print(f"Effective efficiency: {effective_efficiency:.2f}%")
     print("\nMetric distribution:")
     print(f"  EFX (N=0): {metric_counts[0]:.2f}%")
@@ -850,11 +863,14 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     print(f"  N=1: {n_counts[1]:.2f}%")
     print(f"  N≥2: {n_counts[2]:.2f}%")
     
-    print("\nDetailed NCOB and EFX distribution:")
+    print("\nDetailed NCOB, ECOB, SFX and EFX distribution:")
     print(f"  NCOB (N=1): {count_ncob_single} targets ({ncob_single_pct:.2f}% of all targets)")
     print(f"  NCOB (N≥2): {count_ncob_multi} targets ({ncob_multi_pct:.2f}% of all targets)")
     print(f"  NCOB (Total): {count_ncob} targets ({(count_ncob/n_targets)*100:.2f}% of all targets)")
-    print(f"  {ncob_percentage_of_n1:.2f}% of N=1 targets are assigned NCOB")
+    print(f"  {ncob_percentage_of_n1:.2f}% of targets with N=1 are assigned NCOB")
+    print(f"  ECOB (N=1): {count_ecob} targets ({ecob_pct:.2f}% of all targets)")
+    print(f"  SFX (N=1): {count_sfx} targets ({sfx_pct:.2f}% of all targets) ")
+    print(f"  {sfx_percentage_of_n1:.2f}% of targets with N=1 are assigned to SFX")
     print(f"  EFX (N = 0): {count_efx_zero} targets ({efx_zero_pct:.2f}% of all targets)")
     print(f"  EFX (N >= 2): {count_efx_multi} targets ({efx_multi_pct:.2f}% of all targets)")
     
@@ -882,8 +898,8 @@ def calculate_effective_efficiency_eb_rate(data, data_sec, data_ext,
     if n2_plus_mask.sum() > 0:
         print(f"\nFor {n2_plus_mask.sum()} targets with N≥2:")
         for method in ['EFX', 'SFX', 'NCOB', 'ECOB']:
-            count = np.sum((n2_plus_mask) & (assigned_metrics == method)) # type: ignore
-            print(f"  {method}: {count}") # type: ignore
+            count = np.sum((n2_plus_mask) & (assigned_metrics == method))
+            print(f"  {method}: {count}") 
     
     return (effective_efficiency, assigned_metrics, metric_counts, n_counts, method_efficiencies, total_fps, detected_fps, n_targets, count_ncob_single, count_ncob_multi,
             ncob_single_pct, ncob_multi_pct, ncob_percentage_of_n1, efx_sfx_used_pct, ncob_used_pct, ecob_used_pct, within_limits)
