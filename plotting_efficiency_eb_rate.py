@@ -547,7 +547,7 @@ for key, label in [('ext_24', 'Extended 24-cam'), ('ext_6', 'Extended 6-cam'),
                    ('sec_24', 'Secondary 24-cam'), ('sec_6', 'Secondary 6-cam')]:
     if len(plot_data[key]['eff']) > 0:
         avg_eff = np.mean(plot_data[key]['eff'])
-        print(f"{label}: Average {avg_eff:.1f}% (from {len(plot_data[key]['eff'])} magnitude bins with data)")
+        print(f"{label}: Average {avg_eff:.1f}% (from {len(plot_data[key]['eff'])} magnitude bins)")
     else:
         print(f"{label}: No data points")
 
