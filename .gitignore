@@ -24,6 +24,7 @@ plots_pdfs
 dap_metrics_dummy.py
 /NSR_agg_evolution.png
 /master_multiprocessing.py
+**/.obsidian/
 text_comparison_all_metrics.py
 important_metrics_comparison.tex
 important_metrics_comparison_artistic.tex
