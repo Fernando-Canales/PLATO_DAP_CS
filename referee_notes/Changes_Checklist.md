@@ -10,7 +10,9 @@ To have an easy-to-look checklist for the main corrections of the paper.
 ### Here I talk about paper/latex stuff
 
 - [ ] Major 1: State in the latex document that is not our aim to estimate a realistic EB rate for PLATO. Such thing has be done already (see Bray et al. 2023). I can also mention the Kepler and TESS papers from Prsa. 
-- [ ] Major 2: Show the results in the paper about the value distribution of transit depths and durations
+- [ ] Major 2: Change the results section in such a way that I can
+	- [ ] Show the two scenarios about EBs: the fixed values and the distribution values
+	- [ ] Show the results about the value distribution of transit depths and durations
 - [ ] Major 3: Fix validation language. Investigate and or contact Juan for guidance about the subtle details 
 	- [x] Section 2.3
 	- [ ] Introduction
