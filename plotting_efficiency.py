@@ -329,7 +329,6 @@ plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
-plt.ylim(47, 100)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 
