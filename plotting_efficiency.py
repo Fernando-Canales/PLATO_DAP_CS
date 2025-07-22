@@ -292,8 +292,10 @@ for i in range(nP):
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
-    plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
+    #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore 
+    #plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
+    plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variabel transit parameters case
+    plt.fill_between([11, 13.4], [40, 40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variabel transit parameters case
 
     # Update label tracking
     labels_added['sec_24'] = True
@@ -314,11 +316,15 @@ for i in range(nP):
     prev_Pi, prev_eff_sec, prev_eff_sec_6_cameras, prev_eff_ext_overall, prev_eff_ext_overall_6_cameras = Pi, eff_sec, eff_sec_6_cameras, eff_ext_overall_24_cameras, eff_ext_overall_6_cameras
 
 # Additional plot settings
-plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
-plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
-plt.ylim(55, 100)
+#plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
+#plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+plt.vlines(11.7, ymin=40, ymax=100, linestyles='dashed', colors='green') # type: ignore this is for the variabel transit parameters case
+plt.vlines(11, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variabel transit parameters case
+#plt.ylim(55, 100)
+plt.ylim(40, 100) # this is for the variabel transit parameters case
 plt.xlim(9.9, 13.1)
-plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
+#plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
+plt.text(10, 88.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
 plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
 
 # Display legend below the plot
@@ -329,7 +335,8 @@ plt.ylabel('Efficiency [%]', fontsize=fsize)
 
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-plt.savefig(DIRout + "DAP_Flux_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+#plt.savefig(DIRout + "DAP_Flux_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+plt.savefig(DIRout + "DAP_Flux_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
 plt.show()
 
 """
@@ -378,8 +385,10 @@ for i in range(nP):
     plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
-    plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
-    plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
+    #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
+    #plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
+    plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variable transit parameters case
+    plt.fill_between([11, 13.4], [40,40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variable transit parameters case
     
     # Plot lines connecting the points
     if i > 0:
@@ -393,10 +402,12 @@ for i in range(nP):
     prev_Pi, prev_eff_ext_cob_overall, prev_eff_cob, prev_eff_cob_sec, prev_eff_ext_cob_overall_6_cameras, prev_eff_cob_6_cameras, prev_eff_cob_sec_6_cameras = Pi, eff_ext_cob_overall, eff_cob, eff_cob_sec, eff_ext_cob_overall_6_cameras, eff_cob_6_cameras, eff_cob_sec_6_cameras
 
 
-    #plt.legend(['Ext. Mask (10 contaminants)'], loc='best')
-    plt.vlines(11.7, ymin=47, ymax = 100, linestyles='dashed', colors='green') # type: ignore
-    plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
-    plt.ylim(47, 100)
+    #plt.vlines(11.7, ymin=47, ymax = 100, linestyles='dashed', colors='green') # type: ignore
+    #plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
+    plt.vlines(11.7, ymin=40, ymax = 100, linestyles='dashed', colors='green') # type: ignore this is for the variable transit parameters case
+    plt.vlines(11, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variable transit parameters case
+    #plt.ylim(47, 100)
+    plt.ylim(40, 100) # this is for the variable transit parameters case
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
     plt.text(10., 71.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
@@ -437,11 +448,12 @@ ax_inset.vlines(11, ymin=95, ymax=100, linestyles='dashdot', colors='red')
 # Set inset plot limits and appearance
 ax_inset.set_ylim(95, 100)
 ax_inset.set_xlim(9.9, 13.1)
-ax_inset.set_yticks([95, 96, 97, 98, 99, 100])
+ax_inset.set_yticks([95, 97, 100])
 ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
 plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 
-plt.savefig(DIRout + "DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+#plt.savefig(DIRout + "DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
+plt.savefig(DIRout + "DAP_CS_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
     
