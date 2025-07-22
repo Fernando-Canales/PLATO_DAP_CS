@@ -65,4 +65,5 @@ test_IhrC.npy
 test_IhrT.npy
 test_param.npz
 test_sm.npy
-
+referee_notes/images
+referee_notes/EB_rate.md
