@@ -29,7 +29,7 @@ Change the following plots and the corresponding figure captions:
 		- [ ] Efficiency table
 	- [x] Write section 7.3: Scenario B: variable transit parameters
 	- [ ] Write section 7.4: Comparison between scenarios
-		- [ ] Putting a table comparing the efficiency of both scenarios
+		- [x] Putting a table comparing the efficiency of both scenarios
 - [ ] [[Referee_comments|Major 3]]: Fix validation language. 
 	- [ ] Investigate and or contact Juan for guidance about the subtle details 
 	- [x] Section 2.3
