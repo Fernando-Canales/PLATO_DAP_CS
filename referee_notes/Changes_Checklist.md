@@ -21,15 +21,18 @@ Change the following plots and the corresponding figure captions:
 - [x] Efficiency plot for the double-aperture photometry (distribution of transit depth and durations)
 - [x] Efficiency plot for the centroid shift (distribution of transit depths and durations)
 ###  Week of the 21st of July 2025
-
-- [ ] Modify the ABSTRACT, more concretely the Results part of it.
+Fix [[Referee_comments|Minor 10]]:
+- [x] Text explaining Eq. (39)
+- [x] Caption of Fig. 7 related to Eq. (39)
+- [ ] Modify the ABSTRACT, more concretely the Results part of it. 
 - [ ] [[Referee_comments|Major 2]]: Change the results section to include the 2 scenarios: variable vs fix transit parameters
 	- [ ] Show the results about the value distribution of transit depths and duration
 		- [x] Efficiency plot
-		- [ ] Efficiency table
+		- [x] Efficiency table
 	- [x] Write section 7.3: Scenario B: variable transit parameters
 	- [ ] Write section 7.4: Comparison between scenarios
 		- [x] Putting a table comparing the efficiency of both scenarios
+		- [ ] Changing caption of Fig.
 - [ ] [[Referee_comments|Major 3]]: Fix validation language. 
 	- [ ] Investigate and or contact Juan for guidance about the subtle details 
 	- [x] Section 2.3
