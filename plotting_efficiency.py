@@ -324,8 +324,8 @@ plt.vlines(11, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ig
 plt.ylim(40, 100) # this is for the variabel transit parameters case
 plt.xlim(9.9, 13.1)
 #plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(10, 88.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
-plt.text(11.2, 75, 'On-board light curve processing region', color='red', weight='bold')
+plt.text(10, 72.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
+plt.text(11.2, 50, 'On-board light curve processing region', color='red', weight='bold')
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
@@ -410,7 +410,7 @@ for i in range(nP):
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
     plt.text(10., 71.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(11.1, 66.5, 'On-board light curve process. region', color='red', weight='bold')
+    plt.text(11.1, 60.5, 'On-board light curve process. region', color='red', weight='bold')
            
 # Finalize the main plot
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
