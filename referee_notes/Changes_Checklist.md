@@ -23,7 +23,7 @@ Change the following plots and the corresponding figure captions:
 ### Week of the 21st of July 2025
 
 Fix [[Major_Comments_Response#Second Major point| Major 2]] but in terms of:
-- [ ] Changing Section 7 of the paper (Results)  to include the variable EB transit parameters
+- [x] Changing Section 7 of the paper (Results)  to include the variable EB transit parameters
 	- [x] Write section 7.3: Scenario B: variable transit parameters
 		- [x] Show the results about the value distribution of transit depths and duration
 			- [x] Efficiency plot
@@ -35,7 +35,7 @@ Fix [[Major_Comments_Response#Second Major point| Major 2]] but in terms of:
 Fix  [[Major_Comments_Response#Fifth Major point|Major 5c]] and  [[Minor_Comments_Response#Tenth minor point|Minor 10]]:
 - [x] Text explaining Eq. (39)
 - [x] Caption of Fig. 7 related to Eq. (39)
-- [ ] Modify the ABSTRACT, more concretely the Results part of it. 
+- [x] Modify the ABSTRACT, more concretely the Results part of it. 
 
 ### Week of the 28th of July 2025
 
