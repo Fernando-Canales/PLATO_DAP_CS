@@ -1,11 +1,17 @@
 
-#### First Major point
+### First Major point
 > 	1. The paper assumes that all background stars are eclipsing binaries undergoing transit-like events, and therefore potentially capable of generating a false positive signal. This is an unrealistic assumption, and I think an unnecessary one. I appreciate that, as stated in section 5.2, it is not possible to know the details of individual contamination sources. However, as also stated in section 5.2, there are studies about the number and occurrence rates of eclipsing binaries. Could these have been used to assign eclipsing binary status to suitable fractions of the stars in the sample, allowing for a more realistic proportion of possible eclipsing binary contaminants in each window? Such an approach should be considered. 
 
 **Response**: We agree. The thing to do here is to say explicitly on the paper that is not our intention to provide a realistic estimation for the EB occurence rate for PLATO. Such thing has been made by Bray et al. (2023). Furthermore, I can also mention the Prsa papers on Kepler and TESS. Also, Réza suggested to put a reference or references about the known fact that EBs are the most important example of false positives in transit light curves.
 
-#### Second  Major point
+### Second  Major point
 
 > 	2. The eclipse depth of the eclipsing binary appears in equation (10) and propagates forwards into the equations for statistical significance for a transit on a contaminant, and thus into the equations for efficiency of the extended mask and secondary mask flux methods. In section 2.4 the paper notes that the intrinsic eclipse depth is assumed to be the same for all contaminant eclipsing binaries. This seems like a very limiting assumption, and while I understand that it makes the study simpler to perform, I wonder whether it is limiting the study and strongly constraining the applicability of the results. Would the results change if a range of eclipse depths is present among the contaminating stars, or is only the mean eclipse depth relevant? This assumption that all eclipsing binaries have the same eclipse depth should be explained in more detail, including information about the justification for it, whether any other scenarios were considered, and how it limits the results that are presented. 
 
 **Response**: We agree. Since I had a similar comment from the thesis committee, I can use what I made for my thesis to answer the referee question. I have used a value distribution for the transit depth and duration in my thesis. So I can reproduce such results again for the paper and include them in the results section. This will change the structure of that section. Now it should show two different scenarios: The fixed transit parameters one and the variable transit parameters one. 
+
+### Fifth Major point
+
+>	 5.  The results presented in Section 7 are not sufficiently described or explained. a. In Figure 4b, why is the secondary mask equally efficient for the 6 camera and 24 camera cases at P magnitude 11.0? This is a notable outlier from the behaviour evident at the other magnitudes considered. b. I’m surprised that in Figure 4a, the 24 camera and 6 camera cases are so similar, and that for the secondary mask centroid the 6 camera case is sometimes more efficient. Why is this the case? c. Is the y-axis of Figure 5 the noise of the extended and nominal mask metrics, or the uncertainty in the metric? Per equation (39), this is the error in the absolute centroid shift, averaged over 1 hour and Nt cameras, which could be taken to be either. This should be clarified.
+
+**Response**: c) We agree. The Fig. refers to the uncertainty of the centroid shift averaged over 1 hour and Nt cameras. 
