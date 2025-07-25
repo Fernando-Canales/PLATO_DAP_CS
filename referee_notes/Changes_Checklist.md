@@ -37,6 +37,14 @@ Fix  [[Major_Comments_Response#Fifth Major point|Major 5c]] and  [[Minor_Comment
 - [x] Caption of Fig. 7 related to Eq. (39)
 - [x] Modify the ABSTRACT, more concretely the Results part of it. 
 
+Fix [[Minor_Comments_Response#First minor point|Minor 10]]:
+- [x] Delete the line that says that Kepler extracted photometry on-board (Kepler did not do that!)
+
+Fix [[Major_Comments_Response#Ninth Major point| Major 9]]:
+- [ ] Refer to Borucki et al. for the definition of 'Super-Earth'
+- [ ] Refer to Borucki et al. for the radii of Earth and Jovian planets
+- [ ] Recall that a planet with a significance higher than 7.1 could be, in  principle, detectable  for PLATO
+
 ### Week of the 28th of July 2025
 
 - [ ] [[Major_Comments_Response|Major 3]]: Fix validation language. 
