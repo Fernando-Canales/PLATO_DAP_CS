@@ -7,7 +7,7 @@ To have an easy-to-look checklist for the main corrections of the paper.
 - [x] Major 1: Add EB occurrence rate of 1%
 - [x] Major 2: Add distribution of transit depths and durations
 
-### Here I talk about paper/latex stuff
+## Here I talk about paper/latex stuff
 
 ### Week of the 14th of July 2025
 
@@ -37,15 +37,36 @@ Fix  [[Major_Comments_Response#Fifth Major point|Major 5c]] and  [[Minor_Comment
 - [x] Caption of Fig. 7 related to Eq. (39)
 - [x] Modify the ABSTRACT, more concretely the Results part of it. 
 
-Fix [[Minor_Comments_Response#First minor point|Minor 10]]:
+Fix [[Minor_Comments_Response#First minor point|Minor 1]]:
 - [x] Delete the line that says that Kepler extracted photometry on-board (Kepler did not do that!)
 
 Fix [[Major_Comments_Response#Ninth Major point| Major 9]]:
-- [ ] Refer to Borucki et al. for the definition of 'Super-Earth'
-- [ ] Refer to Borucki et al. for the radii of Earth and Jovian planets
-- [ ] Recall that a planet with a significance higher than 7.1 could be, in  principle, detectable  for PLATO
+- [x] Refer to Borucki et al. for the definition of 'Super-Earth'
+- [x] Recall that a planet with a significance higher than 7.1 could be, in  principle, detectable  for PLATO
 
 ### Week of the 28th of July 2025
+
+Fix [[Major_Comments_Response#Eight Major point|Major 8]]:
+- [ ] Create the matrix/table with all the percentages of all the metrics
+- [ ] Reword the comparison: 'detected by X and not by Y' instead of 'detected only by X and not by Y'
+
+Fix [[Minor_Comments_Response#Second minor point|Minor 2]]:
+- [ ] Explain the L3 data products -> not only the catalog from the P1 sample.
+
+Fix [[Minor_Comments_Response#Third minor point|Minor 3]]:
+- [ ] Explain the required two quantities for COB and one for FX
+
+Fix [[Minor_Comments_Response#Fifth minor point|Minor 5]]:
+- [ ] Cite my thesis, Fig. 7.1 to show the study of 2-pixel-ring extended mask efficiency
+
+Fix [[Minor_Comments_Response#Eight minor point|Minor 8]]:
+- [ ] Explain the 10^-6  in the transit depth
+
+Fix [[Minor_Comments_Response#Eleventh minor point|Minor 11]]:
+- [ ] Explain that the cutoff in magnitude comes from GAIA
+
+Fix [[Minor_Comments_Response#Fourteenth minor point| Minor 14]]:
+- [ ] State the importance of having a mask library within budget
 
 - [ ] [[Major_Comments_Response|Major 3]]: Fix validation language. 
 	- [ ] Investigate and or contact Juan for guidance about the subtle details 
