@@ -51,22 +51,34 @@ Fix [[Major_Comments_Response#Eight Major point|Major 8]]:
 - [ ] Reword the comparison: 'detected by X and not by Y' instead of 'detected only by X and not by Y'
 
 Fix [[Minor_Comments_Response#Second minor point|Minor 2]]:
-- [ ] Explain the L3 data products -> not only the catalog from the P1 sample.
+- [x] Explain the L3 data products -> not only the catalog from the P1 sample.
 
 Fix [[Minor_Comments_Response#Third minor point|Minor 3]]:
-- [ ] Explain the required two quantities for COB and one for FX
+- [x] Explain the required two quantities for COB and one for FX
 
 Fix [[Minor_Comments_Response#Fifth minor point|Minor 5]]:
-- [ ] Cite my thesis, Fig. 7.1 to show the study of 2-pixel-ring extended mask efficiency
+- [x] Cite my thesis, Fig. 7.1 to show the study of 2-pixel-ring extended mask efficiency
+- [x] State that the current strategy is not the optimal way to build an extended mask
 
 Fix [[Minor_Comments_Response#Eight minor point|Minor 8]]:
-- [ ] Explain the 10^-6  in the transit depth
+- [x] Explain the 10^-6  in the transit depth
 
 Fix [[Minor_Comments_Response#Eleventh minor point|Minor 11]]:
-- [ ] Explain that the cutoff in magnitude comes from GAIA
+- [x] Explain that the cutoff in magnitude comes from GAIA
 
-Fix [[Minor_Comments_Response#Fourteenth minor point| Minor 14]]:
-- [ ] State the importance of having a mask library within budget
+Fix [[Minor_Comments_Response#Fourteenth minor point|Minor 14]]:
+- [x] State the importance of having a mask library within budget
+
+Fix [[Editorials_Response#First editorial|Editorial 1]]:
+- [x] Change 'seismic techniques' and write 'asteroseismology'
+
+Fix [[Editorials_Response#Second editorial|Editorial 2]]:
+- [x] Cite the Nasa Exoplanet Archive for the number of exoplanets
+
+Fix [[Editorials_Response#Third editorial|Editorial 3]]:
+- [ ] Mention clearly that PLATO will increase the detection number of Earth-like planets
+
+Fix 
 
 - [ ] [[Major_Comments_Response|Major 3]]: Fix validation language. 
 	- [ ] Investigate and or contact Juan for guidance about the subtle details 
