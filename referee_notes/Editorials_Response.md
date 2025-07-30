@@ -19,3 +19,14 @@
 ### Seventh editorial
 > 	In the introduction, page 2, left-hand column, the paper notes that the size of the P5 sample will be ~122500 stars. Is this for one long pointing or two long pointings?
 
+### Eighth editorial
+>	 In section 2.1, Marchiori et al. (2019) is used as the reference for PLATO’s quarterly rotation. Would one of the Rauer et al. papers not be a more suitable reference here?
+
+### Ninth editorial
+> 	In section 2.4, on page 4 (left-hand column), the paper states that transit depth is the fraction of the star surface that is covered during the transit. This is incorrect, but I think is just imprecise wording. Transit depth is the fraction of the area of the stellar disc that is covered, not the fraction of the star’s surface area. 
+
+### Tenth editorial
+> 	In section 4, on page 6, left-hand column, the paper states that centroid measurements are weighted by the aperture. This statement should be clarified; weighted how, and why? 
+
+### Eleventh editorial
+> 	A citation should be added for the microscanning process referenced at the end of section 5.3
