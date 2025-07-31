@@ -61,7 +61,7 @@
 #### Thirteenth minor point
 > 	XIII. In section 7 and Appendix B, the P magnitude values are referenced as belonging to the target star. This is clear for the nominal mask and extended mask cases, but for the secondary mask case, is it still the magnitude of the target that is relevant, or the magnitude of the most significant contaminant (i.e. the one used to position the secondary mask)? This should be clarified in the text, and also in the appropriate figure captions and/or axis labels. 
 
-**Response**: Appendix B is more detailed in my PhD thesis. I will consider what I wrote there in order to be more clear and answer this comment.
+**Response**: Agree. I remove the secondary masks from the plot, Fig. B.1.
 
 #### Fourteenth minor point
 > 	XIV. The relevance of the discussion of the number of unique mask shapes is not clear to me and should be stated in the paper. Is the point to show that the increase in possible mask configurations introduced by the secondary mask does not reach the limit allowed by the size of the on-board library? 

@@ -46,6 +46,9 @@ Fix [[Major_Comments_Response#Ninth Major point| Major 9]]:
 
 ### Week of the 28th of July 2025
 
+Fix [[Major_Comments_Response#Sixth Major point|Major 6]]:
+- [ ] Explain the magnitude bins in the efficiency plots
+
 Fix [[Major_Comments_Response#Eight Major point|Major 8]]:
 - [ ] Create the matrix/table with all the percentages of all the metrics
 - [ ] Reword the comparison: 'detected by X and not by Y' instead of 'detected only by X and not by Y'
@@ -76,12 +79,39 @@ Fix [[Editorials_Response#Second editorial|Editorial 2]]:
 - [x] Cite the Nasa Exoplanet Archive for the number of exoplanets
 
 Fix [[Editorials_Response#Third editorial|Editorial 3]]:
-- [ ] Mention clearly that PLATO will increase the detection number of Earth-like planets
+- [x] Mention clearly that PLATO will increase the detection number of Earth-like planets
 
-Fix 
+Fix [[Editorials_Response#Fourth editorial|Editorial 4]]:
+- [x] Write 'space-based and ground-based transit surveys'
 
-- [ ] [[Major_Comments_Response|Major 3]]: Fix validation language. 
-	- [ ] Investigate and or contact Juan for guidance about the subtle details 
+Fix [[Editorials_Response#Fifth editorial|Editorial 5]]:
+- [x] Assess the transit signal for validation
+
+Fix [[Editorials_Response#Sixth editorial|Editorial 6]]:
+- [x] Mention the two pointings for the P5 figure
+
+Fix [[Editorials_Response#Seventh editorial|Editorial 7]]:
+- [x] Cite Rauer et al. paper
+
+Fix [[Editorials_Response#Eighth editorial|Editorial 8]]:
+- [x] Transit depth in terms of shadowed stellar disc
+
+Fix [[Editorials_Response#Ninenth editorial|Editorial 9]]:
+- [x] Explain the 'weighted by the aperture' for centroid shifts
+
+Fix [[Editorials_Response#Tenth editorial|Editorial 10]]:
+- [x] Cite Samadi et al. (2019) for the microscanning
+
+### Week of the 4th of August 2025
+From [[Meeting_July_31_2025]]:
+- [ ] Remove scenario A from the results
+- [ ] Remove discussion about Gamma
+- [ ] Check the code to be sure Gamma = 1 when using distribution of transit parameters
+- [ ] Set a deadline to send the paper to co-authors for revisions (14th of August)
+- [ ] Re-do Section 8 now with the results from Scenario B
+- [ ] [[Major_Comments_Response#Third Major point|Major point 3]]:
+	- [ ] Contact Juan
+	- [ ] Investigate and read documentation for the PSF business
 	- [x] Section 2.3
 	- [ ] Introduction
 	- [ ] Section 6
