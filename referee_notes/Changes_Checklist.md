@@ -104,6 +104,7 @@ Fix [[Editorials_Response#Tenth editorial|Editorial 10]]:
 
 ### Week of the 4th of August 2025
 From [[Meeting_July_31_2025]]:
+- [ ] Remove any mention of the scenarios in the Abstract (The Abstract is already too long. In total, it has more than 400 words. The word limit for the Abstract set by A&A is of 300 words)
 - [ ] Remove scenario A from the results
 - [ ] Remove discussion about Gamma, since we are only showing Scenario B in the paper
 - [ ] Check the code to be sure Gamma = 1 when using distribution of transit parameters
