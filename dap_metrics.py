@@ -31,7 +31,7 @@ sb = (45. * 21) # Background noise from zodiacal light in e-/px (poisson noise)t
 sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = 7.2       # Quantization noise in units of e-rms/px
 
-# Parameters for the eclipsing binaries 
+# Parameters for the eclipsing binaries  
 transit_depth = 132000  # transit depth in ppm
 transit_duration = 6.72*0.46**2   # transit duration in hours
 ntr = 3        # number of transits in one hour
