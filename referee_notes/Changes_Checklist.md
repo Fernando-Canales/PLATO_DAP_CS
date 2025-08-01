@@ -105,7 +105,7 @@ Fix [[Editorials_Response#Tenth editorial|Editorial 10]]:
 ### Week of the 4th of August 2025
 From [[Meeting_July_31_2025]]:
 - [ ] Remove scenario A from the results
-- [ ] Remove discussion about Gamma
+- [ ] Remove discussion about Gamma, since we are only showing Scenario B in the paper
 - [ ] Check the code to be sure Gamma = 1 when using distribution of transit parameters
 - [ ] Set a deadline to send the paper to co-authors for revisions (14th of August)
 - [ ] Re-do Section 8 now with the results from Scenario B
@@ -113,7 +113,5 @@ From [[Meeting_July_31_2025]]:
 	- [ ] Contact Juan
 	- [ ] Investigate and read documentation for the PSF business
 	- [x] Section 2.3
-	- [ ] Introduction
-	- [ ] Section 6
 
  
