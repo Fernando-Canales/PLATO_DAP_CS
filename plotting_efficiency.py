@@ -547,6 +547,7 @@ weighted_variance_fraction_fp_ext_cob_no_sec_flux = 0
 weighted_variance_fraction_fp_ext_flux_no_sec_cob = 0
 weighted_variance_fraction_fp_nom_cob_no_ext_cob = 0
 
+
 # Initialize variance for efficiencies
 weighted_variance_eff_ext_flux = 0
 weighted_variance_eff_sec_flux = 0
@@ -759,7 +760,7 @@ print(f'Weighted fraction of FPs detected by ECOB but not by SCOB: {weighted_fra
 print(f'Weighted fraction of FPs detected by SFX but not by ECOB: {weighted_fraction_fp_sec_flux_no_ext_cob * 100:.2f}% ± {weighted_error_fraction_fp_sec_flux_no_ext_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by ECOB but not by SFX: {weighted_fraction_fp_ext_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_sec_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by SCOB: {weighted_fraction_fp_ext_flux_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_sec_cob * 100:.2f}%')
-
+print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}')
 
 
 
