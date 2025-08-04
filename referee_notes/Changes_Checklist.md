@@ -46,12 +46,10 @@ Fix [[Major_Comments_Response#Ninth Major point| Major 9]]:
 
 ### Week of the 28th of July 2025
 
-Fix [[Major_Comments_Response#Sixth Major point|Major 6]]:
-- [ ] Explain the magnitude bins in the efficiency plots
-
 Fix [[Major_Comments_Response#Eight Major point|Major 8]]:
-- [ ] Create the matrix/table with all the percentages of all the metrics
-- [ ] Reword the comparison: 'detected by X and not by Y' instead of 'detected only by X and not by Y'
+- [x] Create the matrix/table with all the percentages of all the metrics
+- [x] Reword the comparison: 'detected by X and not by Y' instead of 'detected only by X and not by Y'
+- [ ] Write conclusions from the new matrix/table
 
 Fix [[Minor_Comments_Response#Second minor point|Minor 2]]:
 - [x] Explain the L3 data products -> not only the catalog from the P1 sample.
@@ -103,14 +101,27 @@ Fix [[Editorials_Response#Tenth editorial|Editorial 10]]:
 - [x] Cite Samadi et al. (2019) for the microscanning
 
 ### Week of the 4th of August 2025
+
 From [[Meeting_July_31_2025]]:
-- [ ] Remove any mention of the scenarios in the Abstract (The Abstract is already too long. In total, it has more than 400 words. The word limit for the Abstract set by A&A is of 300 words)
+- [x] Remove any mention of the scenarios in the Abstract 
+- [ ] Trim the Abstract. The Abstract is already too long. In total, it has more than 400 words. The word limit for the Abstract set by A&A is of 300 words
 - [ ] Remove scenario A from the results
+- [ ] Improve Appendix B
+- [ ] Diagnostic check: compute the difference between the values and the quadratic sum of the errors
 - [ ] Remove discussion about Gamma, since we are only showing Scenario B in the paper
-- [ ] Check the code to be sure Gamma = 1 when using distribution of transit parameters
-- [ ] Set a deadline to send the paper to co-authors for revisions (14th of August)
+- [x] Check the code to be sure Gamma = 1 when using distribution of transit parameters
+- [x] Set a deadline to send the paper to co-authors for revisions (14th of August)
 - [ ] Re-do Section 8 now with the results from Scenario B
-- [ ] [[Major_Comments_Response#Third Major point|Major point 3]]:
+
+Fix [[Major_Comments_Response#Sixth Major point|Major 6]]:
+- [x] Explain the magnitude bins in the efficiency plots
+
+Fix [[Major_Comments_Response#Eight Major point|Major Point 8]]:
+- [x] Write the conclusions from the new added Matrix
+
+
+
+ - [ ] [[Major_Comments_Response#Third Major point|Major point 3]]:
 	- [ ] Contact Juan
 	- [ ] Investigate and read documentation for the PSF business
 	- [x] Section 2.3
