@@ -297,7 +297,7 @@ for i in range(nP):
 
 
     #print("Diagnostic extended flux:", test_significance_ext_flux)
-    print("Diagnostic secondary flux:", delta_eff_sec_flux)
+    #print("Diagnostic secondary flux:", delta_eff_sec_flux)
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
@@ -390,7 +390,11 @@ for i in range(nP):
     error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / m.sum())
     error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / m.sum())
 
-    
+    delta_eff_sec_cob = eff_cob_sec - eff_cob_sec_6_cameras
+    combined_error_sec_cob = np.sqrt(error_cob_sec**2 + error_cob_sec_6_cameras**2)
+    test_significance_sec_cob = delta_eff_sec_cob/combined_error_sec_cob
+
+    print("Diagnositc secondary centroid shift:", test_significance_sec_cob)
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
