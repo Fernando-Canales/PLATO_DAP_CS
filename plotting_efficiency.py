@@ -297,7 +297,7 @@ for i in range(nP):
 
 
     #print("Diagnostic extended flux:", test_significance_ext_flux)
-    print("Diagnostic secondary flux:", test_significance_sec_flux)
+    print("Diagnostic secondary flux:", delta_eff_sec_flux)
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
