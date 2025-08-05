@@ -254,7 +254,29 @@ for i in range(nP):
     # Store the cumulative total
     cumulative_total.append(total_masks)
     P_values.append(Pi)
-    
+
+
+"""
+Now we obtain several plots for showing the average size of the Nominal, Secondary and Extended Masks as a function of 
+the target magnitude
+"""
+plt.figure(3)
+for i in range(nP):
+    Pi = Pmin + i * binsize
+    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
+    size_nominal_mask = np.mean(size_nom[m])
+    size_extended_mask = np.mean(size_e[m])
+    size_secondary_mask = np.mean(size_sec[m])
+    plt.plot(Pi, size_extended_mask, 'b^', markersize=8)
+    plt.plot(Pi, size_nominal_mask, 'ko', markersize=8)
+    #plt.plot(Pi, size_secondary_mask, 'rP', markersize=8)
+    plt.legend(['Extended Mask', 'Nominal Mask'])
+
+plt.xlabel(" P Magnitude", fontsize=fsize)
+plt.ylabel(r"Average mask size [pixels]", fontsize=fsize)
+#plt.title("Average mask size")
+plt.savefig(DIRout + "Average_mask_size.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
+plt.show()
 
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
@@ -760,7 +782,7 @@ print(f'Weighted fraction of FPs detected by ECOB but not by SCOB: {weighted_fra
 print(f'Weighted fraction of FPs detected by SFX but not by ECOB: {weighted_fraction_fp_sec_flux_no_ext_cob * 100:.2f}% ± {weighted_error_fraction_fp_sec_flux_no_ext_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by ECOB but not by SFX: {weighted_fraction_fp_ext_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_sec_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by SCOB: {weighted_fraction_fp_ext_flux_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_sec_cob * 100:.2f}%')
-print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}')
+print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}%')
 
 
 
