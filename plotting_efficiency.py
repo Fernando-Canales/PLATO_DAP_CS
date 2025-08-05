@@ -255,29 +255,6 @@ for i in range(nP):
     cumulative_total.append(total_masks)
     P_values.append(Pi)
 
-
-"""
-Now we obtain several plots for showing the average size of the Nominal, Secondary and Extended Masks as a function of 
-the target magnitude
-"""
-plt.figure(3)
-for i in range(nP):
-    Pi = Pmin + i * binsize
-    m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
-    size_nominal_mask = np.mean(size_nom[m])
-    size_extended_mask = np.mean(size_e[m])
-    size_secondary_mask = np.mean(size_sec[m])
-    plt.plot(Pi, size_extended_mask, 'b^', markersize=8)
-    plt.plot(Pi, size_nominal_mask, 'ko', markersize=8)
-    #plt.plot(Pi, size_secondary_mask, 'rP', markersize=8)
-    plt.legend(['Extended Mask', 'Nominal Mask'])
-
-plt.xlabel(" P Magnitude", fontsize=fsize)
-plt.ylabel(r"Average mask size [pixels]", fontsize=fsize)
-#plt.title("Average mask size")
-plt.savefig(DIRout + "Average_mask_size.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
-plt.show()
-
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
@@ -309,7 +286,13 @@ for i in range(nP):
     error_6_cameras = np.sqrt(eff_ext_overall_6_cameras * (100 - eff_ext_overall_6_cameras) / m.sum())
     error_sec_6_cameras = np.sqrt(eff_sec_6_cameras * (100 - eff_sec_6_cameras) / m.sum())
     error_sec = np.sqrt(eff_sec * (100 - eff_sec) / m.sum())
-        # Plotting errorbars with labels only once
+
+    delta_eff_ext_flux = eff_ext_overall_24_cameras - eff_ext_overall_6_cameras
+    combined_error_ext_flux = np.sqrt(error**2 + error_6_cameras**2)
+    test_significance_ext_flux = delta_eff_ext_flux/combined_error_ext_flux
+    print("Diagnostic extended flux:", test_significance_ext_flux)
+
+    # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
