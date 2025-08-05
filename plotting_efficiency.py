@@ -290,7 +290,14 @@ for i in range(nP):
     delta_eff_ext_flux = eff_ext_overall_24_cameras - eff_ext_overall_6_cameras
     combined_error_ext_flux = np.sqrt(error**2 + error_6_cameras**2)
     test_significance_ext_flux = delta_eff_ext_flux/combined_error_ext_flux
-    print("Diagnostic extended flux:", test_significance_ext_flux)
+
+    delta_eff_sec_flux = eff_sec - eff_sec_6_cameras
+    combined_error_sec_flux = np.sqrt(error_sec**2 + error_sec_6_cameras**2)
+    test_significance_sec_flux = delta_eff_sec_flux/combined_error_sec_flux
+
+
+    #print("Diagnostic extended flux:", test_significance_ext_flux)
+    print("Diagnostic secondary flux:", test_significance_sec_flux)
 
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
@@ -382,6 +389,8 @@ for i in range(nP):
     error_cob_6_cameras = np.sqrt(eff_cob_6_cameras * (100 - eff_cob_6_cameras) / m.sum())
     error_cob_sec = np.sqrt(eff_cob_sec * (100 - eff_cob_sec) / m.sum())
     error_cob_sec_6_cameras = np.sqrt(eff_cob_sec_6_cameras * (100 - eff_cob_sec_6_cameras) / m.sum())
+
+    
     
     plt.errorbar(Pi, eff_ext_cob_overall, fmt='s', yerr=error_ext_cob, label='Ext. Mask (24 cameras)' if i == 0 else "", color='blue', ecolor='blue', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_ext_cob_overall_6_cameras, fmt='s', yerr=error_ext_cob_6_cameras, label='Ext. Mask (6 cameras)' if i == 0 else "", color='red', ecolor='red', capsize=5, markersize=4)
