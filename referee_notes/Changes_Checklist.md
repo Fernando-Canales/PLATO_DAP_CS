@@ -108,6 +108,7 @@ From [[Meeting_July_31_2025]]:
 - [ ] Remove scenario A from the results
 - [ ] Improve Appendix B
 - [ ] Diagnostic check: compute the difference between the values and the quadratic sum of the errors
+- [ ] Fix [[Minor_Comments_Response#Fourth minor point|Minor point 4]]
 - [ ] Remove discussion about Gamma, since we are only showing Scenario B in the paper
 - [x] Check the code to be sure Gamma = 1 when using distribution of transit parameters
 - [x] Set a deadline to send the paper to co-authors for revisions (14th of August)

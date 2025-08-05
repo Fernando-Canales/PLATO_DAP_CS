@@ -14,6 +14,7 @@ Keep only scenario B in the paper.
 - [ ] Check the code to be sure Gamma = 1 when using distribution of transit parameters
 - [ ] Set a deadline to send the paper to co-authors for revisions (14th of August)
 - [ ] Re-do Section 8 now with the results from Scenario B
+- [ ] Fix [[Minor_Comments_Response#Fourth minor point|Minor point 4]]
 - [ ] Major Point 3
 	- [ ] Contact Juan
 
