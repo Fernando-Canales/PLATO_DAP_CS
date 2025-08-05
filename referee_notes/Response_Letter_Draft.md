@@ -1,0 +1,5 @@
+
+
+**Minor Point 4:** We have added a brief explanation in Section 2.4 clarifying that Equations (23) and (24) correct the placement of the (1 - SPR_tot) factor in the original Marchiori et al. formulations. **Detailed mathematical derivations are available upon request if required.**
+
+**Minor Point 13:** We have clarified that all P magnitude values refer to target star magnitudes, including for secondary mask cases. We have updated Section 7 text and figure captions to explicitly state "target star P magnitude." **Additionally, we removed secondary masks from Figure B.2** since secondary mask sizes are determined by contaminant star properties rather than target star properties, which would create inconsistency in the magnitude reference framework. This ensures all remaining plots use target star magnitude consistently.

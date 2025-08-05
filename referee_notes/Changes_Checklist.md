@@ -106,9 +106,9 @@ From [[Meeting_July_31_2025]]:
 - [x] Remove any mention of the scenarios in the Abstract 
 - [ ] Trim the Abstract. The Abstract is already too long. In total, it has more than 400 words. The word limit for the Abstract set by A&A is of 300 words
 - [ ] Remove scenario A from the results
-- [ ] Improve Appendix B
+- [x] Improve Appendix B
 - [ ] Diagnostic check: compute the difference between the values and the quadratic sum of the errors
-- [ ] Fix [[Minor_Comments_Response#Fourth minor point|Minor point 4]]
+- [x] Fix [[Minor_Comments_Response#Fourth minor point|Minor point 4]]
 - [ ] Remove discussion about Gamma, since we are only showing Scenario B in the paper
 - [x] Check the code to be sure Gamma = 1 when using distribution of transit parameters
 - [x] Set a deadline to send the paper to co-authors for revisions (14th of August)
