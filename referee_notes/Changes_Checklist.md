@@ -1,7 +1,16 @@
-
-### Purpose of this document
+# Changes Checklist
+## Purpose of this document
 To have an easy-to-look checklist for the main corrections of the paper.
 
+### So far:
+
+- All editorials have been corrected
+- 
+### What should be inside the Response Letter?
+Excerpt from David Moulliet's email about the referee report:
+>	In your cover letter, please list all the changes made (including new or removed coauthors), and mark the changes in your manuscript using boldface or colored text. However, please note that your source files should only include the "clean" revised version.  A separate pdf with the marked changes (bold or diff file) should be uploaded as an "optional file."
+
+The Response letter is the cover letter. There I will put a reply to all the Major, Minor and Editorial points made by the referee. In each case I would also indicate the respective change in the manuscript.
 ### Here I talk about code stuff
 
 - [x] Major 1: Add EB occurrence rate of 1%
