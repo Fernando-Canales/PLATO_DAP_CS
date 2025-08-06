@@ -129,9 +129,12 @@ Fix [[Major_Comments_Response#Sixth Major point|Major point 6]]:
 Fix [[Major_Comments_Response#Eight Major point|Major Point 8]]:
 - [x] Write the conclusions from the new added Matrix
 
+Fix [[Minor_Comments_Response#Sixth minor point|Minor Point 6]]:
+- [x] Write the explanation about the extended mask not being able to detect a true positive
+
 Fix [[Minor_Comments_Response#Thirteenth minor point|Minor point 13]]:
 - [x] Remove secondary masks from Figure B.2.
-- [ ] Mention in the Efficiency plots why we include the secondary masks even if the plot involves the target magnitude2
+- [x] Mention in the Efficiency plots why we include the secondary masks even if the plot involves the target magnitude2
 
 
 

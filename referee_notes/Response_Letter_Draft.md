@@ -20,6 +20,8 @@ As noted in our response to Major Point 1, the uniform parameter approach (repre
 - Section 6: Updated calculations using variable parameters
 - Section 7: Results show efficiency under realistic parameter diversity
 - All efficiency plots and tables now reflect variable parameter scenario
+
+**Major Point 3:** 
 ## Minor Points
 
 **Minor Point 1**: We agree and the line in the manuscript saying that Kepler performed on-board photometry extraction was deleted in the introduction.
@@ -48,6 +50,67 @@ The choice of single-pixel extension is based on **systematic analysis of extend
 - Section 3.1: Added justification for 1-pixel extended mask design with thesis reference
 - Clarified that larger extensions decrease rather than improve efficiency
 
-**Minor Point 6:**
+**Minor Point 6:** We have added clarification in Section 3.1 using inverse logic: **if a true planet were transiting the target star**, the extended light curve would show **equal or shallower depth** than the nominal curve due to dilution from additional flux in the larger aperture.
 
-**Minor Point 13:** We have clarified that all P magnitude values refer to target star magnitudes, including for secondary mask cases. We have updated Section 7 text and figure captions to explicitly state "target star P magnitude." **Additionally, we removed secondary masks from Figure B.2** since secondary mask sizes are determined by contaminant star properties rather than target star properties, which would create inconsistency in the magnitude reference framework. This ensures all remaining plots use target star magnitude consistently.
+**The key insight is that deeper extended transits are physically incompatible with target-star planets**, making contamination the only viable explanation. This eliminates false positives while preserving all genuine planetary signals.
+
+**Manuscript Changes:**
+
+- Section 3.1: Added explanation of why deeper extended transits indicate contamination rather than alternative phenomena
+
+**Minor Point 7:** SPRk values are computed theoretically from flux ratios and stellar positions, so there are no numerical precision errors or measurement uncertainties associated with individual SPRk calculations.
+
+The probability that two contaminants in the same imagette would have identical SPRk values is negligible, given that SPRk depends on multiple parameters (stellar magnitude, position, PSF characteristics). In the extremely unlikely event of a tie, our algorithm would select the first contaminant encountered or, alternatively, could prioritize the brighter contaminant for mask centering.
+
+This methodological detail does not affect our scientific conclusions, as ties have not been observed in our analysis of >7000 targets.
+
+**Manuscript Changes:** None required.
+
+**Minor Point 8:**  The factors of 10^-6 convert transit depths from parts per million (ppm) to dimensionless fractions required for the physical calculations. We have clarified this in Section 4.
+**Manuscript Changes:**
+
+- Section 4: Added clarification of ppm to dimensionless fraction conversion
+
+**Minor Point 9:** Overlapping masks are technically possible in our methodology and do not create computational problems. However, mask overlap occurs primarily when target and contaminant stars are very close, making it difficult to disentangle their individual contributions.
+
+This physical limitation is already captured in our efficiency measurements: secondary flux methods achieve ~90% efficiency, with the remaining ~10% likely representing cases where target-contaminant separation is insufficient for reliable secondary mask performance. When stars are too close, the secondary mask cannot effectively isolate the contaminant signal from the target signal.
+
+Our methodology appropriately handles this by measuring **actual achieved efficiency** rather than assuming perfect performance, so these challenging configurations are already accounted for in our results.
+
+**Manuscript Changes:** None required.
+
+**Minor Point 10**: We agree that this required clarification. We have explicitly stated that Eq. (39) represents the uncertainty of averaged centroid measurements rather than single-point measurements. The clarifications emphasize that centroid shifts are averaged over one hour and multiple cameras to reduce statistical uncertainty.
+
+**Manuscript Changes:**
+
+- Before Eq. (39): Added explanation that centroid measurements are "averaged over a duration of one hour and a given number of cameras, NT, **in order to accordingly reduce the uncertainty**"
+- Figure caption: Clarified that the plot shows "**Distribution of Eq. (39)**" (the averaged uncertainty) along target magnitude
+
+**Minor Point 11:** The magnitude cutoff does not correspond to a specific PLATO sensitivity limit but rather reflects the completeness and reliability limits of our stellar catalog source.
+
+**Manuscript Changes:**
+
+- Section 5.1: Clarified that magnitude cutoff reflects Gaia DR3 catalog limits
+
+**Minor Point 12:**  We agree that the efficiency computation conditions should be stated more explicitly. We have **added comprehensive specifications** for all detection thresholds and efficiency criteria:
+**For flux measurements:**
+ - Extended flux: η > 3.0 AND δ_extended > δ_nominal + 3σ_depth
+ - Secondary flux: η > 3.0 AND δ_secondary > δ_nominal + 3σ_depth
+
+**For centroid measurements:** 
+- Nominal centroids: η > 3.0
+- Extended centroids: η > 3.0
+- Secondary centroids: η > 3.0
+
+ Regarding the comment about "how quickly the threshold is considered to be passed" - Our statistical significances are theoretical computations (like SPR_k) with no numerical precision limitations, so we're uncertain how this applies to our threshold evaluations.
+**Manuscript Changes:** 
+- Section 6: Added explicit threshold criteria for all efficiency calculations
+
+**Minor Point 13:** We have clarified that all P magnitude values refer to target star magnitudes, including for secondary mask cases. We have updated Section 7 text and figure captions to explicitly state "target star P magnitude." Additionally, we removed secondary masks from Figure B.2 since secondary mask sizes are determined by contaminant star properties rather than target star properties, which would create inconsistency in the magnitude reference framework. This ensures all remaining plots use target star magnitude consistently.
+
+**Minor Point 14:** We agree that the objective of this analysis should be stated explicitly. We have clarified that this analysis verifies whether introducing extended and secondary masks stays within PLATO's on-board mask library constraints.
+
+The critical concern is that adding new mask types could potentially exhaust the limited mask library budget (8,000 unique shapes total), which would make the approach operationally infeasible. We have added this explanation in Section 7:
+"This is important because the introduction of extended and secondary masks could increase the total number of mask shapes such that the allowed, on-board limit of mask shapes is reached. In more detail, the on-board software has a mask library that consists of 8,000 different shapes that are shared among the three types of masks."
+**Manuscript Changes:**
+- Section 7: Added explicit explanation of why mask shape counting is operationally critical
