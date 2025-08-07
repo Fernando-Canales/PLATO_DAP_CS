@@ -114,7 +114,7 @@ Fix [[Editorials_Response#Tenth editorial|Editorial 10]]:
 From [[Meeting_July_31_2025]]:
 - [x] Remove any mention of the scenarios in the Abstract 
 - [ ] Trim the Abstract. The Abstract is already too long. In total, it has more than 400 words. The word limit for the Abstract set by A&A is of 300 words
-- [ ] Remove scenario A from the results
+- [x] Remove scenario A from the results
 - [x] Improve Appendix B
 - [x] Diagnostic check: compute the difference between the values and the quadratic sum of the errors
 - [x] Fix [[Minor_Comments_Response#Fourth minor point|Minor point 4]]
@@ -136,11 +136,9 @@ Fix [[Minor_Comments_Response#Thirteenth minor point|Minor point 13]]:
 - [x] Remove secondary masks from Figure B.2.
 - [x] Mention in the Efficiency plots why we include the secondary masks even if the plot involves the target magnitude2
 
-
-
- - [ ] [[Major_Comments_Response#Third Major point|Major point 3]]:
-	- [ ] Contact Juan
-	- [ ] Investigate and read documentation for the PSF business
-	- [x] Section 2.3
+Fix  [[Major_Comments_Response#Third Major point|Major point 3]]:
+- [ ] Contact Juan
+- [ ] Investigate and read documentation for the PSF business
+- [x] Section 2.3
 
  
