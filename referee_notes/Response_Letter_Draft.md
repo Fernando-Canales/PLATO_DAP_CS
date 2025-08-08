@@ -25,7 +25,11 @@ As noted in our response to Major Point 1, the uniform parameter approach (repre
 - Section 7: Results show efficiency under realistic parameter diversity
 - All efficiency plots and tables now reflect variable parameter scenario
 
-**Major Point 3:** 
+**Major Point 3:** "The paper misrepresents the process by which PLATO will validate its exoplanet candidates. On page 2, in the left-hand column, starting at line 50, it refers to PLATO relying heavily on an initial validation process performed onboard. There is no validation performed on-board the spacecraft; the centroid data and/or double-aperture photometry data are collected onboard, but the validation is performed on-ground as part of the exoplanet data processing pipeline. The paper then states that the initial PLATO strategy for detecting false positives consisted only of computing centroid shift measurements. This is incorrect; other methods for detecting false positives were considered right from the start. It is more correct to say that centroid shift measurements were part of the initial false positive detection strategy, but the only additional data from the spacecraft that were considered (beyond the basic photometry). Similarly, section 6.2 states that nominal centroids are the strategy envisaged for 5% of the P5 sample, which is incorrect; other methods will be employed, with the centroids providing an additional discriminatory ability for those 5% of the targets. Furthermore, the paper also states that that current strategy to detect false positives is to use centroid shifts and/or double-aperture photometry. This is stated in the introduction (page 2, right-hand column) and in Section 4 (page 6, left-hand column). While they will be important, these methods will form only part of the false positive identification strategy for the mission, which will also use a range of other techniques. The description of the role that centroids and double-aperture photometry play in candidate validation should be updated to more accurately represent both the history here, and what will be done"
+
+**Response:** 
+
+**Major Point 4:** ""
 ## Minor Points
 
 **Minor Point 1**: "The introduction references Kepler performing on-board photometry. Kepler did not do this; it downloaded pixel data for defined postage stamps around its targets. This statement should be removed, or updated to better match / explain the intended meaning." 
