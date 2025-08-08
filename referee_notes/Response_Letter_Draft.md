@@ -14,9 +14,7 @@ The previous approach using fixed parameters (providing absolute worst-case boun
 
 **Response:** This concern is directly addressed by our revised approach using **realistic parameter diversity**. Rather than assuming uniform transit depths and durations, we now **sample (δ, td) pairs from the Kepler Eclipsing Binary Catalog** (Kirk et al. 2016), which provides authentic parameter distributions from observed systems.
 
-This approach ensures that **each contaminant EB has realistic, varied parameters** rather than the artificial uniformity of fixed values. The parameter sampling preserves correlations between depth and duration found in real EB populations, providing **much more realistic performance assessments** for PLATO detection methods.
-
-As noted in our response to Major Point 1, the uniform parameter approach (representing absolute worst-case bounds) remains available in the first author's PhD thesis for reference.
+This approach ensures that each contaminant EB has realistic pair of parameters. Also, as noted in our response to Major Point 1, the uniform parameter approach (representing absolute worst-case bounds) remains available in the first author's PhD thesis for reference.
 
 **Manuscript Changes:**
 
@@ -44,14 +42,14 @@ As noted in our response to Major Point 1, the uniform parameter approach (repre
 
 a) L1 assumption: Nothing to add
 
-**b) Residual Stellar Drift**: We have clarified in Section 2.3 that **"residual drift" refers to remaining positional drift after L1 correction**, acknowledging that **drift and correction effectiveness vary across the FoV** and that **detailed assessment is ongoing consortium work**.
+**b) Residual Stellar Drift**: We have clarified in Section 2.3 that "residual drift" refers to remaining positional drift after L1 correction**, acknowledging that drift and correction effectiveness vary across the FoV and that detailed assessment is ongoing consortium work.
 
-**c) Stellar Variability**: We have added in Section 4.2 that **"the statistical averaging approach (1-hour integration, multiple transits) is designed to minimize effects like intrinsic stellar variations."**
+**c) Stellar Variability**: We have added in Section 4.2 that "the statistical averaging approach (1-hour integration, multiple transits) is designed to minimize effects like intrinsic stellar variations."
 
 **d) PSF Uniformity**: We have justified this in two parts:
 
-- Section 5.3: **PSF set reflects realistic camera-to-camera variations** from Monte Carlo simulations 
-- Section 7: **Real camera PSF analysis shows no significant performance changes** under various configurations
+- Section 5.3: PSF set reflects realistic camera-to-camera variations from Monte Carlo simulations 
+- Section 7: Real camera PSF analysis shows no significant performance changes under various configurations
 
 **Manuscript Changes:**
 
@@ -91,7 +89,7 @@ a) L1 assumption: Nothing to add
 
 **Manuscript Changes:**
 
-- **Before efficiency plots**: Added complete binning methodology description
+- **Before efficiency plots**: Added a description of the binning methodology
 - **Before efficiency table**: Clarified that values are magnitude-averaged from plots
 - **Section 7**: Added target star magnitude clarification for all methods
 - **Figure captions**: Updated to specify "target star P magnitude"
@@ -103,15 +101,11 @@ a) L1 assumption: Nothing to add
 
 **Response:** We completely agree with this comprehensive critique and have  restructured Section 8.2 to address all concerns:
 
-**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with a **comprehensive 5×5 pairwise matrix table** (Table 3) showing all 20 possible comparisons between the five detection methods.
+**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with a 5×5 pairwise matrix table (Table 3) showing all 20 possible comparisons between the five detection methods.
 
-**2. Secondary Flux Inclusion**: The matrix now **explicitly includes secondary flux measurements** (SFX), addressing the significant omission noted by the referee.
+**2. Secondary Flux Inclusion**: The matrix now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee.
 
-**3. Improved Language Clarity**: We have **clarified the comparison language** - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," eliminating the confusing "only... but not" construction.
-
-**4. Enhanced Analysis**: The matrix format enables **much more comprehensive conclusions** about method complementarity and redundancy, as demonstrated in the revised text analysis.
-
-**5. Consistency Check**: We have **verified all numerical values** against the complete comparison set and corrected any inconsistencies.
+**3.Language Clarity and precision**: We have clarified thelanguage - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the matrix have the same, consistent number of decimal figures.
 
 **Manuscript Changes:**
 
@@ -126,7 +120,7 @@ a) L1 assumption: Nothing to add
 **Response:** We thank the referee for catching this inconsistency, which revealed **a caption error**. Figure A1 **does indeed show Super-Earths with 6 cameras** (orange stars), providing direct evidence for our conclusion about 6-camera sufficiency. The figure caption incorrectly stated "24 cameras" - this has been corrected.
 The evidence supporting our claim is the following: Super-Earth significance values (orange stars) are well above the η_min detection threshold when using only 6 cameras, demonstrating adequate detectability.
 
-We have also added **explicit planet definitions** following Borucki et al. classifications:
+We have also added **explicit planet definitions** following Borucki et al.(1996) classifications:
 
 - **Earth-like planets**: δ_p = 84 ppm, t_d = 13 hr
 - **Super-Earths**: δ_p = 522 ppm, t_d = 42 hr (interpolated between Earth and Neptune)
@@ -162,11 +156,11 @@ This factor-of-two difference in data volume directly translates to the 50% redu
 
 **Minor Point 4:** "In section 2.4, equations (23) and (24) are referred to as corrected versions of equations (28) and (23) in Marchiori et al. (2019). What has been corrected for this paper, and why did it need to be corrected? These statements should be clarified."
 
-**Response:** We have added a brief explanation in Section 2.4 clarifying that Equations (23) and (24) correct the placement of the (1 - SPR_tot) factor in the original Marchiori et al. formulations. **Detailed mathematical derivations are available upon request if required.**
+**Response:** We have added a brief explanation in Section 2.4 clarifying that Equations (23) and (24) correct the placement of the (1 - SPR_tot) factor in the original Marchiori et al.(2019) formulations. Detailed mathematical derivations are available upon request if required.
 
 **Minor Point 5:** "In section 3.1, the paper defines the optimal extended mask as being an expansion of the nominal mask. The description of the size of this expansion is unclear, as it refers to surrounding the nominal mask by one pixel, but Figure 1b nicely illustrates the idea. This expansion by one pixel in all directions is described as the optimal definition, with reference made to minimising the increase in noise, but surely the truly optimal way in that case would be add just a small number of pixels covering the contaminants, rather than a full ring as shown in Figure 1b? This would have the benefit of not including pixels with minimal flux, this limiting the additional background contribution. What I think is missing here is an explanation of the process for determining the optimal size of the extended mask. Section 3.1 mentions a process of increasing the size of the extended mask by one more pixel and checking the impact on efficiency, with a note that this has been done before. Where has this been done, and by whom? Is this a reference to section 8.1 on page 13, where efficiency values are shown for the case of the extended mask considering just the most significant contaminant? Please support this statement with further explanation, a cross-reference to section 8.1, or a suitable citation. "
 
-**Response:** We agree that the extended mask design choice required better justification. We have added a reference to previous analysis showing that **1-pixel ring extension provides a good performance**.
+**Response:** We agree that the extended mask design choice required better justification. We have added a reference to previous analysis showing that 1-pixel ring extension provides a good performance.
 
 The choice of single-pixel extension is based on systematic analysis of extended mask performance (Gutiérrez-Canales 2025, Fig. 7.1), which demonstrates that larger extensions (+1 pixels) lead to significant efficiency degradation for extended flux measurements. This occurs because larger masks include more background noise while adding minimal contaminant signal.
 
@@ -223,7 +217,7 @@ Our methodology appropriately handles this by measuring **actual achieved effici
 
 **Minor Point 11:** "Why is magnitude 21 the faint cutoff for the stellar sample used in this work? Does this correspond to the sensitivity limit of PLATO? Is it the magnitude at which stars stop being relevant as potential contaminants? "
 
-**Response:** The magnitude cutoff does not correspond to a specific PLATO sensitivity limit but rather reflects the completeness and reliability limits of our stellar catalog source.
+**Response:** The magnitude cutoff does not correspond to a specific PLATO sensitivity limit but rather reflects the completeness and reliability limits of our stellar catalog source. We have added: in Section 5.1 "This magnitude range and cutoff for faint targets comes from Gaia DR3,  rather than PLATO sensitivity constraints."
 
 **Manuscript Changes:**
 
@@ -254,7 +248,7 @@ Our methodology appropriately handles this by measuring **actual achieved effici
 
 **Response:** We agree that the objective of this analysis should be stated explicitly. We have clarified that this analysis verifies whether introducing extended and secondary masks stays within PLATO's on-board mask library constraints.
 
-The critical concern is that adding new mask types could potentially exhaust the limited mask library budget (8,000 unique shapes total), which would make the approach operationally infeasible. We have added this explanation in Section 7:
+The critical concern is that adding new mask types could potentially exhaust the limited mask library budget (8,000 unique shapes total). We have added this explanation in Section 7:
 "This is important because the introduction of extended and secondary masks could increase the total number of mask shapes such that the allowed, on-board limit of mask shapes is reached. In more detail, the on-board software has a mask library that consists of 8,000 different shapes that are shared among the three types of masks."
 
 **Manuscript Changes:**
