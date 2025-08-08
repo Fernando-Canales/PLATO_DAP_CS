@@ -20,16 +20,124 @@ As noted in our response to Major Point 1, the uniform parameter approach (repre
 
 **Manuscript Changes:**
 
-- Section 5.2: Describes realistic parameter sampling methodology
+- Section 5.2: Described the sampled methodology
 - Section 6: Updated calculations using variable parameters
-- Section 7: Results show efficiency under realistic parameter diversity
-- All efficiency plots and tables now reflect variable parameter scenario
+- Section 7: Results show efficiency under realistic parameter assumptions
+- All efficiency plots and tables are changed to show the variable transit parameter scenario
 
 **Major Point 3:** "The paper misrepresents the process by which PLATO will validate its exoplanet candidates. On page 2, in the left-hand column, starting at line 50, it refers to PLATO relying heavily on an initial validation process performed onboard. There is no validation performed on-board the spacecraft; the centroid data and/or double-aperture photometry data are collected onboard, but the validation is performed on-ground as part of the exoplanet data processing pipeline. The paper then states that the initial PLATO strategy for detecting false positives consisted only of computing centroid shift measurements. This is incorrect; other methods for detecting false positives were considered right from the start. It is more correct to say that centroid shift measurements were part of the initial false positive detection strategy, but the only additional data from the spacecraft that were considered (beyond the basic photometry). Similarly, section 6.2 states that nominal centroids are the strategy envisaged for 5% of the P5 sample, which is incorrect; other methods will be employed, with the centroids providing an additional discriminatory ability for those 5% of the targets. Furthermore, the paper also states that that current strategy to detect false positives is to use centroid shifts and/or double-aperture photometry. This is stated in the introduction (page 2, right-hand column) and in Section 4 (page 6, left-hand column). While they will be important, these methods will form only part of the false positive identification strategy for the mission, which will also use a range of other techniques. The description of the role that centroids and double-aperture photometry play in candidate validation should be updated to more accurately represent both the history here, and what will be done"
 
-**Response:** 
+**Response:** We have made substantial revisions to correct these misconceptions:
+- Data collection vs validation distinction: We have clarified that centroid and double-aperture data are collected on-board for the majority of PLATO targets, but that validation analysis occurs on-ground
+- Historical accuracy: We have corrected the claim that centroids were the initial strategy, acknowledging that multiple false positive detection methods were considered from the beginning.
+- 5% allocation clarification: We cited the PLATO SciRD as the reference where it can be found that  5% of the P5 targets will have on-board nominal centroid measurements. We also mentioned that the focus of our work are the targets that will have their photometry obtained on-board, that is in fact the majority of PLATO targets.
 
-**Major Point 4:** ""
+**Manuscript Changes:**
+
+- Page 2: Corrected on-board vs on-ground processing description
+- Introduction: Repositioned centroid/double-aperture methods as part of broader validation strategy
+- Section 4: Clarified role as contributing methods rather than primary strategy
+
+**Major Point 4:** "Aside from the aforementioned assumptions regarding the eclipsing binary contaminants, the paper makes a number of other assumptions: a. The L1 pipeline has perfectly removed any systematics and background flux. This seems reasonable, given that the true performance of the pipeline in this respect cannot be evaluated until real data is available. b. There is no residual drift of stars across the CCD. This seems problematic to me; is ‘residual drift’ the drift remaining after correction? Will the drift vary throughout the field of view, and will the effectiveness of the correction be equally good across that field of view? c. When defining the equations for the centroid shifts, that there is no stellar variability. d. When assessing instrument performance, that each camera has the same set of PSFs. Won’t the optics, and thus the PSFs, of each camera vary slightly? The level of this variation will not be known until flight data is available, but on-ground testing data may provide some useful insights already and could be used to define or constrain some small random differences between simulated PSFs for each camera. These varied assumptions are not justified in the paper. Such justifications should be added."
+
+**Response:** We agree that the mentioned assumptions required explicit justification. We have added such justifications as follow:
+
+a) L1 assumption: Nothing to add
+
+**b) Residual Stellar Drift**: We have clarified in Section 2.3 that **"residual drift" refers to remaining positional drift after L1 correction**, acknowledging that **drift and correction effectiveness vary across the FoV** and that **detailed assessment is ongoing consortium work**.
+
+**c) Stellar Variability**: We have added in Section 4.2 that **"the statistical averaging approach (1-hour integration, multiple transits) is designed to minimize effects like intrinsic stellar variations."**
+
+**d) PSF Uniformity**: We have justified this in two parts:
+
+- Section 5.3: **PSF set reflects realistic camera-to-camera variations** from Monte Carlo simulations 
+- Section 7: **Real camera PSF analysis shows no significant performance changes** under various configurations
+
+**Manuscript Changes:**
+
+- **Section 2.3**: Added residual drift clarification and ongoing work
+- **Section 4.2**: Added stellar variability minimization strategy
+- **Section 5.3**: Added PSF variation justification
+- **Section 7**: Added real camera PSF validation reference
+
+**Major Point 5:** "The results presented in Section 7 are not sufficiently described or explained. a. In Figure 4b, why is the secondary mask equally efficient for the 6 camera and 24 camera cases at P magnitude 11.0? This is a notable outlier from the behaviour evident at the other magnitudes considered. b. I’m surprised that in Figure 4a, the 24 camera and 6 camera cases are so similar, and that for the secondary mask centroid the 6 camera case is sometimes more efficient. Why is this the case? c. Is the y-axis of Figure 5 the noise of the extended and nominal mask metrics, or the uncertainty in the metric? Per equation (39), this is the error in the absolute centroid shift, averaged over 1 hour and Nt cameras, which could be taken to be either. This should be clarified."
+
+**Response:** We appreciate these detailed observations. So far, in the paper (see response to Major Point 2) the adopted scenario is that every contaminant is an EB but now the transit depth and duration of each EB is randomly sampled from observed distributions. Therefore, the unusual behaviors noted by the referee in a) and b) (equal efficiencies at P=11.0, 6-camera outperforming 24-camera) no longer appear in our revised results using realistic parameter diversity. These anomalies were artifacts of the unrealistic fixed parameter assumption. The revised results show **consistent expected behavior: 24 cameras outperform 6 cameras** across all methods and magnitudes.
+
+**c) Figure Y-axis Clarification**: We have clarified that the y-axis shows **"uncertainty in the centroid shift"** (not raw noise), representing σ_centroid from Eq. (39) - the error in absolute centroid shift averaged over 1 hour and N_T cameras.
+
+**Enhanced Results Description**: We have added **comprehensive explanations** for each method's performance characteristics and **physical interpretations** for observed efficiency patterns.
+
+**Manuscript Changes:**
+
+- **Figures**: Updated to Scenario B results, eliminating previous anomalies
+- **Section 7**: Added detailed explanations of efficiency patterns and physical reasoning
+- **Figure captions**: Clarified y-axis as "uncertainty" rather than "noise"
+- **Added diagnostic analysis**: Explaining magnitude-dependent camera sensitivity (P=10.5, P=11.5)
+
+**Major Point 6:** "It is not clear to me how the magnitude of the target stars is incorporated into the calculations performed, as it does not seem to be mentioned in the derivations worked though in sections 2 to 6. Table 2 shows the efficiencies determined across a magnitude range. For these values, I guess that the efficiency is determined for all target stars in this magnitude range, and the mean/median and standard deviation determined to give the values in the table. Is this correct? Whether it is or not, the steps by which the values in Table 2 were determined should be described. In Figure 4, the paper displays efficiencies at specific magnitudes. How is the magnitude used here? Presumably not all of the target stars are exactly the magnitudes plotted, so were they rounded? Or are these magnitude bins (as suggested by footnote 7), and if so, how are the bins defined? The steps by which the values plotted in Figure 4 were determined should be described."
+
+**Response:** We agree that the magnitude incorporation methodology required explicit description. We have added explanations of both the efficiency plot generation and table value derivation:
+
+**Efficiency Plot Methodology**: We have described the complete binning approach:
+
+- **7 magnitude bins** of 0.5 magnitudes each (P = 10.0 to 13.0)
+- **1000 randomly selected targets** per bin from P ± 0.25 range
+- **Each data point** represents efficiency for all 1000 targets in that bin
+
+**Table Value Derivation**: We have **explicitly linked table and figures**, stating:  "Table 2 shows the averaged efficiency of the metrics presented in this work. The values presented are the **magnitude-averaged efficiencies across the entire P5 range** of the values in Figures 5a and 5b"
+
+**Target vs Contaminant Magnitude**: We have explicitly stated that **all magnitude references correspond to target star magnitudes**, including for secondary mask analyses, maintaining methodological consistency.
+
+**Manuscript Changes:**
+
+- **Before efficiency plots**: Added complete binning methodology description
+- **Before efficiency table**: Clarified that values are magnitude-averaged from plots
+- **Section 7**: Added target star magnitude clarification for all methods
+- **Figure captions**: Updated to specify "target star P magnitude"
+
+**Major Point 7:** "The discussion of the results in Section 8.1 is not sufficiently detailed and overstates the conclusions that can be drawn from Table 2. The paper states (section 8.1, page 13) that the secondary flux measurements are less efficient at detecting false positives than centroid measurements. However, the results in Table 2 show that this is not strictly correct. Secondary flux measurements are less efficient than nominal and extended centroid shift measurements, true, but their efficiency is equal to that of secondary centroid shift measurements, within uncertainties. One could conclude that they are even marginally more efficient than secondary centroid shift measurements. Similarly, the first sentence of section 8.2 states that centroid measurements are by far the most efficient method for detecting false positives. But this is only true of nominal mask centroid shifts and extended mask centroid shifts, which are equally efficient (within uncertainties) according to Table 2. Secondary mask centroid shifts, on the other hand, are no better than secondary flux measurements, as I noted above. The paper also states (Section 8.1, final paragraph, on page 13) that on average, the statistical significance of the secondary flux measurement is greater than the statistical significance of the centroid shift in the nominal mask (this is stated as an equality). No quantitative evidence is given to support this conclusion, as Table 2 presents efficiencies, and Figure 4 plots efficiencies. Support for the conclusion can be taken from Table D.1, but this presents the various significance values for only one star and its contaminants. This is not enough evidence to support the statement about the relationship of the average significances. Further discussion of the results is needed, with more quantitative support for the conclusions reached, and careful wording that more accurately describes the results."
+**Response:**
+
+**Major Point 8:** "Presentation and discussion of the percentage of false positives detected by each metric, and the comparisons between them, is incomplete. There are five metrics being compared in this paper, giving 10 possible comparisons. But the set of bullet points in the right-hand column of page 13 gives only four comparisons. The secondary flux measurements, which the paper is proposing are the most effective metric, are not mentioned at all, which seems a significant omission. How do they compare to the other metrics in this context? Perhaps the paper is using “extended” in this section in the on-board software sense, as described in footnote 5? If so, this is unnecessarily confusing given that the rest of the paper has used “extended” to mean specifically one of the two double aperture approaches, and it obfuscates the results. Furthermore, the language of these bullet points could be improved as it is somewhat confusing as currently written. The current format is "% of false positives detected only by metric a but not by metric b". If the false positives are detectable 'only' by metric a then mentioning metric b is unnecessary. On the other hand, if the percentages are for false positives detected by metric a but not metric b, do the other metrics detect them or not? Section 8.2 should be updated to better present the comparison of false positive detection percentages between metrics. A table or pairwise matrix may be a better way to present these results, rather than a list of bullet points, and further discussion may be warranted. In addition, Footnote 5 should be removed, as it introduces unnecessary ambiguity, and the text updated (if necessary) to clarify the language used to discuss the results. Finally, the summary of the comparison results in the text should be checked for consistency against the full set of comparison results (currently it reads ~27% vs 28%+/-1.4%). "
+
+**Response:** We completely agree with this comprehensive critique and have  restructured Section 8.2 to address all concerns:
+
+**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with a **comprehensive 5×5 pairwise matrix table** (Table 3) showing all 20 possible comparisons between the five detection methods.
+
+**2. Secondary Flux Inclusion**: The matrix now **explicitly includes secondary flux measurements** (SFX), addressing the significant omission noted by the referee.
+
+**3. Improved Language Clarity**: We have **clarified the comparison language** - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," eliminating the confusing "only... but not" construction.
+
+**4. Enhanced Analysis**: The matrix format enables **much more comprehensive conclusions** about method complementarity and redundancy, as demonstrated in the revised text analysis.
+
+**5. Consistency Check**: We have **verified all numerical values** against the complete comparison set and corrected any inconsistencies.
+
+**Manuscript Changes:**
+
+- **Replaced**: 4-point bullet list with comprehensive matrix table
+- **Added**: All missing method comparisons, especially secondary flux
+- **Enhanced**: Discussion based on complete pairwise analysis
+- **Clarified**: Percentage interpretation language throughout
+- **Removed**: Confusing footnote 5 and associated ambiguity
+
+**Major Point 9:** "Appendix A discusses the detectability of planets, but as with sections 8.1 and 8.2, the discussion is not sufficiently detailed and is imprecise in its language. Three classes of planets are considered, but these classes are not defined. What radii (or range of radii) are used for this analysis? ‘super-Earth’, in particular, has a number of different definitions in the literature. The last sentence of the section states that the results show that using 6 cameras is sufficient to detect super-Earths, but no evidence is provided to support this statement. Figure A1 shows the case of super-Earths observed with 24 cameras, not 6 cameras. "
+
+**Response:** We thank the referee for catching this inconsistency, which revealed **a caption error**. Figure A1 **does indeed show Super-Earths with 6 cameras** (orange stars), providing direct evidence for our conclusion about 6-camera sufficiency. The figure caption incorrectly stated "24 cameras" - this has been corrected.
+The evidence supporting our claim is the following: Super-Earth significance values (orange stars) are well above the η_min detection threshold when using only 6 cameras, demonstrating adequate detectability.
+
+We have also added **explicit planet definitions** following Borucki et al. classifications:
+
+- **Earth-like planets**: δ_p = 84 ppm, t_d = 13 hr
+- **Super-Earths**: δ_p = 522 ppm, t_d = 42 hr (interpolated between Earth and Neptune)
+- **Jovian planets**: δ_p = 10,100 ppm, t_d = 29.6 hr
+
+**Manuscript Changes:**
+
+- **Corrected figure caption**: Super-Earths now correctly stated as "6 cameras"
+- Added explicit planet parameter definitions with literature references
+- Clarified that significance above η_min threshold demonstrates detectability
+
 ## Minor Points
 
 **Minor Point 1**: "The introduction references Kepler performing on-board photometry. Kepler did not do this; it downloaded pixel data for defined postage stamps around its targets. This statement should be removed, or updated to better match / explain the intended meaning." 
@@ -151,3 +259,6 @@ The critical concern is that adding new mask types could potentially exhaust the
 
 **Manuscript Changes:**
 - Section 7: Added explicit explanation of why mask shape counting is operationally critical
+
+## Editorials
+We have attended all the editorial points from the referee's report.
