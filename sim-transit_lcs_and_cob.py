@@ -11,13 +11,13 @@ import math
 import numpy as np #type:ignore
 import matplotlib.pyplot as plt # type:ignore
 
-fpsf = 'PSF_Focus_0mu_0.2pxdif.npz'
+fpsf = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
 psfidx = 100 # index of the PSF to be used
 subres = 64 # psf sub-pixel resolution
 bsres = 20 # b-spline resolution
 PSFsizex = 8 # PSF size in pixels
 PSFsizey = 8
-colormap = 'Pastel2'
+colormap = 'viridis'
 resultsDIR = '/home/fercho/double-aperture-photometry/plots_pdfs/'
 
 contaminants = [
@@ -371,8 +371,8 @@ def plot_nominal_mask_contour(nominal_mask, plot_color):
                 plt.plot([i+1, i+1], [j, j+1], color=plot_color, linestyle='--', lw=3)  # Right edge
 
 plt.figure(0, figsize=(7,6), dpi=300)
-plt.scatter(data[:, 0]/3600., centroid_x_nom - 0.0135, label='Nominal mask', marker='o', s=3)
-plt.scatter(data[:, 0]/3600., centroid_x_ext - 0.0557, label='Extended mask', marker='o', s=3)
+plt.scatter(data[:, 0]/3600., centroid_x_nom - 0.0135, label='Nominal mask', marker='o', s=3) # type: ignore
+plt.scatter(data[:, 0]/3600., centroid_x_ext - 0.0557, label='Extended mask', marker='o', s=3) # type: ignore
 plt.xlabel('Time [hours]', fontsize=14)
 plt.ylabel('x-component of C.O.B. [pixels]', fontsize=14)
 plt.legend()
@@ -385,8 +385,8 @@ plt.show()
 plt.figure(1, figsize=(7, 6), dpi=300)
 #plt.scatter(data[:, 0]/ 3600., data[:, 3]/np.mean(data[0:99, 3]), label= 'Nominal Flux', color='black',  marker='o', s=3)
 #plt.scatter(data[:, 0]/ 3600., data[:, 4]/np.mean(data[0:99, 4]), label='Extended Flux', color='brown',  marker='P', s=3)
-plt.scatter(data[:, 0]/3600., centroid_shift_nom - max_cob, label='Nominal COB', color='black', marker='o', s=3)
-plt.scatter(data[:, 0]/3600., centroid_shift_ext - max_cob, label='Extended COB', color='blue', marker='o', s=3) 
+plt.scatter(data[:, 0]/3600., centroid_shift_nom - max_cob, label='Nominal COB', color='black', marker='o', s=3) # type: ignore
+plt.scatter(data[:, 0]/3600., centroid_shift_ext - max_cob, label='Extended COB', color='blue', marker='o', s=3)  # type: ignore
 plt.xlabel('Time [hours]', fontsize=14)
 plt.ylabel('Centroid shift [pixel]', fontsize=14)
 plt.legend()
@@ -402,30 +402,30 @@ plt.plot(13333*NSR_agg, 'o-')
 plt.axvline(x=4, color='orange', linestyle='--')
 plt.xlabel('Pixels')
 plt.ylabel(r'$\mathrm{NSR}_{\mathrm{agg}}$ over 1 hour and 24 cam. [ppm $\mathrm{hr}^{\frac{1}{2}}$]')
-plt.savefig(resultsDIR+'NSR_agg_sim_transit.png', dpi=300, format='png')
+plt.savefig(resultsDIR+'NSR_agg_sim_transit.png', dpi=300, format='pdf')
 plt.show()
 
 # Plotting the masks
 plt.imshow(bm, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=100, c='red', zorder=5)  # 'c' sets the face color of the marker
 #plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
 x_c = [c[0] for c in contaminants]
 y_c = [c[1] for c in contaminants]
-#plt.scatter(x_c, y_c, s=80, c='cyan', marker='^', zorder=5)
-plt.savefig(resultsDIR+'nominal_mask_example_target_and_contaminant.png', dpi=300, format='png')
+plt.scatter(x0C, y0C, s=100, c='cyan', marker='^', zorder=5)  # type: ignore # 'c' sets the face color of the marker
+plt.savefig(resultsDIR+'nominal_mask_example_target_and_contaminant.pdf', dpi=300, format='pdf')
 plt.show()
 plt.imshow(em, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=80, c='cyan', marker='^',  zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=100, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=100, c='cyan', marker='^',  zorder=5)  # type: ignore # 'c' sets the face color of the marker
 plot_nominal_mask_contour(nominal_mask=bm, plot_color='black')
-plt.savefig(resultsDIR+'extended_mask_example_target_and_contaminant.png',  dpi=300, format='png')
+plt.savefig(resultsDIR+'extended_mask_example_target_and_contaminant.pdf',  dpi=300, format='pdf')
 plt.show()
 plt.imshow(sm, origin='lower', extent=(0,6,0,6), cmap=colormap)
 plt.grid(True, linewidth=2)
-plt.scatter(x0, y0, s=80, c='green', zorder=5)  # 'c' sets the face color of the marker
-plt.scatter(x0C, y0C, s=80, c='cyan', marker='^', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0, y0, s=100, c='red', zorder=5)  # 'c' sets the face color of the marker
+plt.scatter(x0C, y0C, s=100, c='cyan', marker='^', zorder=5)  # type: ignore # 'c' sets the face color of the marker
 plot_nominal_mask_contour(nominal_mask=bm, plot_color='white')
-plt.savefig(resultsDIR+'secondary_mask_example_target_and_contaminant.png',  dpi=300, format='png')
+plt.savefig(resultsDIR+'secondary_mask_example_target_and_contaminant.pdf',  dpi=300, format='pdf')
 plt.show()
