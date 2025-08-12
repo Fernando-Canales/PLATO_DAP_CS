@@ -7,7 +7,8 @@ Fernando Canales
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 fsize = 14
-DIRout = '/home/fercho/Documents/PhD/Research_Papers/double-aperture-photometry/plots/'
+#DIRout = '/home/fercho/Documents/PhD/Research_Papers/double-aperture-photometry/plots/'
+DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/'
 # Define center and contaminants
 center_x, center_y = 2.5, 2.5  # Center of the 6x6 grid
 contaminants = [
@@ -61,12 +62,12 @@ def plot_masks(save_individual=False):
         plot_single_mask(axes[1], extended_mask, center_x, center_y, contaminants)
         axes[1].set_title('Extended Mask')
         # Manually add dashed lines for the nominal mask
-        plot_nominal_mask_contour(axes[1], nominal_mask)
+        plot_nominal_mask_contour(axes[1], nominal_mask) # type: ignore
 
         # Plot the secondary mask with nominal mask in ddshed lines
         plot_single_mask(axes[2], secondary_mask + nominal_mask, center_x, center_y, contaminants)
         axes[2].set_title('Secondary Mask')
-        plot_nominal_mask_contour(axes[2], nominal_mask)
+        plot_nominal_mask_contour(axes[2], nominal_mask) # type: ignore
 
         plt.tight_layout()
         plt.savefig(DIRout +'combined_masks_schematic.png', dpi=300)
