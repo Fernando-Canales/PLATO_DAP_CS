@@ -2,25 +2,27 @@ from pylab import * # type: ignore
 from pylab import * # type: ignore
 from pylab import * # type: ignore
 from imagette import ran_unique_int
+import math
+
 
 # Dir = '40000/'
 # Dir = 'PSF_Focus_0mu_0.2pxdif/'
-Dir = 'test13/'
+Dir = 'test40/'
 # test4: new dback and td such as to have gamma=0.5
 # test5:  extended mask extension by 2 pixels
 # test6: optimal extended mask built by joining together (union) the secondary mask of each contaminant star that can create a FP
 # test7: v1 optimal extended mask: for each contaminant, take the extra pixels that maximize the significance
 # CatalogueDIR='/home/fercho/double-aperture-photometry/catalogues_stars/'
 CatalogueDIR= './'
-Pmin = 10. # 8. # 10.5
-Pmax = 13
+Pmin =  10.
+Pmax =  13
 binsize = 0.5
 cob_thr= 3.
 ntr = 3  # number of transits
-flx_trh = 7.1
+flx_trh =  7.1
 ext_flx_trh = 3. # 7.1
 sec_flx_trh = 3. # 7.1
-dback_ref =    132000.
+dback_ref =  132000.
 td_ref = 6.72*0.46**2
 depth_sig_scaling = 3. #
 
@@ -53,8 +55,12 @@ data_nommask = np.load(Dir+'targets_P5.npy')
 # 52-61: 10 first eta_COB
 # 62-71: 10 first eta_10first
 # 72-81: IDs of the 10 first contaminants
-# 82: x target position in the imagette
-# 83: Y target position in the imagette
+# 82-91: delta x
+# 92-101: delta y
+# 102: x target position in the imagette
+# 103: Y target position in the imagette
+# 104:  PSF index for the contaminant stars
+# 105: theoretical n-mask NSR
 
 data_2ndmask = np.load(Dir+'targets_P5_2ndmask.npy')
 # 0: ID_t
@@ -78,6 +84,7 @@ data_2ndmask = np.load(Dir+'targets_P5_2ndmask.npy')
 # 54-63: 10 first w_c_key
 # 64-73: 10 first eta_COB_c
 # 74-83: 10 first eta_c_10first
+# 84: theoretical s-mask NSR
 
 
 data_extmask = np.load(Dir+'targets_P5_extended.npy')
@@ -107,7 +114,7 @@ data_extmask = np.load(Dir+'targets_P5_extended.npy')
 # 41-50: 10 first delta_COB_sig_1h_24c
 # 51-60: 10 first eta_COB_ext
 # 61-70: 10 first eta_ext_10first
-# 71-80: 10 first eta_dtd  (significance of the differental transit depth
+# 71-80: 10 first eta_dtd  (significance of the differential transit depth)
 
 nP = int(round ( (Pmax-Pmin)/binsize + 1 ))
 
@@ -124,12 +131,17 @@ data_2ndmask = data_2ndmask[m]
 data_extmask = data_extmask[m]
 P = P[m]
 
+
+u = (data_2ndmask[:,6]<=1)
+data_2ndmask[u,9] = 0. # delta_COB_c
+data_2ndmask[u,11] = 0. # eta_cob_c
+
 #
 # data_nommask[:,13] *= (dback_ref/85000.)*sqrt(td_ref/4.)
 # data_2ndmask[:,7]  *= (dback_ref/85000.)*sqrt(td_ref/4.)
 # data_2ndmask[:,11]  *= (dback_ref/85000.)*sqrt(td_ref/4.)
 
-sig_depth_s_sec =data_2ndmask[:,4]*(1.-data_2ndmask[:,12])/sqrt(td_ref*ntr) # NSR*(1-SPRtot)
+sig_depth_s_sec = data_2ndmask[:,4]*(1.-data_2ndmask[:,12])/sqrt(td_ref*ntr) # NSR*(1-SPRtot)
 sig_depth_nom =   data_nommask[:,6]*(1. - data_nommask[:,9]) /sqrt(td_ref*ntr)  # NSR*(1-SPRtot)
 sig_depth_s = np.sqrt(sig_depth_nom**2+ sig_depth_s_sec**2)
 
@@ -142,7 +154,7 @@ sfd = fp & (data_2ndmask[:,7] > sec_flx_trh)  &  (data_2ndmask[:,8] > data_nomma
 efd = fp & (data_extmask[:,10] > ext_flx_trh)   & (data_extmask[:,15] > data_nommask[:,14]+ depth_sig_scaling*sig_depth)  # eta_ext>7.1 and delta_obt_ext > delta_obs_t : extended flux detection
 
 cd = fp & (data_nommask[:,17] > cob_thr) # eta_cob>3: COB detection
-scd = fp & (data_2ndmask[:,11] > cob_thr)  # eta_cob_c>3: s-COB detection
+scd = fp & (data_2ndmask[:,11] > cob_thr)  & (data_2ndmask[:,9]/10.  > data_2ndmask[:,10] )  # eta_cob_c>3: s-COB detection  delta_COB_c>delta_COB_sig_1h_24c_c/10.
 ecd = fp & (data_extmask[:,14] > cob_thr)  # eta_cob_ext>3: e-COB detection
 
 
@@ -172,6 +184,17 @@ ntr = 3  # number of transits
 nbad_ext = np.zeros(n)
 nbad_ext_cob = np.zeros(n)
 
+
+spr_t_ext = data_extmask[:,4]*(1. - data_extmask[:,7])  /(dback_ref*math.sqrt(td_ref*ntr))
+spr_t_ext = np.repeat(np.reshape(spr_t_ext,(n,1)),10 ,axis=1)
+
+spr_t_nom = data_nommask[:,6]*(1. - data_nommask[:,9])  /(dback_ref*math.sqrt(td_ref*ntr))
+spr_t_nom = np.repeat(np.reshape(spr_t_nom,(n,1)),10 ,axis=1)
+
+spr_t = np.sqrt(spr_t_nom**2 + spr_t_ext**2)
+
+
+
 sig_depth_ext = np.reshape(sig_depth_ext,(n,1))
 sig_depth_ext = np.repeat(sig_depth_ext,10 ,axis=1)
 
@@ -185,9 +208,9 @@ sig_depth = np.sqrt(sig_depth_nom**2+ sig_depth_ext**2)
 # sig_depth_nom = np.zeros((n,10))
 # compute n_bad  for a real distribution in delta_back: nb of contaminant stars eta>eta_min=7.1
 for i in range(n):
-    j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
-    dback = dback_set[j,0] # transit depth
-    td = dback_set[j,1] # transit duration
+    # j = ran_unique_int(10,interval=[0,dback_n-1]) # random sort of a BT (background transit)
+    # dback = dback_set[j,0] # transit depth
+    # td = dback_set[j,1] # transit duration
     dback = np.ones(10)*dback_ref
     td = np.ones(10)*td_ref
     eta_bt[i,:] = (SPRk[i,:]/data_nommask[i,8])*flx_trh *(dback/dback_ref)*sqrt(td/td_ref) # significance of the BT in the nominal flux
@@ -211,6 +234,10 @@ for i in range(n):
     eta_cob_ext_bt[i,:] = Lambda*data_extmask[i,31:41]*sqrt(td*ntr)/data_extmask[i,41:51] # significance of centroid shift in the extended mask
     nbad_ext_cob[i] = np.sum(eta_cob_ext_bt[i,:]>cob_thr)
 #STOP
+
+
+
+
 # shapes number
 figure(0)
 clf()
@@ -429,7 +456,7 @@ title(Dir)
 
 
 # histogram of n_bad_ext : nb of contaminant stars eta>eta_min (for a real distribution in delta_back)
-figure(17)
+figure(15)
 clf()
 hist(nbad_ext,range=[0,10],color='k',density=True)
 title(Dir)
@@ -437,7 +464,7 @@ title(Dir)
 xlabel(r'$n_{bad}$')
 
 # data_nommask[:,7]: histogram of n_bad : nb of contaminant stars > SPR_crit (fixed delta_back value)
-figure(15)
+figure(16)
 clf()
 hist((nbad_cob,nbad_ext_cob),range=[0,10],color=('k','b'),density=True,histtype='bar')
 
@@ -449,7 +476,7 @@ title(Dir)
 
 
 # sigma_centroid
-figure(16)
+figure(17)
 clf()
 for i in range(nP):
     Pi = Pmin + i*binsize
@@ -465,7 +492,7 @@ semilogy()
 
 
 # efficiency: flux (all contaminants)
-figure(17)
+figure(18)
 clf()
 for i in range(nP):
     Pi = Pmin + i*binsize
@@ -478,17 +505,60 @@ for i in range(nP):
 
     s = fp[m].sum()
     eff_s = sfd[m].sum()/s * 100.
-    eff_ext = efd[m].sum()/s * 100.
+    eff_ext = efd[m].sum()/s * 100. # most prominent contaminant star
     scatter([Pi],[eff_ext],color='g')
     scatter([Pi],[eff_s],color='r')
 
 ylabel(r'Efficieny [%%]')
 title(Dir)
 
+
+
+
+figure(19)
+clf()
+for i in range(nP):
+    Pi = Pmin + i*binsize
+    m = (P >= Pi -binsize/2.) & (P < Pi + binsize/2.)
+    s =(eta_bt>flx_trh)[m,:].sum()
+    eff_s = scd[m].sum()/s * 100.
+    eff_nom = ( (eta_cob_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
+    eff_ext =  ( (eta_cob_ext_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
+#    eff_ext_prueba = ((eta_ext_cob_prueba>cob_thr) & (eta_bt > flx_trh))[m,:].sum()/s * 100
+    scatter([Pi], [eff_s], color='r', marker='s',label='SCOB')
+    scatter([Pi], [eff_nom], color='k',marker='s',label='NCOB')
+    scatter([Pi], [eff_ext], color='b',marker='s',label='ECOB')
+#    scatter([Pi], [eff_ext_prueba], color='g', marker='s')
+ylabel(r'Efficiency [%%]')
+title(Dir)
+show()
+
+
+# c=np.loadtxt('KeplerEclipsinBinaryCatalog_DR3_2019.csv',usecols=(3,4,1,5,6),delimiter=',')
+# m=(c[:,0]>0) & (c[:,1]>0) & (c[:,3]>0) & (c[:,4]>0)
+# p = m.sum()
+#
+# depth = np.append(c[m,0],c[m,1])*1e6
+# td =  np.append(c[m,2]*c[m,3],c[m,2]*c[m,4])*86400./3600.
+# data = np.zeros((p*2,2))
+# data[:,0] = depth
+# data[:,1] = td
+# np.savetxt('KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt',data,header='Transit depth (pdeph and sdepth)  in ppm, transit duration in hours',fmt=("%8.3f %8.3f"))
+
+
 s = (eta_bt>flx_trh)
-a = (eta_ext_bt>ext_flx_trh) & (delta_obs_ext>delta_obs+depth_sig_scaling*sig_depth)
+a = (eta_ext_bt>ext_flx_trh) & (data_extmask[:,21:31]>data_nommask[:,22:32]+depth_sig_scaling*spr_t)
 eff_ext = ( a  & s).sum()/s.sum()*100.
 print('extended flux efficiency: %f' % eff_ext)
+
+
+r =(1.-data_extmask[:,7]) / (1. - data_nommask[:,9] )# (1-SPR_to^EXT)/(1-SPR_tot^nom)
+r = np.reshape(r,(r.shape[0],1))
+r = np.repeat(r,10,axis=1)
+a = (eta_ext_bt>ext_flx_trh) & (data_extmask[:,21:31]>r*data_nommask[:,22:32]+depth_sig_scaling*spr_t)
+eff_ext = ( a  & s).sum()/s.sum()*100.
+print('extended flux efficiency - planet hypothesis: %f' % eff_ext)
+
 
 a_noisefree  = (eta_ext_bt>ext_flx_trh) & (delta_obs_ext>delta_obs)
 eff_ext_noisefree = ( a_noisefree   & s).sum()/s.sum()*100.
@@ -527,50 +597,52 @@ eff_cob_s = ( scd & fp).sum()/fp.sum()*100.
 print('secondary mask cob efficiency: %f' % eff_cob_s)
 
 
-n = s.sum()
-f = ( (a==False)  & c & s).sum()/n
+N = s.sum()
+f = ( (a==False)  & c & s).sum()/N
 print('fraction only detected by the ECOB but not by the EFX %f' % f)
-f = ( (a)  & (c==False) & s).sum()/n
+f = ( (a)  & (c==False) & s).sum()/N
 print('fraction only detected by the EFX but not by the ECOB: %f' % f)
 
-f = ( (a==False)  & b & s).sum()/n
+f = ( (a==False)  & b & s).sum()/N
 print('fraction only detected by the NCOB but not the EFX %f' % f)
-f = ( (a)  & (b==False) & s).sum()/n
+f = ( (a)  & (b==False) & s).sum()/N
 print('fraction only detected by the  EFX but not by NCOBB: %f' % f)
 
 
-f = ( (c)  & (b==False) & s).sum()/n
+f = ( (c)  & (b==False) & s).sum()/N
 print('fraction only detected by the  ECOB but not by the NCOB: %f' % f)
 
+# metric assigment algo
 
+metric_priority = -np.ones(n,dtype=np.int32)
+nfp_detected = np.zeros(n,dtype=np.int32)
+for i in range(n):
+    nfp = s[i].sum()
+    if( nfp ==0): # no FP
+        metric_priority[i] = 0
+    elif (nfp ==1): # only one FP, SFX or NCOB
+        if(data_2ndmask[i,7] > sec_flx_trh):
+            metric_priority[i] = 1 # SFX
+            nfp_detected[i] = 1
+        else:
+            metric_priority[i] = 3 # NCOB
+            ncob = np.sum((eta_cob_bt[i] > cob_thr) & s[i])
+            nfp_detected[i] = ncob
+    else: # 2 or more FP
+        nefx = np.sum((eta_ext_bt[i] > ext_flx_trh) & (data_extmask[i,21:31] >data_nommask[i,22:32] + depth_sig_scaling * spr_t[i]) & s[i])
+        ncob = np.sum((eta_cob_bt[i]>cob_thr) & s[i])
+        necob = np.sum((eta_cob_ext_bt[i] > cob_thr)  & s[i])
+        if(nefx >= ncob):
+            metric_priority[i] = 2  # EFX
+            nfp_detected[i] = nefx
+        elif(ncob>=necob):
+            metric_priority[i] = 3  # NCOB
+            nfp_detected[i] = ncob
+        else:
+            metric_priority[i] = 4  # ECOB
+            nfp_detected[i] = necob
 
-
-figure(18)
+figure(20)
 clf()
-for i in range(nP):
-    Pi = Pmin + i*binsize
-    m = (P >= Pi -binsize/2.) & (P < Pi + binsize/2.)
-    s =(eta_bt>flx_trh)[m,:].sum()
-    eff_s = scd[m].sum()/s * 100.
-    eff_nom = ( (eta_cob_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
-    eff_ext =  ( (eta_cob_ext_bt>cob_thr) & (eta_bt>flx_trh))[m,:].sum()/s * 100.
-#    eff_ext_prueba = ((eta_ext_cob_prueba>cob_thr) & (eta_bt > flx_trh))[m,:].sum()/s * 100
-    scatter([Pi], [eff_s], color='r', marker='s',label='SCOB')
-    scatter([Pi], [eff_nom], color='k',marker='s',label='NCOB')
-    scatter([Pi], [eff_ext], color='b',marker='s',label='ECOB')
-#    scatter([Pi], [eff_ext_prueba], color='g', marker='s')
-ylabel(r'Efficieny [%%]')
-title(Dir)
-show()
-
-
-# c=np.loadtxt('KeplerEclipsinBinaryCatalog_DR3_2019.csv',usecols=(3,4,1,5,6),delimiter=',')
-# m=(c[:,0]>0) & (c[:,1]>0) & (c[:,3]>0) & (c[:,4]>0)
-# p = m.sum()
-#
-# depth = np.append(c[m,0],c[m,1])*1e6
-# td =  np.append(c[m,2]*c[m,3],c[m,2]*c[m,4])*86400./3600.
-# data = np.zeros((p*2,2))
-# data[:,0] = depth
-# data[:,1] = td
-# np.savetxt('KeplerEclipsinBinaryCatalog_DR3_2019_depth.txt',data,header='Transit depth (pdeph and sdepth)  in ppm, transit duration in hours',fmt=("%8.3f %8.3f"))
+h,_,_ = hist(metric_priority,density=True,range=(-0.5,4.5),bins=5)
+print(h)
