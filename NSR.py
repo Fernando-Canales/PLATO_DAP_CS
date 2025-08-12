@@ -70,7 +70,7 @@ def aperture_computation(ft, fc, sb, sd, sq):
     return aperture
 
 
-def aperture(ft, fc, sb, sd, sq):
+def aperture(ft, fc, sb, sd, sq,window_size=6,rho=0.):
     # First we compute the NSR of the system
     nsr = np.sqrt(ft + fc + sb + sd ** 2 + sq ** 2) / ft
 
@@ -85,26 +85,35 @@ def aperture(ft, fc, sb, sd, sq):
     # Then we compute the intensity over those index for the target and the contaminant
     ft_1d = ft_1d[nsr_1d_index]
     fc_1d = fc_1d[nsr_1d_index]
-
+    N = len(ft_1d)
     # Then we compute the aggregate noise-to-signal ratio
-    n = np.zeros(len(ft_1d))
-    for i in range(1, len(ft_1d) + 1):
+    n = np.zeros(N)
+    for i in range(1, N + 1):
         n[i - 1] = np.sqrt(np.sum(ft_1d[:i] + fc_1d[:i] + sb + sd ** 2 + sq ** 2)) / np.sum(ft_1d[:i])
 
     # We compute the aggregate noise-to-signal ratio over 1h and 24 cameras
     nsr1h = ((10 ** 6) / (12 * np.sqrt(24))) * n
 
     # First we create a vector with only zeroes
-    w = np.zeros(36)
+    w = np.zeros(window_size*window_size)
+
+    idxopt = int(np.argmin(nsr1h))
+    if rho > 0.0: # define a sub-optimal mask
+        NSRmin = nsr1h[idxopt]
+        for i in range(idxopt+1, N):
+            nsr1h_i = nsr1h[i]
+            if nsr1h_i > NSRmin*(1.+rho/100.):
+                idxopt = i - 1
+                break
 
     # Then we create a vector with just the amount of indexes of the mask
-    mask = nsr_1d_index[:np.argmin(nsr1h) + 1]
+    mask = nsr_1d_index[:idxopt + 1]
 
     # Then we create our mask, we show the index where the mask vector has a value of 1
     w[mask] = 1
 
     # Then we reshape the mask
-    w = w.reshape((6, 6))
+    w = w.reshape((window_size, window_size))
 
     return min(nsr1h), w
 
