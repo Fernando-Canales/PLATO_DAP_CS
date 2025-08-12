@@ -5,7 +5,9 @@ To have an easy-to-look checklist for the main corrections of the paper.
 ### So far:
 
 - All editorials have been corrected
-- 
+- All minor comments have been corrected
+- Major Point 7 needs to be corrected because
+	- I need to re do Section 8, now with the results from the Variable transit scenario
 ### What should be inside the Response Letter?
 Excerpt from David Moulliet's email about the referee report:
 >	In your cover letter, please list all the changes made (including new or removed coauthors), and mark the changes in your manuscript using boldface or colored text. However, please note that your source files should only include the "clean" revised version.  A separate pdf with the marked changes (bold or diff file) should be uploaded as an "optional file."
@@ -141,4 +143,16 @@ Fix  [[Major_Comments_Response#Third Major point|Major point 3]]:
 - [ ] Investigate and read documentation for the PSF business
 - [x] Section 2.3
 
- 
+### Week of the 11th of August
+
+To-do:
+- [ ] Remove results from fixed transit parameters from Table 2
+- [ ] Incorporating changes in Section 8
+- [ ] Trim the abstract
+- [ ] Sending the paper to coauthors on Friday
+- [ ] Putting triangles as the contaminants in Fig. 1
+
+Investigate what is going on at P=10.5 and P=11.5 for the:
+- [ ] Secondary flux measurements
+- [ ] Secondary centroid shifts
+- [ ] Extended flux measurements
