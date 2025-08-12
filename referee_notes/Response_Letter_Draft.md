@@ -5,16 +5,19 @@
 **Major Point 1:** "The paper assumes that all background stars are eclipsing binaries undergoing transit-like events, and therefore potentially capable of generating a false positive signal. This is an unrealistic assumption, and I think an unnecessary one. I appreciate that, as stated in section 5.2, it is not possible to know the details of individual contamination sources. However, as also stated in section 5.2, there are studies about the number and occurrence rates of eclipsing binaries. Could these have been used to assign eclipsing binary status to suitable fractions of the stars in the sample, allowing for a more realistic proportion of possible eclipsing binary contaminants in each window? Such an approach should be considered."
 
 **Response:** We agree with the referee's concern about unrealistic assumptions. We have **revised the paper to present results using realistic EB parameter diversity** sampled from the Kepler EB catalog, rather than fixed parameters. This approach provides **realistic performance expectations** for PLATO operations.
+RS-> this does not answer the 1st point, this concerns the second point
 
 We emphasize that **our goal is not to provide realistic EB contamination rate estimates for PLATO** - such comprehensive analyses have been performed by other studies (e.g., Bray et al. 2023; Prša et al. 2011, 2016 for Kepler/TESS populations). Instead, we **focus on detection method performance** under controlled conditions. While all contaminants are assumed to be EBs (representing a conservative upper bound), **each EB now uses authentic transit depth and duration pairs** from observed Kepler eclipsing binaries, addressing the parameter realism concern.
 
 The previous approach using fixed parameters (providing absolute worst-case bounds) is available in the first author's PhD thesis for reference.
+RS-> this concerns the second point. Also why this remark ? Is it useful to mention the fixed parameters scenario at all ?
 
 **Major Point 2:** "The eclipse depth of the eclipsing binary appears in equation (10) and propagates forwards into the equations for statistical significance for a transit on a contaminant, and thus into the equations for efficiency of the extended mask and secondary mask flux methods. In section 2.4 the paper notes that the intrinsic eclipse depth is assumed to be the same for all contaminant eclipsing binaries. This seems like a very limiting assumption, and while I understand that it makes the study simpler to perform, I wonder whether it is limiting the study and strongly constraining the applicability of the results. Would the results change if a range of eclipse depths is present among the contaminating stars, or is only the mean eclipse depth relevant? This assumption that all eclipsing binaries have the same eclipse depth should be explained in more detail, including information about the justification for it, whether any other scenarios were considered, and how it limits the results that are presented. "
 
 **Response:** This concern is directly addressed by our revised approach using **realistic parameter diversity**. Rather than assuming uniform transit depths and durations, we now **sample (δ, td) pairs from the Kepler Eclipsing Binary Catalog** (Kirk et al. 2016), which provides authentic parameter distributions from observed systems.
 
 This approach ensures that each contaminant EB has realistic pair of parameters. Also, as noted in our response to Major Point 1, the uniform parameter approach (representing absolute worst-case bounds) remains available in the first author's PhD thesis for reference.
+RS> same,  is it useful to mention the fixed parameters scenario at all ?
 
 **Manuscript Changes:**
 
@@ -26,7 +29,10 @@ This approach ensures that each contaminant EB has realistic pair of parameters.
 **Major Point 3:** "The paper misrepresents the process by which PLATO will validate its exoplanet candidates. On page 2, in the left-hand column, starting at line 50, it refers to PLATO relying heavily on an initial validation process performed onboard. There is no validation performed on-board the spacecraft; the centroid data and/or double-aperture photometry data are collected onboard, but the validation is performed on-ground as part of the exoplanet data processing pipeline. The paper then states that the initial PLATO strategy for detecting false positives consisted only of computing centroid shift measurements. This is incorrect; other methods for detecting false positives were considered right from the start. It is more correct to say that centroid shift measurements were part of the initial false positive detection strategy, but the only additional data from the spacecraft that were considered (beyond the basic photometry). Similarly, section 6.2 states that nominal centroids are the strategy envisaged for 5% of the P5 sample, which is incorrect; other methods will be employed, with the centroids providing an additional discriminatory ability for those 5% of the targets. Furthermore, the paper also states that that current strategy to detect false positives is to use centroid shifts and/or double-aperture photometry. This is stated in the introduction (page 2, right-hand column) and in Section 4 (page 6, left-hand column). While they will be important, these methods will form only part of the false positive identification strategy for the mission, which will also use a range of other techniques. The description of the role that centroids and double-aperture photometry play in candidate validation should be updated to more accurately represent both the history here, and what will be done"
 
 **Response:** We have made substantial revisions to correct these misconceptions:
-- Data collection vs validation distinction: We have clarified that centroid and double-aperture data are collected on-board for the majority of PLATO targets, but that validation analysis occurs on-ground
+- Data collection vs validation distinction: We have clarified that centroid and double-aperture data are collected on-board for the majority of PLATO targets, but that validation analysis occurs on-ground 
+
+RS-> "...for all type of light-curves. However, for targets for which the flux is computed on board, validation based on PLATO is at this stage only possible whenever centroid is also computed on board."
+
 - Historical accuracy: We have corrected the claim that centroids were the initial strategy, acknowledging that multiple false positive detection methods were considered from the beginning.
 - 5% allocation clarification: We cited the PLATO SciRD as the reference where it can be found that  5% of the P5 targets will have on-board nominal centroid measurements. We also mentioned that the focus of our work are the targets that will have their photometry obtained on-board, that is in fact the majority of PLATO targets.
 
@@ -50,6 +56,8 @@ a) L1 assumption: Nothing to add
 
 - Section 5.3: PSF set reflects realistic camera-to-camera variations from Monte Carlo simulations 
 - Section 7: Real camera PSF analysis shows no significant performance changes under various configurations
+
+RS-> you have to explain what are these "real" camara PSFs
 
 **Manuscript Changes:**
 
@@ -97,6 +105,8 @@ a) L1 assumption: Nothing to add
 **Major Point 7:** "The discussion of the results in Section 8.1 is not sufficiently detailed and overstates the conclusions that can be drawn from Table 2. The paper states (section 8.1, page 13) that the secondary flux measurements are less efficient at detecting false positives than centroid measurements. However, the results in Table 2 show that this is not strictly correct. Secondary flux measurements are less efficient than nominal and extended centroid shift measurements, true, but their efficiency is equal to that of secondary centroid shift measurements, within uncertainties. One could conclude that they are even marginally more efficient than secondary centroid shift measurements. Similarly, the first sentence of section 8.2 states that centroid measurements are by far the most efficient method for detecting false positives. But this is only true of nominal mask centroid shifts and extended mask centroid shifts, which are equally efficient (within uncertainties) according to Table 2. Secondary mask centroid shifts, on the other hand, are no better than secondary flux measurements, as I noted above. The paper also states (Section 8.1, final paragraph, on page 13) that on average, the statistical significance of the secondary flux measurement is greater than the statistical significance of the centroid shift in the nominal mask (this is stated as an equality). No quantitative evidence is given to support this conclusion, as Table 2 presents efficiencies, and Figure 4 plots efficiencies. Support for the conclusion can be taken from Table D.1, but this presents the various significance values for only one star and its contaminants. This is not enough evidence to support the statement about the relationship of the average significances. Further discussion of the results is needed, with more quantitative support for the conclusions reached, and careful wording that more accurately describes the results."
 **Response:**
 
+RS-> missing answer here
+
 **Major Point 8:** "Presentation and discussion of the percentage of false positives detected by each metric, and the comparisons between them, is incomplete. There are five metrics being compared in this paper, giving 10 possible comparisons. But the set of bullet points in the right-hand column of page 13 gives only four comparisons. The secondary flux measurements, which the paper is proposing are the most effective metric, are not mentioned at all, which seems a significant omission. How do they compare to the other metrics in this context? Perhaps the paper is using “extended” in this section in the on-board software sense, as described in footnote 5? If so, this is unnecessarily confusing given that the rest of the paper has used “extended” to mean specifically one of the two double aperture approaches, and it obfuscates the results. Furthermore, the language of these bullet points could be improved as it is somewhat confusing as currently written. The current format is "% of false positives detected only by metric a but not by metric b". If the false positives are detectable 'only' by metric a then mentioning metric b is unnecessary. On the other hand, if the percentages are for false positives detected by metric a but not metric b, do the other metrics detect them or not? Section 8.2 should be updated to better present the comparison of false positive detection percentages between metrics. A table or pairwise matrix may be a better way to present these results, rather than a list of bullet points, and further discussion may be warranted. In addition, Footnote 5 should be removed, as it introduces unnecessary ambiguity, and the text updated (if necessary) to clarify the language used to discuss the results. Finally, the summary of the comparison results in the text should be checked for consistency against the full set of comparison results (currently it reads ~27% vs 28%+/-1.4%). "
 
 **Response:** We completely agree with this comprehensive critique and have  restructured Section 8.2 to address all concerns:
@@ -105,7 +115,9 @@ a) L1 assumption: Nothing to add
 
 **2. Secondary Flux Inclusion**: The matrix now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee.
 
-**3.Language Clarity and precision**: We have clarified thelanguage - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the matrix have the same, consistent number of decimal figures.
+RS-> how it possible to compare SFX or SCOB with the othe metric since the former only concern the contaminant with the highest SPR ?
+
+**3.Language Clarity and precision**: We have clarified the language - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the matrix have the same, consistent number of decimal figures.
 
 **Manuscript Changes:**
 
@@ -164,6 +176,8 @@ This factor-of-two difference in data volume directly translates to the 50% redu
 
 The choice of single-pixel extension is based on systematic analysis of extended mask performance (Gutiérrez-Canales 2025, Fig. 7.1), which demonstrates that larger extensions (+1 pixels) lead to significant efficiency degradation for extended flux measurements. This occurs because larger masks include more background noise while adding minimal contaminant signal.
 
+RS-> this does not fully answer the question about the possibility to build  more optimized extended masks, for instance, as suggested by the referee to add t a small number of pixels covering the contaminants. It can be answer that this is an on-going work. 
+
 **Manuscript Changes:**
 
 - Section 3.1: Added justification for 1-pixel extended mask design with thesis reference
@@ -209,6 +223,8 @@ Our methodology appropriately handles this by measuring **actual achieved effici
 **Minor Point 10**: "Equation (39) is described as the average centroid measurement over a duration of one hour and a given number of cameras. But the equation itself seems to be for the uncertainty in the averaged centroid. This should be checked and either the text or the equation updated if necessary."
 
 **Response:** We agree that this required clarification. We have explicitly stated that Eq. (39) represents the uncertainty of averaged centroid measurements rather than single-point measurements. The clarifications emphasize that centroid shifts are averaged over one hour and multiple cameras to reduce statistical uncertainty.
+
+RS->  remind why this choice of time-scale (this is linked to the transit duration, which typical last few hours)
 
 **Manuscript Changes:**
 
