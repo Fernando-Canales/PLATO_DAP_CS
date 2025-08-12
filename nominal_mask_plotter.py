@@ -41,7 +41,7 @@ def barycenter(array,mask=None,x=None,y=None,subres=1):
     if(isinstance(y, (np.ndarray, np.generic) )== False):
         y=(np.arange(0,array.shape[0])+0.5)/float(subres)
 
-    if(x.ndim ==1 & y.ndim ==1):
+    if(x.ndim ==1 & y.ndim ==1): # type: ignore
         x,y = np.meshgrid(x,y)
 
     if(mask is not None):
@@ -172,7 +172,7 @@ plt.savefig('It_sorted_nsr.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  
 plt.figure(figsize=(8, 6), dpi=300)  # 8x6 inches, 300 DPI
 plt.plot(((10 ** 6) / (12 * np.sqrt(24))) * nsr_agg_nominal, 'o-')
 # Add arrow and text indicating the minimum value
-plt.vlines(7, linestyles='--', ymin=52, ymax=80, colors='darkorange')
+plt.vlines(7, linestyles='--', ymin=52, ymax=80, colors='darkorange') # type: ignore
 plt.ylabel(r'$NSR_{agg}$ over 1h and 24 cam.$[ppm hr^{\frac{1}{2}}]$', fontsize=fsize-3)
 plt.xlabel('Pixels', fontsize=fsize)
 plt.ylim(52, 78)
