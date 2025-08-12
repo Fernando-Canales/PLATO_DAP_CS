@@ -16,19 +16,20 @@ import multiprocessing
 import math
 import time
 import traceback
+import os
 # --------------------------------------------------
 # CONFIGURATION PARAMETERS
 
-verbose = False
+verbose =  False
 doplot = False
-mp =  True  # multiprocessing mode
+mp = True  # multiprocessing mode
 
 CatalogueDIR = '/home/samadi/plato/share/catalogues/'
 # CatalogueDIR = '/volumes/astro/sismo/general/plato/web/grids/catalogues/'
 # CatalogueDIR = '/home/fgutierrez/biruni3/Sep17_real_MC_T1413/catalogues_stars/'
 # CatalogueDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-DIRout = 'test13/'
-# test 6 : v0 optimal extended mask (union of the secondary mask + nominal)
+DIRout = 'test40/'
+# test 6 : v2 optimal extended mask (union of the secondary mask + nominal)
 # test7 # v1 optimal extended mask: for each contaminant, take the extra pixels that maximize the significance
 # test8 as test4 with a maximum distance of 10 pixel
 # test 9   PSF_Focus_0mu_0.2pxdif.npz
@@ -36,15 +37,62 @@ DIRout = 'test13/'
 # test 11 as 9 with optimal extended mask v1
 # test 12 as 9 no RON no background no quantification noise
 # test 13 factor sqrt(2) removed in equation for the centroid error
+# test 14 optimal extended mask v1
+# test 15 optimal extended mask v2 and extend_2ndmask=1
+# test 16 optimal extended mask v1  : extension by 2 pixels
+# test 17 low background level: 25
+# test 18  PSF_Focus_0mu_0.1pxdif.npz
+# test 19  PSF_Focus_0mu_0.2pxdif.npz with bsres = 10
+# test 20 Pmax = 16
+# test 21 SFP_DR3_20230926_gr1.npy
+# test 22 SFP_DR3_20230926_gr2.npy
+# test 23 SFP_DR3_20230926_gr3.npy
+# test 24 SFP_DR3_20230926_gr4.npy
+# test 25 PSF_Focus_0mu_0.2pxdif_N4000K.npz
+# test 26 PSF_Focus_0mu_0.2pxdif_N6500K.npz
+# test 27: target: SF_Focus_0mu_0.2pxdif.npz contaminant: PSF_Focus_0mu_0.2pxdif_N4000K.npz
+# test 28: FM_Leopold7_02470_IAS_inversion_240927_iter2.npz warning  bsres = 5
+# test 29: FM_Joup_02182_IAS_inversion_240927_iter2   bsres = 5
+# test 30: gaussian PSF 0.5 px width
+# test 31: gaussian PSF 1 px width
+# test 32: optimal extended mask v3 and extension by 2 pixels
+# test 33: optimal extended mask v3 and extension by 1 pixel
+# test 34: optimal extended mask v3 and extension by 4  pixels (full imagette)
+# test 35: NFP1
+# test 36: RON 120e-
+# test 37: RON 120e-  gaussian sigma = 1.5. px  win_size = 12
+# test 38 RON 120e-  gaussian sigma = 1.5. px  win_size = 12 Kepler field
+# test 39: as 13 with rho = 5% (sub-optimal mask)
+# test 40: as 13, with additionnal informations
+
+
 PSFFileName = 'PSF_Focus_0mu_0.2pxdif.npz'
-#CatalogueFileName = 'SFP_DR3_20220831.npy'
+# PSFFileName = 'PSF_Focus_0mu_0.1pxdif.npz'
+# PSFFileName = 'PSF_Focus_0mu_0.2pxdif_N4000K.npz'
+# PSFFileName = 'PSF_Focus_0mu_0.2pxdif_N6500K.npz'
+# PSFFileName = 'FM_Leopold7_02470_IAS_inversion_240927_iter2.npz'
+# PSFFileName = '/home/samadi/plato/share/test_house/FM/Joup/02182_IAS/inversion_240927_iter2/FM_Joup_02182_IAS_inversion_240927_iter2.npz'
+
+PSFFileNameC = None #  'PSF_Focus_0mu_0.2pxdif_N4000K.npz' # PSF used for the contaminant stars
+
+
+# CatalogueFileName = 'SFP_DR3_20220831.npy'
+# CatalogueFileName = 'LOPN1_DR3_20241011_gr0.npy' #
 CatalogueFileName = 'SFP_DR3_20230101.npy'
+# CatalogueFileName = 'gaia_dr3_kepler_241022.npy'
+# CatalogueFileName =  'SFP_DR3_20230926_gr1.npy'
+# CatalogueFileName =  'SFP_DR3_20230926_gr2.npy'
+# CatalogueFileName =  'SFP_DR3_20230926_gr3.npy'
+# CatalogueFileName =  'SFP_DR3_20230926_gr4.npy'
 
 gauss_psf = False
-gauss_width_x = 0.5
-gauss_width_y = 0.5
+gauss_width_x =  0.5 #   1.5 px -> encircle diameter 95% ~ in 2.45 sigma
+gauss_width_y =   0.5
+# encircle energy (EE) 95% in  2.45 sigma
 
-bsres = 20  # resolution adopted for the b-spline decomposition
+bsres =  20  # resolution adopted for the b-spline decomposition
+
+win_size =  6 # window size
 
 nproc_max = 10  # number of processors
 
@@ -53,14 +101,18 @@ Pmax = 13
 binsize = 0.5
 nStar = 1000
 Delta_P_max = 15.
+Pc_max = 99 #  16.
 distance_max = 7
 n_c_max = 300
-mask_extend =  1 # the number by which the nominal mask is extended
-extend_2ndmask = 0
-opt_ext_mask = 0
+mask_extend =  1  # the number by which the nominal mask is extended (typically: 1)
+extend_2ndmask = 0  # the number by which the secondary mask is extended (default: 0)
+opt_ext_mask = 0 #  version of extended mask calculation: 0-> no optimization, >0 -> optimization
+rho_mask = 0. # parameter to compte a sub-optimal mask
 
 # Parameters for the NSR
 sb = (45. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
+# sb = (25. * 21)  # Background noise form zodiacal light in units of e-/px after multiplying by the integration time (poisson noise)
+
 sd = 50.2  # Overall detector noise (including readout at beginning of life, smearing and dark current) in units of e- rms/px
 sq = 7.2  # Quantization noise in units of e-rms/px
 
@@ -72,8 +124,12 @@ ntr = 3  # number of transits
 seed = 300
 
 # --------------------------------------------------
-data = catalogue(CatalogueDIR + CatalogueFileName)
-
+#
+_, fileExtension = os.path.splitext(CatalogueFileName)
+if(fileExtension == '.coo'):
+    data = np.genfromtxt(CatalogueDIR + CatalogueFileName,usecols=(0,1,2,3,4))
+else:
+    data = np.load(CatalogueDIR + CatalogueFileName)
 psfdata = np.load(PSFFileName)
 
 psfbs = psfdata['psfbs']
@@ -82,7 +138,16 @@ pyc = psfdata['pyc']
 xpsf_pix = psfdata['xpsf_pix']
 ypsf_pix = psfdata['ypsf_pix']
 
-# Define an ID for every target
+if( (PSFFileNameC is not None) and (PSFFileNameC != PSFFileName)): psfdata_c = np.load(PSFFileNameC) # contaminants have a PSF different to the target PSF
+else: psfdata_c = psfdata # same PSF for the target and the contaminants
+
+psfbs_c = psfdata_c['psfbs']
+pxc_c = psfdata_c['pxc']
+pyc_c = psfdata_c['pyc']
+xpsf_pix_c = psfdata_c['xpsf_pix']
+ypsf_pix_c = psfdata_c['ypsf_pix']
+
+# Define an ID for every star
 ID = np.arange(0, data.shape[0])
 
 # Now we save the x and y coordinates on the focal plane of all the stars in the catalogue
@@ -94,10 +159,10 @@ nP = int(round((Pmax - Pmin) / binsize + 1))
 
 file_out = open(DIRout + 'metrics_reza.txt', 'w')
 # Define a numpy array for saving the metrics of interest (Target ID, magnitude, N_bad, etc.) (Is hard-coded now)
-save_info = np.zeros((nStar * nP, 84))
+save_info = np.zeros((nStar * nP, 106))
 
 # for the secondary mask
-save_info_2ndmask = np.zeros((nStar * nP, 84))
+save_info_2ndmask = np.zeros((nStar * nP, 85))
 
 # The same for the extended mask
 save_info_ext = np.zeros((nStar * nP, 81))
@@ -129,12 +194,10 @@ def cob_shift(Itot, Ic, w, dback):
 
     # centroid shift calculation
 #    Gammax = np.sum(x * Icw) / Ftot - Cx * SPRk
-    Gammax = np.sum( (x - Cx) * Icw) / Ftot
+    Gammax = np.sum( (x - Cx) * Icw) / Ftot  # centered formula
     s = db / (1 - db * SPRk)
-    delta_Cx = s * Gammax
 #    Gammay = np.sum(y * Icw) / Ftot - Cy * SPRk
-    Gammay = np.sum( (y-Cy) * Icw) / Ftot
-    delta_Cy = s * Gammay
+    Gammay = np.sum( (y-Cy) * Icw) / Ftot # centered formula
     Gamma = np.sqrt(Gammax ** 2 + Gammay ** 2)
     delta_C = s * Gamma
 
@@ -142,57 +205,33 @@ def cob_shift(Itot, Ic, w, dback):
     # wrong Bryson 's forumula
     # delta_Cx_var = (np.sum(x ** 2 * VarItotw)) / Ftot ** 2 + (Cx / Ftot) ** 2 * np.sum(VarItotw)
     # delta_Cy_var = (np.sum(y ** 2 * VarItotw)) / Ftot ** 2 + (Cy / Ftot) ** 2 * np.sum(VarItotw)
-
     #
+
     delta_Cx_var = np.sum( (x-Cx) ** 2 * VarItotw) / Ftot ** 2
     delta_Cy_var = np.sum( (y-Cy) ** 2 * VarItotw) / Ftot ** 2
 
-    # Lambdax = np.sum(x**2*Icw)/Ftot**2 + (Cx**2/Ftot)*SPRk - 2*SPRk*(Cx/Ftot)**2*np.sum(VarItotw)
-    # # Lambday = np.sum(y**2*Icw)/Ftot**2 + (Cy**2/Ftot)*SPRk - 2*SPRk*(Cy/Ftot)**2*np.sum(VarItotw)
-    # # Lambda = Lambdax + Lambday
-    # delta_Cx_var_in = (delta_Cx_var -db*Lambdax)/(1.-db*SPRk)**2
-    # # delta_Cy_var_in = (delta_Cy_var -db*Lambday)/(1.-db*SPRk)**2
-    # Itot_in = Itot - db*Ic
-    # delta_Cx_var_in2,delta_Cy_var_in2 =  barycenter_var(Itot_in,sb,sd,sq,mask=w)
-    # print( (delta_Cx_var_in-delta_Cx_var_in2)/(delta_Cx_var_in+delta_Cx_var_in2)*0.5)
-    # print( (delta_Cx_var-delta_Cx_var_in2)/(delta_Cx_var+delta_Cx_var_in2)*0.5,SPRk)    #
-    # we assume that the transit does not significantly change the uncertainty
-    # delta_Cx_var_in = delta_Cx_var
-    # delta_Cy_var_in = delta_Cy_var
+
     if(Gamma>0.): delta_C_sig = np.sqrt( (Gammax ** 2 * delta_Cx_var + Gammay ** 2 * delta_Cy_var)) / Gamma
     else: delta_C_sig = 1e99
     delta_C_sig_1h_24c = delta_C_sig / (12 * np.sqrt(24))  # random error re-scaled to 1h and 24 cameras
-    ## print('delta_COB = ',delta_C)
-    ## print('delta_COB_sig =',delta_C_sig_1h_24c)
+
     return delta_C, delta_C_sig_1h_24c, Gamma
 
-def cal_opt_extended_mask_0(W_t,It,Ic,flag):
-    '''
-    build an optimal extended mask by joining together (union) the secondary mask of each contaminant star that can create a FP
-    '''
-    W_ext = np.zeros(W_t.shape,dtype=bool)
-    W_ext[:,:] = W_t
-
-    idx = np.where(flag)[0]
-    for i in idx: # loop over the flagged contaminant stars
-        It_i = Ic[i]
-        Ic_acc_i = np.sum(Ic, axis=0) - It_i + It
-        # Then we proceed to compute the secondary aperture for the
-        _, W_c = aperture(ft=It_i, fc=Ic_acc_i, sb=sb, sd=sd, sq=sq)
-        W_c = np.array(W_c,dtype=bool)
-        W_ext = W_ext | W_c
-    return W_ext
 
 def cal_opt_extended_mask_1(nmask,It,Ic,flag,background,ron,verbose=False,doplot=False):
     '''
     build an optimal extended mask by joining together (union)
+    the optimal extended mask of each contaminant that can (potentially) generate a FP
+
+    the optimal extended mask of each contaminant is calculating by gathering together the pixels in the ring
+    until we reach an optimal significance , prior these pixels are sorted in decreasing SPR
 
     '''
     Npix = nmask.shape[0]
     emask = np.zeros((Npix,Npix),dtype=bool)
     emask[:,:] = nmask
     we = np.array(extended_binary_mask(nmask,mask_extend),dtype=bool)
-    extra_pixel = we & (emask==False)
+    extra_pixel = we & (emask==False) # the pixels in the ring (called 'extra' pixel in the following)
     extra_pixel = extra_pixel.flatten()
     extra_pixel_idx = np.where(extra_pixel)[0]
     ne = len(extra_pixel_idx)
@@ -208,7 +247,7 @@ def cal_opt_extended_mask_1(nmask,It,Ic,flag,background,ron,verbose=False,doplot
         for j in extra_pixel_idx:
             spr[k] = Ic[i].flatten()[j]/(Ic_acc[j] + It_f[j])
             k+= 1
-        # sorting the extra pixel in decreasing SPR
+        # sorting the extra pixel in decreasing SPR and storing their indexes
         j = np.argsort(spr)[::-1]
         eta_agg = np.zeros(ne)
         for k in range(ne):
@@ -220,7 +259,7 @@ def cal_opt_extended_mask_1(nmask,It,Ic,flag,background,ron,verbose=False,doplot
             sprtot_k = np.sum(Ic_acc*w)/ftot_k
             ft_k = np.sum(It_f*w)
             nsr_k = math.sqrt( np.sum( w* ( Ic_acc +  It_f  + ron**2 * background) ) )/ft_k
-            eta_agg[k] = spr_k/((1-sprtot_k)*nsr_k)
+            eta_agg[k] = spr_k/((1-sprtot_k)*nsr_k) # aggregated significance (arbitrary unit)
         m = np.argmax(eta_agg)
         w = np.zeros(Npix * Npix, dtype=bool)
         w[extra_pixel_idx[j][0:m+1]] = True
@@ -260,10 +299,42 @@ def cal_opt_extended_mask_1(nmask,It,Ic,flag,background,ron,verbose=False,doplot
             show(block=True)
 
 
-        # Then we proceed to compute the secondary aperture for the
-#        W_c = np.array(W_c,dtype=bool)
-#        W_ext = W_ext | W_c
     return emask
+
+
+def cal_opt_extended_mask_2(W_t,It,Ic,flag):
+    '''
+    build an optimal extended mask by joining together (union) the secondary mask of each contaminant star that can create a FP
+    '''
+    W_ext = np.zeros(W_t.shape,dtype=bool)
+    W_ext[:,:] = W_t
+
+    idx = np.where(flag)[0]
+    for i in idx: # loop over the flagged contaminant stars
+        It_i = Ic[i]
+        Ic_acc_i = np.sum(Ic, axis=0) - It_i + It
+        # Then we proceed to compute the secondary aperture for the
+        _, W_c = aperture(ft=It_i, fc=Ic_acc_i, sb=sb, sd=sd, sq=sq,window_size=win_size,rho=rho_mask)
+        W_c = np.array(W_c,dtype=bool)
+        W_ext = W_ext | W_c
+    return W_ext
+
+
+
+
+def cal_opt_extended_mask_3(nmask, W=1):
+    '''
+    build an extended mask where only the pixel external to the nominal mask are kept
+
+    '''
+    ny, nx = nmask.shape
+    emask = np.zeros((ny, nx))
+    w_ext =  extended_binary_mask(nmask, W=W)
+    m = (np.array(w_ext,dtype=bool)==True ) & (np.array(nmask,dtype=bool)==False) # the pixels in the ring (called 'extra' pixel in the following)
+    emask[m] = 1.
+
+    return emask
+
 
 
 # ftrack = open(DIRout+'track.log','w')
@@ -280,7 +351,7 @@ for i in range(nP):
     ID_target = ID[mask]
 
     j = ran_unique_int(n=nStar, interval=[0, targets_P5.shape[0] - 1])
-    ##    print(j)
+    print('number of stars processed in this range: %i' % (len(j)))
     targets_P5 = targets_P5[j]
     ID_target = ID_target[j]
     # Now we obtain the x and y coordinates of the targets on the focal plane
@@ -307,17 +378,28 @@ for i in range(nP):
         psf_idx = np.argmin(s_d)
         psf_id = str(psf_idx + 1)
 
+        s_d_c = (xpsf_pix_c - x_tar[k]) ** 2 + (ypsf_pix_c - y_tar[k]) ** 2
+        psf_idx_c = np.argmin(s_d_c)
+
         # Now we we define the window (imagette) and find the coordinates of the target inside of it
-        x_t_im, y_t_im, i0, j0 = window(x_tar[k], y_tar[k], 6, 6)
+        x_t_im, y_t_im, i0, j0 = window(x_tar[k], y_tar[k], win_size, win_size)
         # Then we obtain the offset between the center of the imagette and the center of the PSF
         offx = x_t_im - pxc[psf_idx]
         offy = y_t_im - pyc[psf_idx]
         if gauss_psf:
-            imagette = psf_gauss_int(x_t_im, y_t_im, gauss_width_x, gauss_width_y, 6, 6)
+            imagette = psf_gauss_int(x_t_im, y_t_im, gauss_width_x, gauss_width_y, win_size, win_size)
         else:
             psfbs_k = np.ascontiguousarray(psfbs[psf_idx])
+            psfbs_k_c = np.ascontiguousarray(psfbs_c[psf_idx_c])
+
             # Then we finally compute the imagette for the target by integrating the b-spline decomposition of the PSF
-            imagette = spline2dbase.Spline2Imagette(psfbs_k, bsres, 6, 6, offx=offx, offy=offy)
+            imagette = spline2dbase.Spline2Imagette(psfbs_k, bsres, win_size, win_size, offx=offx, offy=offy)
+
+        # B = barycenter(imagette)
+        # print(psf_idx,pxc[psf_idx],pyc[psf_idx])
+        # print(xpsf_pix[psf_idx],ypsf_pix[psf_idx])
+        # print(i0,j0,x_tar[k], y_tar[k],B,x_t_im,y_t_im,x_t_im-B[0] ,y_t_im - B[1])
+        # print(offx,offy)
         # ploting_initial(2, 1, psf, imagette, i='PSF', j='Target')
         # Then we can print the coordinates of the C.O.B.
         ## COBx, COBy = barycenter(imagette, subres=1)
@@ -330,7 +412,8 @@ for i in range(nP):
         dist = np.sqrt((x_star - x_tar[k]) ** 2 + (y_star - y_tar[k]) ** 2)
         # We define a useful mask now
         Delta_P = data[:, 2] - P_t
-        m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max) & (data[:, 2] > 0)
+
+        m = (dist > 0) & (dist < distance_max) & (Delta_P < Delta_P_max) & (data[:, 2] > 0) & (data[:, 2]<Pc_max)
         n_c = m.sum()
         if n_c > n_c_max:
             # too many contaminant stars, we keep only those for which Delta_P is smaller than
@@ -353,10 +436,18 @@ for i in range(nP):
         x_c_im = x_c - i0
         y_c_im = y_c - j0
         # Now we compute the offset between the center of each contaminant and the center of the PSF
-        offx_c = x_c_im - pxc[psf_idx]
-        offy_c = y_c_im - pyc[psf_idx]
+        offx_c = x_c_im - pxc_c[psf_idx_c]
+        offy_c = y_c_im - pyc_c[psf_idx_c]
         # We define an array that will contain the 'imagettes' of every contaminant
-        Ic = np.zeros((n_c, 6, 6))
+        Ic = np.zeros((n_c, win_size, win_size)) # image associated with each contaminant, computed with the contaminant PSF
+        if(psfdata_c is not psfdata):
+            Ic_ap = np.zeros((n_c, win_size, win_size)) #  image associated with each contaminant, computed with the PSF of the target, used for the aperture calculation
+            offx_c_ap = x_c_im - pxc_c[psf_idx]
+            offy_c_ap = y_c_im - pyc_c[psf_idx]
+        else:
+            Ic_ap = Ic
+            offx_c_ap = offx_c
+            offy_c_ap = offy_c
 
         if verbose:
             print('n_c = %i' % n_c)
@@ -367,25 +458,38 @@ for i in range(nP):
 
         for o in range(0, n_c):
             if gauss_psf:
-                Ic[o] = psf_gauss_int(x_c_im[o], y_c_im[o], gauss_width_x, gauss_width_y, 6, 6)
+                Ic[o] = psf_gauss_int(x_c_im[o], y_c_im[o], gauss_width_x, gauss_width_y, win_size, win_size)
+                if (psfdata_c is not psfdata):
+                    Ic_ap[o] = Ic[o]
             else:
-                Ic[o] = spline2dbase.Spline2Imagette(psfbs_k, bsres, 6, 6, offx=offx_c[o], offy=offy_c[o])
+                Ic[o] = spline2dbase.Spline2Imagette(psfbs_k_c, bsres, win_size, win_size, offx=offx_c[o], offy=offy_c[o])
+                if (psfdata_c is not psfdata): # contaminant with the target PSF, only for the aperture calculation
+                    Ic_ap[o] = spline2dbase.Spline2Imagette(psfbs_k, bsres, win_size, win_size, offx=offx_c_ap[o], offy=offy_c_ap[o])
             f_ref_c = reference_flux_contaminant(f_ref_t, m_contaminants[o], P_t)
             Ic[o] *= f_ref_c
-            ## Ic = spline2dbase.Spline2ImagetteMulti(psfbs_k, bsres, 6, 6, offx_c, offy_c)
+            if (psfdata_c is not psfdata):
+                Ic_ap[o] *= f_ref_c
+            ## Ic = spline2dbase.Spline2ImagetteMulti(psfbs_k, bsres, win_size, win_size, offx_c, offy_c)
             # t3 = time.time()
             # print(t2-t1)
             # print(t3-t2)
         # Now we define an array with the contribution from all the stars to each pixel
         Ic_acc = np.sum(Ic, axis=0)
+        Ic_acc_ap = np.sum(Ic_ap, axis=0) # for the aperture calculation only
 
         # Now we define the total flux (target and all contaminants)
         f_tot = It + Ic_acc
 
         # Let's compute the aperture of the target
-        NSR1h, w_t = aperture(ft=It, fc=Ic_acc, sb=sb, sd=sd, sq=sq)
+        # calculation based on the target PSF assuming the same PSF for the contaminants
+        NSR1h_0, w_t = aperture(ft=It, fc=Ic_acc_ap, sb=sb, sd=sd, sq=sq,window_size=win_size,rho=rho_mask)
+        # NSR1h_0 : theoretical NSR ->  calculation based on the target PSF
+        NSR1h = ((10 ** 6) / (12 * np.sqrt(24))) * \
+                  np.sqrt(np.sum((f_tot + sb + sd ** 2 + sq ** 2) * w_t)) / np.sum(It * w_t)
+        if(verbose): print("compare n-mask: theoretical NSR = %f ; effective NSR = %f" % (NSR1h_0,NSR1h))
         # Now we store the nominal mask into a mask_key
-        w_t_key = mask_to_bitmask(w_t)
+        if(win_size<=8): w_t_key = mask_to_bitmask(w_t)
+        else: w_t_key = 0
         w_t_size = w_t.sum()  # mask size
 
         # Now in this part of the code we present the calculations for the sprk of every contaminant as well as the
@@ -405,6 +509,7 @@ for i in range(nP):
         # Now we get the index of the contaminant star with the highest sprk value with respect to the nominal mask
         ind_sprk = np.argmax(sprk)
         Ic_max = Ic[ind_sprk]
+        Ic_max_ap = Ic_ap[ind_sprk]
 
         sprk_max = sprk[ind_sprk]
 
@@ -426,7 +531,8 @@ for i in range(nP):
         sprk_sorted_index = (np.argsort(sprk)[::-1])
         SPRk_10first[0:nsprmax] = sprk[sprk_sorted_index[0:nsprmax]]
         IDs_10first = np.zeros(10)
-
+        Delta_x_10first = np.zeros(10)
+        Delta_y_10first = np.zeros(10)
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             eta_10first[l] = sprk[m] * np.sqrt(td * ntr) * dback / NSR1h / (1. - SPR_tot)
@@ -435,6 +541,8 @@ for i in range(nP):
             delta_COB_sig_10first[l] = delta_COB_sig_l
             eta_COB_10first[l] = _ * np.sqrt(td * ntr) / delta_COB_sig_l
             IDs_10first[l] = ID_contaminants[m]
+            Delta_x_10first[l] = x_c[m] -  x_tar[k]
+            Delta_y_10first[l] = y_c[m] -  y_tar[k]
 
         if verbose:
             print('SPR_tot=', SPR_tot)
@@ -442,17 +550,23 @@ for i in range(nP):
             print('delta_COB = ', delta_COB)
             print('delta_COB_sig=', delta_COB_sig_1h_24c)
             print('eta_cob=', eta_cob)
-
+        # figure(0)
+        # clf()
+        # imshow(w_t)
+        # figure(1)
+        # clf()
+        # imshow(Itot)
+        # stop
         ########################################################################################################################
         #                                   NOW THE EXTENDED MASK METHOD                                                       #
         ########################################################################################################################
-
         # First we create the extended mask given the nominal mask
-        if(opt_ext_mask): w_ext = cal_opt_extended_mask_1(w_t,It,Ic,sprk > SPR_crit,sb,sd,verbose=verbose,doplot=doplot)
+        if(opt_ext_mask ==1 ): w_ext = cal_opt_extended_mask_1(w_t,It,Ic,sprk > SPR_crit,sb,sd,verbose=verbose,doplot=doplot)
+        elif(opt_ext_mask == 2 ): w_ext = cal_opt_extended_mask_2(w_t,It,Ic,sprk > SPR_crit)
+        elif(opt_ext_mask == 3 ): w_ext = cal_opt_extended_mask_3(w_t, W=mask_extend)
         else: w_ext = extended_binary_mask(w_t, W=mask_extend)
         if(verbose):
             print('n_bad = %i'  % n_bad)
-            print(sprk > SPR_crit)
             print('extended maks size = %i'  % w_ext.sum())
             # figure(0)
             # clf()
@@ -462,7 +576,8 @@ for i in range(nP):
             # imshow(w_ext,origin='lower')
             # show(block=True)
 
-        w_ext_key = mask_to_bitmask(w_ext)
+        if(win_size<=8): w_ext_key = mask_to_bitmask(w_ext)
+        else: w_ext_key = 0
         w_ext_size = w_ext.sum()  # mask size
 
         # computing the COB shift and associated uncertainty for the extended mask
@@ -538,7 +653,7 @@ for i in range(nP):
         ########################################################################################################################
 
         # The mask has to contain the 4 pixels around the center,
-        w_bray = np.zeros((6, 6))
+        w_bray = np.zeros((win_size, win_size))
         w_bray[2:4, 2:4] = 1
 
         NSR_bray = np.sqrt(np.sum((It + Ic_acc + sb + sd ** 2 + sq ** 2) * w_bray)) / np.sum(It * w_bray)
@@ -557,26 +672,37 @@ for i in range(nP):
         #                                          END OF TESTING Bray et al's ASSUMPTION                                      #
         ########################################################################################################################
 
+
+        ########################################################################################################################
+        #                                          SECONDARY MASK
+        ########################################################################################################################
+
         # Now we compute the secondary aperture for this contamninant with the highets sprk
 
         # We define the term that englobes the sigma of the target and the accumulated flux of the contaminants without
         # the contaminant of interest
         Itc_acc = Itot - Ic_max
+        Itc_acc_ap = Itot - Ic_max_ap # for the aperture calculation only
 
         # Then we procedd to compute the secondary aperture
-        NSR1h_c, w_c = aperture(ft=Ic_max, fc=Itc_acc, sb=sb, sd=sd, sq=sq)
+        # calculation based on the target PSF assuming the same PSF for the contaminants
+        NSR1h_c_0, w_c = aperture(ft=Ic_max_ap, fc=Itc_acc_ap, sb=sb, sd=sd, sq=sq,window_size=win_size,rho=rho_mask)
+        # NSR1h_c_0:  theoretical NSR -> calculation based on the target PSF
 
         if extend_2ndmask > 0:
             w_c = extended_binary_mask(w_c, W=extend_2ndmask)
-            NSR1h_c = ((10 ** 6) / (12 * np.sqrt(24))) * \
-                      np.sqrt(np.sum((Itot + sb + sd ** 2 + sq ** 2) * w_c)) / np.sum(Ic_max * w_c)
+        NSR1h_c = ((10 ** 6) / (12 * np.sqrt(24))) * \
+                  np.sqrt(np.sum((Itot + sb + sd ** 2 + sq ** 2) * w_c)) / np.sum(Ic_max * w_c)
+        if(verbose): print("compare s-mask: theoretical NSR = %f ; effective NSR = %f" % (NSR1h_c_0,NSR1h_c))
 
         # Now we store this secondary mask in a mask key
-        w_c_key = mask_to_bitmask(w_c)
+        if(win_size<=8): w_c_key = mask_to_bitmask(w_c)
+        else: w_c_key = 0
         w_c_size = w_c.sum()  # mask size
 
         # calculating the COG shift and the associated uncertainty
         delta_COB_c, delta_COB_sig_1h_24c_c, Gamma_c = cob_shift(Itot, Ic_max, w_c, dback)
+        if(w_c_size==1): delta_COB_c = 0. # no centroid shift in that cas, we impose zero
         eta_cob_c = delta_COB_c * np.sqrt(td * ntr) / delta_COB_sig_1h_24c_c
         if verbose:
             print('delta_COB_c = ', delta_COB_c)
@@ -592,6 +718,7 @@ for i in range(nP):
 
         # We compute spr_tot_c
         spr_tot_c = np.sum(Itc_acc * w_c) / f_tot_c
+        # sprk_c, _ = SPR(n_c=n_c, f_contaminant=Ic, f_tot=f_tot, w=w_c)
 
         # We compute now the delta_obs for the two apertures
         delta_obs_t = sprk_max * dback
@@ -614,6 +741,7 @@ for i in range(nP):
             print('eta_t is:', eta_t)
             print('eta_c is:', eta_c)
             print('spr_t is:', sprk[ind_sprk])
+            # print('spr_c is:', sprk_c[ind_sprk])
             print('spr_tot_c is:', spr_tot_c)
             print('abs_cob', delta_COB)
             print('abs_cob_ext:', delta_COB_ext)
@@ -634,15 +762,17 @@ for i in range(nP):
             Itc_acc_l = Itot - Ic[m]
 
             # Then we procedd to compute the secondary aperture
-            NSR1h_c_l, w_c_l = aperture(ft=Ic[m], fc=Itc_acc_l, sb=sb, sd=sd, sq=sq)
+            NSR1h_c_l, w_c_l = aperture(ft=Ic[m], fc=Itc_acc_l, sb=sb, sd=sd, sq=sq,window_size=win_size,rho=rho_mask)
+            w_c_size_l = w_c_l.sum()  # mask size
             NSR1h_c_10first[l] = NSR1h_c_l
-            w_c_key_10first[l] = mask_to_bitmask(w_c_l)
+            if(win_size<=8): w_c_key_10first[l] = mask_to_bitmask(w_c_l)
             SPRtot_c_10first[l] = np.sum(Itc_acc_l * w_c_l) / np.sum(Itot * w_c_l)
             eta_c_10first[l] = np.sqrt(td * ntr) * dback / NSR1h_c_l
-            _, delta_COB_sig_c_l, Gamma_c_l = cob_shift(Itot, Ic[m], w_c_l, dback)
+            delta_COB_c_l, delta_COB_sig_c_l, Gamma_c_l = cob_shift(Itot, Ic[m], w_c_l, dback)
+            if(w_c_size_l==1): delta_COB_c_l = 0.
             Gamma_c_10first[l] = Gamma_c_l
             delta_COB_sig_c_10first[l] = delta_COB_sig_c_l
-            eta_COB_c_10first[l] = _ * np.sqrt(td * ntr) / delta_COB_sig_c_l
+            eta_COB_c_10first[l] =  delta_COB_c_l * np.sqrt(td * ntr) / delta_COB_sig_c_l
 
         save_info = np.array([ID_t, P_t, psf_idx, n_c, w_t_key, w_t_size, NSR1h, n_bad, SPR_crit, SPR_tot, ID_c,
                               m_c, sprk[ind_sprk], eta_t, delta_obs_t, delta_COB, delta_COB_sig_1h_24c,
@@ -653,8 +783,12 @@ for i in range(nP):
         save_info = np.append(save_info, eta_COB_10first)
         save_info = np.append(save_info, eta_10first)
         save_info = np.append(save_info, IDs_10first)
+        save_info = np.append(save_info, Delta_x_10first)
+        save_info = np.append(save_info, Delta_y_10first)
         save_info = np.append(save_info, x_t_im)
         save_info = np.append(save_info, y_t_im)
+        save_info = np.append(save_info, psf_idx_c)
+        save_info = np.append(save_info, NSR1h_0)
 
         save_info_2ndmask = np.array([ID_t, P_t, ID_c, m_c, NSR1h_c, w_c_key, w_c_size, eta_c, delta_obs_c, delta_COB_c,
                                       delta_COB_sig_1h_24c_c, eta_cob_c, spr_tot_c, Gamma_c])
@@ -665,6 +799,9 @@ for i in range(nP):
         save_info_2ndmask = np.append(save_info_2ndmask, w_c_key_10first)
         save_info_2ndmask = np.append(save_info_2ndmask, eta_COB_c_10first)
         save_info_2ndmask = np.append(save_info_2ndmask, eta_c_10first)
+        save_info_2ndmask = np.append(save_info_2ndmask, NSR1h_c_0)
+
+
 
         save_info_ext = np.array([ID_t, P_t, w_ext_key, w_ext_size, NSR_ext_1h, n_bad_ext, SPR_crit_ext, SPR_tot_ext,
                                   ID_c, m_c, eta_ext, delta_obs_ext, delta_COB_ext, delta_COB_sig_1h_24c_ext,
@@ -762,8 +899,12 @@ np.save(DIRout + 'targets_P5.npy', save_info)
 # 52-61: 10 first eta_COB
 # 62-71: 10 first eta_10first
 # 72-81: IDs of the 10 first contaminants
-# 82: x target position in the imagette
-# 83: Y target position in the imagette
+# 82-91: delta x
+# 92-101: delta y
+# 102: x target position in the imagette
+# 103: Y target position in the imagette
+# 104:  PSF index for the contaminant stars
+# 105: theoretical n-mask NSR (calculation based on the target PSF assuming the same PSF for the contaminants)
 
 np.save(DIRout + 'targets_P5_2ndmask.npy', save_info_2ndmask)
 # 0: ID_t
@@ -787,6 +928,7 @@ np.save(DIRout + 'targets_P5_2ndmask.npy', save_info_2ndmask)
 # 54-63: 10 first w_c_key
 # 64-73: 10 first eta_COB_c
 # 74-83: 10 first eta_c_10first
+# 84: theoretical s-mask NSR (calculation based on the target PSF assuming the same PSF for the contaminants)
 
 
 np.save(DIRout + 'targets_P5_extended.npy', save_info_ext)
