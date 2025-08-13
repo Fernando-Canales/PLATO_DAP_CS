@@ -50,7 +50,7 @@ a) L1 assumption: Nothing to add
 
 **b) Residual Stellar Drift**: We have clarified in Section 2.3 that "residual drift" refers to remaining positional drift after L1 correction**, acknowledging that drift and correction effectiveness vary across the FoV and that detailed assessment is ongoing consortium work.
 
-**c) Stellar Variability**: We have added in Section 4.2 that "the statistical averaging approach (1-hour integration, multiple transits) is designed to minimize effects like intrinsic stellar variations."
+**c) Stellar Variability**: We have added in Section 5.2 that "Another important assumption of this work is related to stellar variability, that is not explicitly modeled in our flux and centroid shift calculations. This simplification is justified because intrinsic stellar variations typically occur on timescales different from the transit detection averaging process described in Sections 2.3 and 4.2 "
 
 **d) PSF Uniformity**: We have justified this in two parts:
 
@@ -62,7 +62,7 @@ RS-> you have to explain what are these "real" camara PSFs
 **Manuscript Changes:**
 
 - **Section 2.3**: Added residual drift clarification and ongoing work
-- **Section 4.2**: Added stellar variability minimization strategy
+- **Section 5.2**: Added explanation about stellar variability not relevant for our computations
 - **Section 5.3**: Added PSF variation justification
 - **Section 7**: Added real camera PSF validation reference
 
