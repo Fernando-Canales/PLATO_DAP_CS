@@ -13,5 +13,5 @@ The diagnostic shows that at P = 10.5 and P = 11.5 the secondary flux has a sign
 
 ### To do:
 - [x] Avoid all the unnecessary info in the abstract (since, furthermore, in particular, etc.)
-- [ ] Quote the major and minor points in the cover letter/response letter
-- [ ] Don't mention all the editorial specifically, just say "I addressed all of the editorial comments"
+- [x] Quote the major and minor points in the cover letter/response letter
+- [x] Don't mention all the editorial specifically, just say "I addressed all of the editorial comments"
