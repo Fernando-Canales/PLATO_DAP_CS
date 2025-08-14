@@ -473,7 +473,203 @@ plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 plt.savefig(DIRout + "DAP_CS_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
+
+# ======================================================================
+# COMPLETE P=10.5/P=11.5 ANOMALY INVESTIGATION
+# ======================================================================
+
+print("\n" + "="*80)
+print("INVESTIGATING P=10.5 AND P=11.5 CAMERA SENSITIVITY ANOMALY")
+print("="*80)
+
+# ======================================================================
+# PART 1: ETA DISTRIBUTION PLOTS - Visualize significance across magnitudes
+# ======================================================================
+
+plt.figure(figsize=(15, 10))
+
+# Test magnitudes
+test_mags = [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0]
+
+for i, mag_center in enumerate(test_mags):
+    plt.subplot(2, 4, i+1)
     
+    # Magnitude mask for plotting
+    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    # Get eta values for this magnitude bin (10 contaminants per target)
+    eta_nom_flat = eta_nom_bt_24_cameras[plot_mag_mask, :].flatten()
+    eta_ext_flat = eta_ext_bt_24_cameras[plot_mag_mask, :].flatten()
+    
+    # Remove zeros/invalid values
+    eta_nom_valid = eta_nom_flat[eta_nom_flat > 0]
+    eta_ext_valid = eta_ext_flat[eta_ext_flat > 0]
+    
+    # Plot histograms
+    plt.hist(eta_nom_valid, bins=50, range=(0, 20), alpha=0.6, label='Nominal', density=True)
+    plt.hist(eta_ext_valid, bins=50, range=(0, 20), alpha=0.6, label='Extended', density=True)
+    
+    # Mark critical threshold zones
+    plt.axvline(3, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
+    plt.axvline(6, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
+    plt.axvspan(3, 6, alpha=0.2, color='yellow', label='Sensitive zone' if i == 0 else "")
+    
+    plt.title(f'P = {mag_center}')
+    plt.xlabel('η significance')
+    plt.ylabel('Density')
+    plt.xlim(0, 20)
+    
+    if i == 0:
+        plt.legend(fontsize=8)
+
+plt.tight_layout()
+plt.suptitle('Significance Distribution Across Magnitude Bins\n(10 contaminants per target for Nominal/Extended)', y=1.02)
+plt.savefig(DIRout + "eta_distribution_by_magnitude.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# Summary statistics for eta distributions
+print("\nETA DISTRIBUTION STATISTICS:")
+print("Magnitude | Mean η_nom | Mean η_ext | Fraction in sensitive zone (3-6)")
+print("-" * 70)
+
+for mag_center in test_mags:
+    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    eta_nom_flat = eta_nom_bt_24_cameras[plot_mag_mask, :].flatten()
+    eta_ext_flat = eta_ext_bt_24_cameras[plot_mag_mask, :].flatten()
+    
+    eta_nom_valid = eta_nom_flat[eta_nom_flat > 0]
+    eta_ext_valid = eta_ext_flat[eta_ext_flat > 0]
+    
+    # Fraction in sensitive zone
+    sensitive_nom = np.sum((eta_nom_valid >= 3) & (eta_nom_valid <= 6)) / len(eta_nom_valid) if len(eta_nom_valid) > 0 else 0
+    sensitive_ext = np.sum((eta_ext_valid >= 3) & (eta_ext_valid <= 6)) / len(eta_ext_valid) if len(eta_ext_valid) > 0 else 0
+    
+    mean_nom = np.mean(eta_nom_valid) if len(eta_nom_valid) > 0 else 0
+    mean_ext = np.mean(eta_ext_valid) if len(eta_ext_valid) > 0 else 0
+    
+    print(f"  {mag_center:5.1f}   |   {mean_nom:8.2f}   |   {mean_ext:8.2f}   |   {sensitive_nom:.3f} / {sensitive_ext:.3f}")
+
+# ======================================================================
+# PART 2: DIFFERENTIAL RETENTION RATE ANALYSIS
+# ======================================================================
+
+print("\n" + "="*80)
+print("DIFFERENTIAL RETENTION RATE ANALYSIS")
+print("Investigating why P=10.5 and P=11.5 show camera sensitivity")
+print("="*80)
+
+def analyze_retention_rates(mag_center, binsize=0.5):
+    """
+    Analyze differential retention rates for different methods when going 24->6 cameras
+    """
+    print(f"\nAnalyzing magnitude bin P = {mag_center}")
+    print("-" * 50)
+    
+    # Create magnitude mask for this specific analysis
+    retention_mag_mask = (mag >= mag_center - binsize/2.) & (mag <= mag_center + binsize/2.)
+    
+    # 1. NOMINAL FLUX RETENTION RATE (denominator of efficiency)
+    nom_24_detect = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[retention_mag_mask, :].sum()
+    nom_6_detect = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[retention_mag_mask, :].sum()
+    nom_retention = nom_6_detect / nom_24_detect if nom_24_detect > 0 else 0
+    
+    # 2. EXTENDED FLUX RETENTION RATE (numerator of extended flux efficiency)
+    ext_24_detect = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
+                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
+                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[retention_mag_mask, :].sum()
+    
+    ext_6_detect = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & 
+                    (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & 
+                    (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[retention_mag_mask, :].sum()
+    
+    ext_retention = ext_6_detect / ext_24_detect if ext_24_detect > 0 else 0
+    
+    # 3. SECONDARY FLUX RETENTION RATE (numerator of secondary flux efficiency)
+    sec_24_detect = secondary_mask_conditions_24_cameras[retention_mag_mask].sum()
+    sec_6_detect = secondary_mask_conditions_6_cameras[retention_mag_mask].sum()
+    sec_retention = sec_6_detect / sec_24_detect if sec_24_detect > 0 else 0
+    
+    # 4. CALCULATE DIFFERENTIAL RATES
+    nom_vs_ext_diff = nom_retention - ext_retention
+    nom_vs_sec_diff = nom_retention - sec_retention
+    
+    # Print results
+    print(f"Nominal flux retention:    {nom_retention:.4f} ({nom_6_detect}/{nom_24_detect})")
+    print(f"Extended flux retention:   {ext_retention:.4f} ({ext_6_detect}/{ext_24_detect})")
+    print(f"Secondary flux retention:  {sec_retention:.4f} ({sec_6_detect}/{sec_24_detect})")
+    print(f"")
+    print(f"Differential rates:")
+    print(f"  Nominal - Extended:  {nom_vs_ext_diff:+.4f}")
+    print(f"  Nominal - Secondary: {nom_vs_sec_diff:+.4f}")
+    
+    return {
+        'magnitude': mag_center,
+        'nom_retention': nom_retention,
+        'ext_retention': ext_retention, 
+        'sec_retention': sec_retention,
+        'nom_vs_ext_diff': nom_vs_ext_diff,
+        'nom_vs_sec_diff': nom_vs_sec_diff,
+        'targets_in_bin': retention_mag_mask.sum()
+    }
+
+# Run retention analysis for all magnitude bins
+retention_results = []
+
+for test_mag in test_mags:
+    result = analyze_retention_rates(test_mag)
+    retention_results.append(result)
+
+# ======================================================================
+# PART 3: SUMMARY AND CONCLUSIONS
+# ======================================================================
+
+print("\n" + "="*80)
+print("SUMMARY: Differential Retention Rate Analysis")
+print("="*80)
+
+print("\nMagnitude | Nom-Ext Diff | Nom-Sec Diff | Peak?")
+print("-" * 50)
+
+# Find peaks
+nom_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results]
+nom_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results]
+
+max_ext_diff = max(nom_ext_diffs)
+max_sec_diff = max(nom_sec_diffs)
+
+for result in retention_results:
+    ext_peak = "★" if result['nom_vs_ext_diff'] == max_ext_diff else " "
+    sec_peak = "★" if result['nom_vs_sec_diff'] == max_sec_diff else " "
+    
+    print(f"  {result['magnitude']:5.1f}   |   {result['nom_vs_ext_diff']:+.4f}   |   {result['nom_vs_sec_diff']:+.4f}   | {ext_peak}{sec_peak}")
+
+# Check specifically for P=10.5 and P=11.5
+peak_mags = [10.5, 11.5]
+peak_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results if r['magnitude'] in peak_mags]
+other_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results if r['magnitude'] not in peak_mags]
+
+peak_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results if r['magnitude'] in peak_mags]
+other_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results if r['magnitude'] not in peak_mags]
+
+print(f"\nP=10.5, 11.5 vs Other Magnitudes:")
+print(f"Extended flux differential:")
+print(f"  Peak magnitudes (10.5, 11.5): {np.mean(peak_ext_diffs):+.4f}")
+print(f"  Other magnitudes:              {np.mean(other_ext_diffs):+.4f}")
+print(f"  Enhanced differential at peaks: {np.mean(peak_ext_diffs) > np.mean(other_ext_diffs)}")
+
+print(f"Secondary flux differential:")
+print(f"  Peak magnitudes (10.5, 11.5): {np.mean(peak_sec_diffs):+.4f}")
+print(f"  Other magnitudes:              {np.mean(other_sec_diffs):+.4f}")
+print(f"  Enhanced differential at peaks: {np.mean(peak_sec_diffs) > np.mean(other_sec_diffs)}")
+
+print("\n" + "="*80)
+print("CONCLUSION:")
+print("If enhanced differentials are confirmed at P=10.5/11.5,")
+print("your efficiency anomaly is explained by differential retention rates!")
+print("Both eta distributions and retention analysis should show the pattern.")
+print("="*80)
+
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
