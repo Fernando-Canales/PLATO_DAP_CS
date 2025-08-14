@@ -473,6 +473,200 @@ plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 plt.savefig(DIRout + "DAP_CS_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
+
+# ======================================================================
+# APPENDIX C ANALYSIS: Investigate P=10.5 and P=11.5 Sensitivity
+# ======================================================================
+
+print("\n" + "="*80)
+print("APPENDIX C ANALYSIS: Investigating magnitude-dependent camera sensitivity")
+print("="*80)
+
+# Test magnitudes of interest
+test_magnitudes = [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0]
+
+def analyze_loss_factors(mag_center, eta_method_24, eta_method_6, method_name, 
+                        delta_method=None, delta_nom=None, flux_threshold=3.0):
+    """
+    Analyze L1, L2, L3, L4 loss factors for a specific method and magnitude bin
+    """
+    mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    if delta_method is not None and delta_nom is not None:
+        # For flux methods - need depth condition
+        depth_condition = delta_method[mag_mask] >= delta_nom[mag_mask]
+    else:
+        # For centroid methods - no depth condition needed
+        depth_condition = np.ones(mag_mask.sum(), dtype=bool)
+    
+    # Get significance values for this magnitude bin
+    eta_24 = eta_method_24[mag_mask]
+    eta_nom_24 = eta_nom_bt_24_cameras[mag_mask]
+    
+    # Apply L1, L2, L3, L4 logic (adapted from your plt.figure(40) code)
+    l1 = depth_condition & np.logical_and(flux_threshold <= eta_24, eta_24 <= 2*flux_threshold) & (eta_nom_24 >= 2*flux_threshold)
+    l2 = depth_condition & np.logical_and(flux_threshold <= eta_nom_24, eta_nom_24 <= 2*flux_threshold) & (eta_24 >= 2*flux_threshold)
+    l3 = depth_condition & np.logical_and(flux_threshold <= eta_nom_24, eta_nom_24 <= 2*flux_threshold) & np.logical_and(flux_threshold <= eta_24, eta_24 <= 2*flux_threshold)
+    l4 = np.logical_and(flux_threshold < eta_nom_24, eta_nom_24 < 2*flux_threshold)
+    
+    # Count totals
+    L1_count = np.sum(l1)
+    L2_count = np.sum(l2)
+    L3_count = np.sum(l3)
+    L4_count = np.sum(l4)
+    total_loss = L1_count + L2_count + L3_count
+    
+    # Calculate loss factors (α and β from your Appendix C equations)
+    total_targets_in_bin = mag_mask.sum()
+    if total_targets_in_bin > 0:
+        alpha = total_loss / total_targets_in_bin
+        beta = L4_count / total_targets_in_bin
+    else:
+        alpha = 0
+        beta = 0
+    
+    return {
+        'method': method_name,
+        'magnitude': mag_center,
+        'L1': L1_count,
+        'L2': L2_count, 
+        'L3': L3_count,
+        'L4': L4_count,
+        'total_loss': total_loss,
+        'alpha': alpha,
+        'beta': beta,
+        'targets_in_bin': total_targets_in_bin
+    }
+
+# Store results for all methods and magnitudes
+all_results = []
+
+for mag_center in test_magnitudes:
+    print(f"\nAnalyzing P = {mag_center} magnitude bin:")
+    print("-" * 50)
+    
+    # 1. Extended Flux Analysis
+    result_efx = analyze_loss_factors(
+        mag_center, 
+        eta_ext_bt_24_cameras, eta_ext_bt_6_cameras,
+        'Extended Flux',
+        delta_method=delta_obs_ext, delta_nom=delta_obs,
+        flux_threshold=flux_thresh_ext_mask
+    )
+    all_results.append(result_efx)
+    
+    # 2. Secondary Flux Analysis (more complex - need to extract from conditions)
+    mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    # Extract secondary flux significance for targets in this bin
+    eta_sec_flux_24 = np.where(secondary_mask_conditions_24_cameras[mag_mask], 
+                               eta_c[mag_mask], 0)
+    eta_sec_flux_6 = np.where(secondary_mask_conditions_6_cameras[mag_mask], 
+                              eta_c_6_cameras[mag_mask], 0)
+    
+    # Simple L4 analysis for secondary flux (most important factor)
+    eta_nom_for_bin = eta_nom_bt_24_cameras[mag_mask, 0]  # Use first contaminant
+    l4_sec = np.logical_and(flux_thresh_sec_mask < eta_nom_for_bin, 
+                           eta_nom_for_bin < 2*flux_thresh_sec_mask)
+    
+    result_sfx = {
+        'method': 'Secondary Flux',
+        'magnitude': mag_center,
+        'L4': np.sum(l4_sec),
+        'beta': np.sum(l4_sec) / mag_mask.sum() if mag_mask.sum() > 0 else 0,
+        'targets_in_bin': mag_mask.sum()
+    }
+    all_results.append(result_sfx)
+    
+    # 3. Secondary Centroid Analysis
+    # Use secondary centroid significance values
+    eta_sec_cob_24 = eta_cob_sec_24_cameras[mag_mask]
+    l4_sec_cob = np.logical_and(cob_thresh < eta_sec_cob_24, 
+                               eta_sec_cob_24 < 2*cob_thresh)
+    
+    result_scob = {
+        'method': 'Secondary Centroids',
+        'magnitude': mag_center,
+        'L4': np.sum(l4_sec_cob),
+        'beta': np.sum(l4_sec_cob) / mag_mask.sum() if mag_mask.sum() > 0 else 0,
+        'targets_in_bin': mag_mask.sum()
+    }
+    all_results.append(result_scob)
+    
+    # Print results for this magnitude
+    print(f"Extended Flux    - α: {result_efx['alpha']:.3f}, β: {result_efx['beta']:.3f}, Loss: {result_efx['total_loss']}")
+    print(f"Secondary Flux   - β: {result_sfx['beta']:.3f}, L4: {result_sfx['L4']}")
+    print(f"Secondary COB    - β: {result_scob['beta']:.3f}, L4: {result_scob['L4']}")
+
+# ======================================================================
+# SUMMARY: Check if P=10.5 and P=11.5 have highest loss factors
+# ======================================================================
+
+print("\n" + "="*80)
+print("SUMMARY: Loss Factor Analysis")
+print("="*80)
+
+# Group results by method
+methods = ['Extended Flux', 'Secondary Flux', 'Secondary Centroids']
+
+for method in methods:
+    method_results = [r for r in all_results if r['method'] == method]
+    
+    print(f"\n{method}:")
+    print("Magnitude | β (Loss Factor) | Peak?")
+    print("-" * 35)
+    
+    beta_values = [r['beta'] for r in method_results]
+    max_beta = max(beta_values) if beta_values else 0
+    
+    for result in method_results:
+        is_peak = "★" if result['beta'] == max_beta and result['beta'] > 0 else " "
+        print(f"  {result['magnitude']:5.1f}   |      {result['beta']:6.3f}    | {is_peak}")
+
+# ======================================================================
+# CONCLUSION TEST
+# ======================================================================
+
+print("\n" + "="*80)
+print("CONCLUSION TEST: Do P=10.5 and P=11.5 show peak sensitivity?")
+print("="*80)
+
+# Check if P=10.5 and P=11.5 have highest β values for problematic methods
+problem_methods = ['Secondary Flux', 'Secondary Centroids']
+peak_magnitudes = [10.5, 11.5]
+
+for method in problem_methods:
+    method_results = [r for r in all_results if r['method'] == method]
+    
+    # Get β values for peak magnitudes
+    peak_betas = []
+    for mag in peak_magnitudes:
+        result = next((r for r in method_results if r['magnitude'] == mag), None)
+        if result:
+            peak_betas.append(result['beta'])
+    
+    # Get β values for other magnitudes  
+    other_betas = []
+    for result in method_results:
+        if result['magnitude'] not in peak_magnitudes:
+            other_betas.append(result['beta'])
+    
+    avg_peak = np.mean(peak_betas) if peak_betas else 0
+    avg_other = np.mean(other_betas) if other_betas else 0
+    
+    print(f"{method}:")
+    print(f"  Average β at P=10.5, 11.5: {avg_peak:.3f}")
+    print(f"  Average β at other mags:    {avg_other:.3f}")
+    print(f"  Peak sensitivity confirmed: {avg_peak > avg_other}")
+    print()
+
+print("="*80)
+print("If peak sensitivity is confirmed, your P=10.5/P=11.5 anomaly is explained!")
+print("These magnitudes have the most contaminants in the sensitive threshold zone.")
+print("="*80)
+
+
+
     
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
@@ -580,7 +774,7 @@ n_star = np.zeros(nP)
 for i in range(nP):
     Pi = Pmin + i * binsize  # Define bin edge
     m = (mag >= Pi - binsize / 2.) & (mag <= Pi + binsize / 2.)
-    n_star[i] = m.sum()
+    n_star[i] = m.sum() # type: ignore
 
     # Compute efficiencies and fractions for the current bin
     eff_ext_flux = nfp_ext_mask[m].sum() / nfp[m].sum() * 100.
