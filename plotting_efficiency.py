@@ -671,6 +671,187 @@ print("Both eta distributions and retention analysis should show the pattern.")
 print("="*80)
 
 
+# ======================================================================
+# COMPLETE ANALYSIS: Losses + Individual Eta Distribution Plots
+# ======================================================================
+
+# ======================================================================
+# PART 1: LOSS ANALYSIS
+# ======================================================================
+
+print("\n" + "="*80)
+print("LOSS ANALYSIS: Detections lost when going 24→6 cameras")
+print("="*80)
+
+def analyze_detection_losses(mag_center, binsize=0.5):
+    """
+    Analyze how many detections each method loses when going 24->6 cameras
+    """
+    print(f"\nAnalyzing magnitude bin P = {mag_center}")
+    print("-" * 50)
+    
+    # Create magnitude mask
+    loss_mag_mask = (mag >= mag_center - binsize/2.) & (mag <= mag_center + binsize/2.)
+    
+    # 1. NOMINAL FLUX LOSSES
+    nom_24_detect = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[loss_mag_mask, :].sum()
+    nom_6_detect = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[loss_mag_mask, :].sum()
+    nom_loss = nom_24_detect - nom_6_detect
+    nom_loss_fraction = nom_loss / nom_24_detect if nom_24_detect > 0 else 0
+    
+    # 2. EXTENDED FLUX LOSSES
+    ext_24_detect = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
+                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
+                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[loss_mag_mask, :].sum()
+    
+    ext_6_detect = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & 
+                    (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & 
+                    (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[loss_mag_mask, :].sum()
+    
+    ext_loss = ext_24_detect - ext_6_detect
+    ext_loss_fraction = ext_loss / ext_24_detect if ext_24_detect > 0 else 0
+    
+    # 3. SECONDARY FLUX LOSSES
+    sec_24_detect = secondary_mask_conditions_24_cameras[loss_mag_mask].sum()
+    sec_6_detect = secondary_mask_conditions_6_cameras[loss_mag_mask].sum()
+    sec_loss = sec_24_detect - sec_6_detect
+    sec_loss_fraction = sec_loss / sec_24_detect if sec_24_detect > 0 else 0
+    
+    # 4. CALCULATE DIFFERENTIAL LOSSES
+    ext_vs_nom_diff = ext_loss_fraction - nom_loss_fraction
+    sec_vs_nom_diff = sec_loss_fraction - nom_loss_fraction
+    
+    # Print results
+    print(f"Nominal flux:    Lost {nom_loss:3d}/{nom_24_detect:3d} = {nom_loss_fraction:.3f} ({nom_loss_fraction*100:.1f}%)")
+    print(f"Extended flux:   Lost {ext_loss:3d}/{ext_24_detect:3d} = {ext_loss_fraction:.3f} ({ext_loss_fraction*100:.1f}%)")
+    print(f"Secondary flux:  Lost {sec_loss:3d}/{sec_24_detect:3d} = {sec_loss_fraction:.3f} ({sec_loss_fraction*100:.1f}%)")
+    print(f"")
+    print(f"Differential loss rates (vs nominal):")
+    print(f"  Extended - Nominal:  {ext_vs_nom_diff:+.3f} ({ext_vs_nom_diff*100:+.1f}%)")
+    print(f"  Secondary - Nominal: {sec_vs_nom_diff:+.3f} ({sec_vs_nom_diff*100:+.1f}%)")
+    
+    return {
+        'magnitude': mag_center,
+        'nom_loss_fraction': nom_loss_fraction,
+        'ext_loss_fraction': ext_loss_fraction,
+        'sec_loss_fraction': sec_loss_fraction,
+        'ext_vs_nom_diff': ext_vs_nom_diff,
+        'sec_vs_nom_diff': sec_vs_nom_diff
+    }
+
+# Run loss analysis
+test_mags = [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0]
+loss_results = []
+
+for test_mag in test_mags:
+    result = analyze_detection_losses(test_mag)
+    loss_results.append(result)
+
+# ======================================================================
+# PART 2: SECONDARY FLUX ETA DISTRIBUTIONS (Separate Plot)
+# ======================================================================
+
+plt.figure(figsize=(15, 5))
+
+for i, mag_center in enumerate(test_mags):
+    plt.subplot(1, 7, i+1)
+    
+    # Magnitude mask for plotting
+    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    # Get secondary flux eta values (1 value per target - most significant contaminant)
+    eta_sec_flux_24 = eta_c[plot_mag_mask]
+    eta_sec_flux_6 = eta_c_6_cameras[plot_mag_mask]
+    
+    # Remove zeros/invalid values
+    eta_sec_24_valid = eta_sec_flux_24[eta_sec_flux_24 > 0]
+    eta_sec_6_valid = eta_sec_flux_6[eta_sec_flux_6 > 0]
+    
+    # Plot histograms
+    plt.hist(eta_sec_24_valid, bins=30, range=(0, 50), alpha=0.6, label='24 cam', density=True, color='purple')
+    plt.hist(eta_sec_6_valid, bins=30, range=(0, 50), alpha=0.6, label='6 cam', density=True, color='green')
+    
+    # Mark critical threshold zones
+    plt.axvline(flux_thresh_sec_mask, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
+    plt.axvline(2*flux_thresh_sec_mask, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
+    plt.axvspan(flux_thresh_sec_mask, 2*flux_thresh_sec_mask, alpha=0.2, color='yellow')
+    
+    # Highlight P=10.5 and P=11.5
+    if mag_center in [10.5, 11.5]:
+        plt.gca().set_facecolor('#ffe6e6')  # Light red background
+    
+    plt.title(f'P={mag_center}', fontsize=12, weight='bold' if mag_center in [10.5, 11.5] else 'normal')
+    plt.xlabel('η_secondary_flux')
+    plt.ylabel('Density')
+    plt.xlim(0, 50)
+    
+    if i == 0:
+        plt.legend(fontsize=8)
+
+plt.suptitle('Secondary Flux: Significance Distributions by Magnitude\n(1 contaminant per target - most significant)', fontsize=14)
+plt.tight_layout()
+plt.savefig(DIRout + "secondary_flux_eta_distributions.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ======================================================================
+# PART 3: SECONDARY CENTROIDS ETA DISTRIBUTIONS (Separate Plot)
+# ======================================================================
+
+plt.figure(figsize=(15, 5))
+
+for i, mag_center in enumerate(test_mags):
+    plt.subplot(1, 7, i+1)
+    
+    # Magnitude mask for plotting
+    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
+    
+    # Get secondary centroid eta values (1 value per target)
+    eta_sec_cob_24 = eta_cob_sec_24_cameras[plot_mag_mask]
+    eta_sec_cob_6 = eta_cob_sec_6_cameras[plot_mag_mask]
+    
+    # Remove zeros/invalid values
+    eta_sec_cob_24_valid = eta_sec_cob_24[eta_sec_cob_24 > 0]
+    eta_sec_cob_6_valid = eta_sec_cob_6[eta_sec_cob_6 > 0]
+    
+    # Plot histograms
+    plt.hist(eta_sec_cob_24_valid, bins=30, range=(0, 20), alpha=0.6, label='24 cam', density=True, color='blue')
+    plt.hist(eta_sec_cob_6_valid, bins=30, range=(0, 20), alpha=0.6, label='6 cam', density=True, color='red')
+    
+    # Mark critical threshold zones (using cob_thresh = 3)
+    plt.axvline(cob_thresh, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
+    plt.axvline(2*cob_thresh, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
+    plt.axvspan(cob_thresh, 2*cob_thresh, alpha=0.2, color='yellow')
+    
+    # Highlight P=10.5 and P=11.5
+    if mag_center in [10.5, 11.5]:
+        plt.gca().set_facecolor('#ffe6e6')  # Light red background
+    
+    plt.title(f'P={mag_center}', fontsize=12, weight='bold' if mag_center in [10.5, 11.5] else 'normal')
+    plt.xlabel('η_secondary_centroids')
+    plt.ylabel('Density')
+    plt.xlim(0, 20)
+    
+    if i == 0:
+        plt.legend(fontsize=8)
+
+plt.suptitle('Secondary Centroids: Significance Distributions by Magnitude\n(1 contaminant per target - most significant)', fontsize=14)
+plt.tight_layout()
+plt.savefig(DIRout + "secondary_centroids_eta_distributions.pdf", format='pdf', bbox_inches='tight')
+plt.show()
+
+# ======================================================================
+# PART 4: SUMMARY
+# ======================================================================
+
+print("\n" + "="*80)
+print("SUMMARY: P=10.5 and P=11.5 Analysis")
+print("="*80)
+print("Check the eta distribution plots:")
+print("- P=10.5 and P=11.5 have red backgrounds (highlighted)")
+print("- Look for differences between 24-cam and 6-cam distributions")
+print("- Yellow zones show sensitive regions (3 < η < 6)")
+print("="*80)
+
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
