@@ -153,8 +153,17 @@ To-do:
 - [ ] Sending the paper to coauthors on Friday
 - [x] Putting triangles as the contaminants in Fig. 1
 
-Investigate what is going on at P=10.5 and P=11.5 for the:
-- [ ] Secondary flux measurements
-- [ ] Secondary centroid shifts
-- [ ] Extended flux measurements
+Start to investigate what is going on at P=10.5 and P=11.5 for the:
+- [x] Secondary flux measurements
+- [x] Secondary centroid shifts
+- [x] Extended flux measurements
 
+### Week of 18th of August
+-  [ ] P = 10.70 instead of P = 11 in the efficiency plots
+-  [ ] Improve the answers from the referee using Réza's comments
+-  [ ] Table 3 for Secondary mask methods only
+-  [ ] Introduce the noise condition for the extended and nominal cobs as well
+-  [ ] Table 3 and new table 3 conclusion
+-  [ ] Mention the 1 hour average explanation in Sect. 2.3 
+-  [ ] Don't mention real camera PSF in the referee response and in the paper
+-  [ ] Check which grows faster, if the nominal significance or the extended significance or the secondary significance at P = 10.5 and P = 11.5
