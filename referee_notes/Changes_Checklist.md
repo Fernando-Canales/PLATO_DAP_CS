@@ -148,12 +148,13 @@ Fix  [[Major_Comments_Response#Third Major point|Major point 3]]:
 To-do:
 - [x] Remove results from fixed transit parameters from Table 2
 - [x] Remove any mention to fixed transit parameters result from the paper that is not the mention of my thesis (including gamma and <> factors)
-- [ ] Incorporating changes in Section 8
+- [x] Incorporating changes in Section 8
 - [x] Trim the abstract
 - [ ] Sending the paper to coauthors on Friday
-- [ ] Putting triangles as the contaminants in Fig. 1
+- [x] Putting triangles as the contaminants in Fig. 1
 
 Investigate what is going on at P=10.5 and P=11.5 for the:
 - [ ] Secondary flux measurements
 - [ ] Secondary centroid shifts
 - [ ] Extended flux measurements
+

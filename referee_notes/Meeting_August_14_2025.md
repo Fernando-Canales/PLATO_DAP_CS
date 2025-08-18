@@ -14,6 +14,7 @@ Questions and to do:
 -  [ ] Table 3 for Secondary mask methods only
 -  [ ] Introduce the noise condition for the extended and nominal cobs as well
 -  [ ] Table 3 and new table 3 conclusion
+-  [ ] Mention the 1 hour average explanation in Sect. 2.3 
 -  [ ] Don't mention real camera PSF in the referee response and in the paper
 -  [ ] Check which grows faster, if the nominal significance or the extended significance or the secondary significance at P = 10.5 and P = 11.5
 
