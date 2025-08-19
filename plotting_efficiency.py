@@ -820,7 +820,7 @@ print(f'Weighted fraction of FPs detected by EFX but not by SCOB: {weighted_frac
 print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}%')
 
 
-# Fixed version that properly handles array dimensions
+# STEP 1: Analysis function (from earlier)
 def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, 
                                   delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras,
                                   eta_nom_bt_24_cameras, flux_thresh_nom_mask, mag):
@@ -862,60 +862,78 @@ def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10firs
     
     return snr_nom_clean, snr_ext_clean, mag_nom_clean, mag_ext_clean
 
-# Updated diagnostic plots function
-def create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='./'):
+# STEP 2: RUN THE ANALYSIS (this creates the variables)
+print("Running centroid shift analysis...")
+snr_nom, snr_ext, mag_nom, mag_ext = analyze_centroid_snr_with_mag(
+    delta_cob_10first_24_cameras, 
+    sigma_cob_10first_24_cameras,
+    delta_cob_ext_10first_24_cameras, 
+    sigma_cob_ext_10first_24_cameras,
+    eta_nom_bt_24_cameras, 
+    flux_thresh_nom_mask,
+    mag  # Pass magnitude array
+)
+print(f"Analysis complete: {len(snr_nom)} nominal and {len(snr_ext)} extended measurements")
+
+# STEP 3: NOW run the plotting function (paste the create_diagnostic_plots_clear function here)
+# # Updated diagnostic plots with clearer labeling
+def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='./'):
     """
-    Create diagnostic plots for the meeting with proper magnitude handling
+    Create diagnostic plots with clear ΔC/σ labeling instead of SNR
     """
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    fig, axes = plt.subplots(3, 3, figsize=(16, 12))
     
-    # Plot 1: Histogram of SNR for nominal centroids
+    # Plot 1: Histogram of ΔC/σ for nominal centroids
     ax1 = axes[0, 0]
     counts_nom, bins_nom, _ = ax1.hist(snr_nom, bins=50, alpha=0.7, color='blue', edgecolor='black')
-    ax1.axvline(3, color='green', linestyle='--', label='3σ threshold')
-    ax1.axvline(5, color='orange', linestyle='--', label='5σ threshold')
+    ax1.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
+    ax1.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
     ax1.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
-    ax1.set_xlabel('ΔC_nom / σ_nom')
-    ax1.set_ylabel('Count')
-    ax1.set_title('Nominal Centroid SNR Distribution')
-    ax1.legend()
+    ax1.set_xlabel('ΔC_nom / σ_nom', fontsize=12)
+    ax1.set_ylabel('Count', fontsize=12)
+    ax1.set_title('Nominal Centroid: ΔC/σ Distribution', fontsize=13)
+    ax1.legend(loc='upper right')
     ax1.set_yscale('log')
     
     # Calculate percentages
     pct_above_3_nom = np.sum(snr_nom > 3) / len(snr_nom) * 100
     pct_above_5_nom = np.sum(snr_nom > 5) / len(snr_nom) * 100
     pct_above_10_nom = np.sum(snr_nom > 10) / len(snr_nom) * 100
-    ax1.text(0.95, 0.95, f'>3σ: {pct_above_3_nom:.1f}%\n>5σ: {pct_above_5_nom:.1f}%\n>10σ: {pct_above_10_nom:.1f}%',
-             transform=ax1.transAxes, ha='right', va='top', bbox=dict(boxstyle='round', facecolor='white'))
+    ax1.text(0.95, 0.75, f'ΔC/σ > 3: {pct_above_3_nom:.1f}%\nΔC/σ > 5: {pct_above_5_nom:.1f}%\nΔC/σ > 10: {pct_above_10_nom:.1f}%',
+             transform=ax1.transAxes, ha='right', va='top', 
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), fontsize=10)
     
-    # Plot 2: Histogram of SNR for extended centroids
+    # Plot 2: Histogram of ΔC/σ for extended centroids
     ax2 = axes[0, 1]
     counts_ext, bins_ext, _ = ax2.hist(snr_ext, bins=50, alpha=0.7, color='red', edgecolor='black')
-    ax2.axvline(3, color='green', linestyle='--', label='3σ threshold')
-    ax2.axvline(5, color='orange', linestyle='--', label='5σ threshold')
+    ax2.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
+    ax2.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
     ax2.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
-    ax2.set_xlabel('ΔC_ext / σ_ext')
-    ax2.set_ylabel('Count')
-    ax2.set_title('Extended Centroid SNR Distribution')
-    ax2.legend()
+    ax2.set_xlabel('ΔC_ext / σ_ext', fontsize=12)
+    ax2.set_ylabel('Count', fontsize=12)
+    ax2.set_title('ECOB: ΔC/σ Distribution', fontsize=13)
+    ax2.legend(loc='upper right')
     ax2.set_yscale('log')
     
     # Calculate percentages
     pct_above_3_ext = np.sum(snr_ext > 3) / len(snr_ext) * 100
     pct_above_5_ext = np.sum(snr_ext > 5) / len(snr_ext) * 100
     pct_above_10_ext = np.sum(snr_ext > 10) / len(snr_ext) * 100
-    ax2.text(0.95, 0.95, f'>3σ: {pct_above_3_ext:.1f}%\n>5σ: {pct_above_5_ext:.1f}%\n>10σ: {pct_above_10_ext:.1f}%',
-             transform=ax2.transAxes, ha='right', va='top', bbox=dict(boxstyle='round', facecolor='white'))
+    ax2.text(0.95, 0.75, f'ΔC/σ > 3: {pct_above_3_ext:.1f}%\nΔC/σ > 5: {pct_above_5_ext:.1f}%\nΔC/σ > 10: {pct_above_10_ext:.1f}%',
+             transform=ax2.transAxes, ha='right', va='top', 
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), fontsize=10)
     
-    # Plot 3: Direct comparison
+    # Plot 3: Direct comparison (normalized)
     ax3 = axes[0, 2]
     ax3.hist(snr_nom, bins=50, alpha=0.5, label='Nominal', color='blue', density=True)
     ax3.hist(snr_ext, bins=50, alpha=0.5, label='Extended', color='red', density=True)
+    ax3.axvline(3, color='green', linestyle='--', linewidth=1, alpha=0.7)
+    ax3.axvline(5, color='orange', linestyle='--', linewidth=1, alpha=0.7)
     ax3.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ threshold')
-    ax3.set_xlabel('ΔC / σ')
-    ax3.set_ylabel('Normalized Count')
-    ax3.set_title('SNR Comparison: Nominal vs Extended')
-    ax3.legend()
+    ax3.set_xlabel('ΔC / σ', fontsize=12)
+    ax3.set_ylabel('Normalized Count', fontsize=12)
+    ax3.set_title('Direct Comparison: NCOB vs ECOB', fontsize=13)
+    ax3.legend(loc='upper right')
     ax3.set_xlim(0, 30)
     
     # Plot 4: Cumulative distribution
@@ -924,48 +942,44 @@ def create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     snr_sorted_ext = np.sort(snr_ext)
     cdf_nom = np.arange(1, len(snr_sorted_nom) + 1) / len(snr_sorted_nom)
     cdf_ext = np.arange(1, len(snr_sorted_ext) + 1) / len(snr_sorted_ext)
-    ax4.plot(snr_sorted_nom, cdf_nom, label='Nominal', color='blue')
-    ax4.plot(snr_sorted_ext, cdf_ext, label='Extended', color='red')
-    ax4.axvline(3, color='green', linestyle='--', alpha=0.5)
-    ax4.axvline(5, color='orange', linestyle='--', alpha=0.5)
+    ax4.plot(snr_sorted_nom, cdf_nom, label='Nominal', color='blue', linewidth=2)
+    ax4.plot(snr_sorted_ext, cdf_ext, label='Extended', color='red', linewidth=2)
+    ax4.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
+    ax4.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
     ax4.axvline(10, color='red', linestyle='--', linewidth=2)
-    ax4.set_xlabel('ΔC / σ')
-    ax4.set_ylabel('Cumulative Fraction')
-    ax4.set_title('Cumulative Distribution of SNR')
-    ax4.legend()
+    ax4.set_xlabel('ΔC / σ', fontsize=12)
+    ax4.set_ylabel('Cumulative Fraction', fontsize=12)
+    ax4.set_title('Cumulative Distribution of ΔC/σ', fontsize=13)
+    ax4.legend(loc='lower right')
     ax4.grid(True, alpha=0.3)
     ax4.set_xlim(0, 30)
     
-    # Plot 5: SNR vs Magnitude (using properly matched arrays)
+    # Plot 5: Median ΔC/σ vs Magnitude
     ax5 = axes[1, 1]
     mag_bins = np.arange(10, 13.5, 0.5)
-    mag_centers = []
-    median_nom_list = []
-    median_ext_list = []
     
     for i in range(len(mag_bins)-1):
         # For nominal
         mask_nom = (mag_nom >= mag_bins[i]) & (mag_nom < mag_bins[i+1])
         if np.sum(mask_nom) > 0:
             median_nom = np.median(snr_nom[mask_nom])
-            median_nom_list.append(median_nom)
-            mag_centers.append(mag_bins[i] + 0.25)
-            ax5.scatter(mag_bins[i] + 0.25, median_nom, color='blue', s=100, marker='o', label='Nominal' if i == 0 else '')
+            ax5.scatter(mag_bins[i] + 0.25, median_nom, color='blue', s=100, marker='o', 
+                       label='Nominal' if i == 0 else '')
         
         # For extended
         mask_ext = (mag_ext >= mag_bins[i]) & (mag_ext < mag_bins[i+1])
         if np.sum(mask_ext) > 0:
             median_ext = np.median(snr_ext[mask_ext])
-            median_ext_list.append(median_ext)
-            ax5.scatter(mag_bins[i] + 0.25, median_ext, color='red', s=100, marker='s', label='Extended' if i == 0 else '')
+            ax5.scatter(mag_bins[i] + 0.25, median_ext, color='red', s=100, marker='s', 
+                       label='Extended' if i == 0 else '')
     
     ax5.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
-    ax5.axhline(5, color='orange', linestyle='--', label='5σ threshold')
-    ax5.axhline(3, color='green', linestyle='--', label='3σ threshold')
-    ax5.set_xlabel('P Magnitude')
-    ax5.set_ylabel('Median SNR')
-    ax5.set_title('Median SNR vs Magnitude')
-    ax5.legend()
+    ax5.axhline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
+    ax5.axhline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
+    ax5.set_xlabel('P Magnitude', fontsize=12)
+    ax5.set_ylabel('Median ΔC/σ', fontsize=12)
+    ax5.set_title('Median ΔC/σ vs Magnitude', fontsize=13)
+    ax5.legend(loc='upper right')
     ax5.grid(True, alpha=0.3)
     
     # Plot 6: Efficiency vs Threshold
@@ -976,67 +990,127 @@ def create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     
     ax6.plot(thresholds, eff_nom, label='Nominal', color='blue', linewidth=2)
     ax6.plot(thresholds, eff_ext, label='Extended', color='red', linewidth=2)
-    ax6.axvline(3, color='green', linestyle='--', alpha=0.5)
-    ax6.axvline(5, color='orange', linestyle='--', alpha=0.5)
+    ax6.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
+    ax6.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(10, color='red', linestyle='--', linewidth=2)
     ax6.axhline(70, color='gray', linestyle=':', alpha=0.5, label='70% efficiency')
-    ax6.set_xlabel('SNR Threshold')
-    ax6.set_ylabel('Efficiency (%)')
-    ax6.set_title('Efficiency vs SNR Threshold')
-    ax6.legend()
+    ax6.set_xlabel('ΔC/σ Threshold', fontsize=12)
+    ax6.set_ylabel('Efficiency (%)', fontsize=12)
+    ax6.set_title('Efficiency vs ΔC/σ Threshold', fontsize=13)
+    ax6.legend(loc='upper right')
     ax6.grid(True, alpha=0.3)
     
+    # NEW Plot 7: Direct overlay histogram (not normalized)
+    ax7 = axes[2, 0]
+    # Plot with slight offset for visibility
+    bins = np.linspace(0, max(snr_nom.max(), snr_ext.max()), 60)
+    ax7.hist(snr_nom, bins=bins, alpha=0.6, label='Nominal', color='blue', edgecolor='blue', linewidth=1)
+    ax7.hist(snr_ext, bins=bins, alpha=0.6, label='Extended', color='red', edgecolor='red', linewidth=1)
+    ax7.axvline(3, color='green', linestyle='--', linewidth=1.5, label='3σ')
+    ax7.axvline(5, color='orange', linestyle='--', linewidth=1.5, label='5σ')
+    ax7.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ')
+    ax7.set_xlabel('ΔC / σ', fontsize=12)
+    ax7.set_ylabel('Count', fontsize=12)
+    ax7.set_title('Overlay Comparison: ΔC/σ Distributions', fontsize=13)
+    ax7.legend(loc='upper right')
+    ax7.set_yscale('log')
+    ax7.set_xlim(0, 50)
+    
+    # NEW Plot 8: Box plot comparison
+    ax8 = axes[2, 1]
+    box_data = [snr_nom[snr_nom <= np.percentile(snr_nom, 99)],  # Remove extreme outliers for visibility
+                snr_ext[snr_ext <= np.percentile(snr_ext, 99)]]
+    bp = ax8.boxplot(box_data, labels=['Nominal', 'Extended'], patch_artist=True)
+    bp['boxes'][0].set_facecolor('blue')
+    bp['boxes'][0].set_alpha(0.5)
+    bp['boxes'][1].set_facecolor('red')
+    bp['boxes'][1].set_alpha(0.5)
+    ax8.axhline(3, color='green', linestyle='--', linewidth=1.5, label='3σ threshold')
+    ax8.axhline(5, color='orange', linestyle='--', linewidth=1.5, label='5σ threshold')
+    ax8.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax8.set_ylabel('ΔC / σ', fontsize=12)
+    ax8.set_title('Box Plot: ΔC/σ Distribution Comparison', fontsize=13)
+    ax8.legend(loc='upper right')
+    ax8.grid(True, alpha=0.3, axis='y')
+    
+    # NEW Plot 9: Difference plot
+    ax9 = axes[2, 2]
+    # Calculate efficiency difference
+    thresholds_fine = np.linspace(1, 20, 100)
+    eff_nom_fine = [np.sum(snr_nom > t) / len(snr_nom) * 100 for t in thresholds_fine]
+    eff_ext_fine = [np.sum(snr_ext > t) / len(snr_ext) * 100 for t in thresholds_fine]
+    eff_diff = np.array(eff_ext_fine) - np.array(eff_nom_fine)
+    
+    ax9.plot(thresholds_fine, eff_diff, color='purple', linewidth=2)
+    ax9.fill_between(thresholds_fine, 0, eff_diff, where=(eff_diff > 0), color='green', alpha=0.3, label='Extended better')
+    ax9.fill_between(thresholds_fine, 0, eff_diff, where=(eff_diff < 0), color='red', alpha=0.3, label='Nominal better')
+    ax9.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
+    ax9.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
+    ax9.axvline(10, color='red', linestyle='--', linewidth=2)
+    ax9.axhline(0, color='black', linestyle='-', linewidth=0.5)
+    ax9.set_xlabel('ΔC/σ Threshold', fontsize=12)
+    ax9.set_ylabel('Efficiency Difference (%)\n(Extended - Nominal)', fontsize=12)
+    ax9.set_title('Efficiency Advantage of Extended over Nominal', fontsize=13)
+    ax9.legend(loc='upper right')
+    ax9.grid(True, alpha=0.3)
+    
+    # Add text showing difference at key thresholds
+    diff_3 = np.sum(snr_ext > 3)/len(snr_ext)*100 - np.sum(snr_nom > 3)/len(snr_nom)*100
+    diff_5 = np.sum(snr_ext > 5)/len(snr_ext)*100 - np.sum(snr_nom > 5)/len(snr_nom)*100
+    diff_10 = np.sum(snr_ext > 10)/len(snr_ext)*100 - np.sum(snr_nom > 10)/len(snr_nom)*100
+    ax9.text(3, diff_3 + 2, f'+{diff_3:.1f}%', ha='center', fontsize=9, color='green')
+    ax9.text(5, diff_5 + 2, f'+{diff_5:.1f}%', ha='center', fontsize=9, color='orange')
+    ax9.text(10, diff_10 + 2, f'+{diff_10:.1f}%', ha='center', fontsize=9, color='red')
+    
+    plt.suptitle('Centroid Shift Analysis: ΔC/σ Diagnostics', fontsize=15, y=1.02)
     plt.tight_layout()
-    plt.savefig(f'{save_dir}/centroid_snr_diagnostics.pdf', dpi=150, bbox_inches='tight')
+    plt.savefig(f'{save_dir}/centroid_delta_over_sigma_diagnostics.pdf', dpi=150, bbox_inches='tight')
     plt.show()
     
     return fig
 
-# Main execution code - use this in your script
-snr_nom, snr_ext, mag_nom, mag_ext = analyze_centroid_snr_with_mag(
-    delta_cob_10first_24_cameras, 
-    sigma_cob_10first_24_cameras,
-    delta_cob_ext_10first_24_cameras, 
-    sigma_cob_ext_10first_24_cameras,
-    eta_nom_bt_24_cameras, 
-    flux_thresh_nom_mask,
-    mag  # Pass magnitude array
-)
 
-# Create the plots
-fig = create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir=DIRout)
+# STEP 4: Create the plots
+fig = create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir=DIRout)
 
-# Print summary statistics for your meeting
+# STEP 5: Print summary statistics
 print("\n" + "="*60)
-print("CENTROID SHIFT SNR ANALYSIS SUMMARY")
+print("CENTROID SHIFT ANALYSIS: ΔC/σ SUMMARY")
 print("="*60)
-print("\nNOMINAL CENTROIDS:")
+print("\nNOMINAL CENTROIDS (ΔC_nom/σ_nom):")
 print(f"  Total valid measurements: {len(snr_nom)}")
-print(f"  Median SNR: {np.median(snr_nom):.2f}")
-print(f"  Mean SNR: {np.mean(snr_nom):.2f}")
-print(f"  Efficiency with 3σ: {np.sum(snr_nom > 3)/len(snr_nom)*100:.1f}%")
-print(f"  Efficiency with 5σ: {np.sum(snr_nom > 5)/len(snr_nom)*100:.1f}%")
-print(f"  Efficiency with 10σ: {np.sum(snr_nom > 10)/len(snr_nom)*100:.1f}%")
+print(f"  Median ΔC/σ: {np.median(snr_nom):.2f}")
+print(f"  Mean ΔC/σ: {np.mean(snr_nom):.2f}")
+print(f"  25th percentile: {np.percentile(snr_nom, 25):.2f}")
+print(f"  75th percentile: {np.percentile(snr_nom, 75):.2f}")
+print(f"  Fraction with ΔC/σ > 3: {np.sum(snr_nom > 3)/len(snr_nom)*100:.1f}%")
+print(f"  Fraction with ΔC/σ > 5: {np.sum(snr_nom > 5)/len(snr_nom)*100:.1f}%")
+print(f"  Fraction with ΔC/σ > 10: {np.sum(snr_nom > 10)/len(snr_nom)*100:.1f}%")
 
-print("\nEXTENDED CENTROIDS:")
+print("\nEXTENDED CENTROIDS (ΔC_ext/σ_ext):")
 print(f"  Total valid measurements: {len(snr_ext)}")
-print(f"  Median SNR: {np.median(snr_ext):.2f}")
-print(f"  Mean SNR: {np.mean(snr_ext):.2f}")
-print(f"  Efficiency with 3σ: {np.sum(snr_ext > 3)/len(snr_ext)*100:.1f}%")
-print(f"  Efficiency with 5σ: {np.sum(snr_ext > 5)/len(snr_ext)*100:.1f}%")
-print(f"  Efficiency with 10σ: {np.sum(snr_ext > 10)/len(snr_ext)*100:.1f}%")
+print(f"  Median ΔC/σ: {np.median(snr_ext):.2f}")
+print(f"  Mean ΔC/σ: {np.mean(snr_ext):.2f}")
+print(f"  25th percentile: {np.percentile(snr_ext, 25):.2f}")
+print(f"  75th percentile: {np.percentile(snr_ext, 75):.2f}")
+print(f"  Fraction with ΔC/σ > 3: {np.sum(snr_ext > 3)/len(snr_ext)*100:.1f}%")
+print(f"  Fraction with ΔC/σ > 5: {np.sum(snr_ext > 5)/len(snr_ext)*100:.1f}%")
+print(f"  Fraction with ΔC/σ > 10: {np.sum(snr_ext > 10)/len(snr_ext)*100:.1f}%")
 
-print("\nDIFFERENCE (Nominal - Extended):")
-print(f"  Δ Efficiency at 3σ: {(np.sum(snr_nom > 3)/len(snr_nom) - np.sum(snr_ext > 3)/len(snr_ext))*100:.1f}%")
-print(f"  Δ Efficiency at 5σ: {(np.sum(snr_nom > 5)/len(snr_nom) - np.sum(snr_ext > 5)/len(snr_ext))*100:.1f}%")
-print(f"  Δ Efficiency at 10σ: {(np.sum(snr_nom > 10)/len(snr_nom) - np.sum(snr_ext > 10)/len(snr_ext))*100:.1f}%")
+print("\nCOMPARISON (Extended vs Nominal):")
+print(f"  Median ΔC/σ ratio (Ext/Nom): {np.median(snr_ext)/np.median(snr_nom):.2f}x")
+print(f"  Efficiency gain at 3σ: {(np.sum(snr_ext > 3)/len(snr_ext) - np.sum(snr_nom > 3)/len(snr_nom))*100:+.1f}%")
+print(f"  Efficiency gain at 5σ: {(np.sum(snr_ext > 5)/len(snr_ext) - np.sum(snr_nom > 5)/len(snr_nom))*100:+.1f}%")
+print(f"  Efficiency gain at 10σ: {(np.sum(snr_ext > 10)/len(snr_ext) - np.sum(snr_nom > 10)/len(snr_nom))*100:+.1f}%")
 
-print("\nRECOMMENDATION:")
+print("\nRECOMMENDATION based on ΔC/σ analysis:")
 eff_10_nom = np.sum(snr_nom > 10)/len(snr_nom)*100
 eff_5_nom = np.sum(snr_nom > 5)/len(snr_nom)*100
+eff_3_nom = np.sum(snr_nom > 3)/len(snr_nom)*100
 if eff_10_nom < 75:
-    print(f"  The 10σ threshold is too stringent (only {eff_10_nom:.1f}% efficiency).")
-    print(f"  Recommend 5σ threshold for {eff_5_nom:.1f}% efficiency.")
-else:
-    print(f"  The 10σ threshold is acceptable ({eff_10_nom:.1f}% efficiency).")
+    print(f"  Current 10σ threshold is too stringent:")
+    print(f"    - Only {eff_10_nom:.1f}% of nominal centroids have ΔC/σ > 10")
+    print(f"  Alternative thresholds:")
+    print(f"    - 5σ threshold → {eff_5_nom:.1f}% efficiency (recommended)")
+    print(f"    - 3σ threshold → {eff_3_nom:.1f}% efficiency (standard detection)")
 print("="*60)
