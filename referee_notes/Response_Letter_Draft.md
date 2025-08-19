@@ -47,12 +47,10 @@ b) Residual Stellar Drift: We have clarified in Section 2.3 that "residual drift
 
 c) Stellar Variability: We have added in Section 5.2 that "Another important assumption of this work is related to stellar variability, that is not explicitly modeled in our flux and centroid shift calculations. This simplification is justified because intrinsic stellar variations typically occur on timescales different from the transit detection averaging process described in Sections 2.3 and 4.2 "
 
-**d) PSF Uniformity**: We have justified this in two parts:
+d) PSF Uniformity: We have justified this in the following way
 
 - Section 5.3: PSF set reflects realistic camera-to-camera variations from Monte Carlo simulations 
-- Section 7: Real camera PSF analysis shows no significant performance changes under various configurations
-
-RS-> you have to explain what are these "real" camara PSFs
+- Section 8.4: We refer to Gutierrez-Canales (2025) to show that the efficiency of the metrics does not change a lot under a series of different PSF configurations (temperature, diffusion kernel value, etc.)
 
 **Manuscript Changes:**
 
