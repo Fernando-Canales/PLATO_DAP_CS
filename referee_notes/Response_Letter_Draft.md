@@ -14,7 +14,7 @@
 
 **Response:** We agree with the referee's concern about unrealistic assumptions. We have revised the paper to present results using realistic EB parameter diversity sampled from the Kepler EB catalog, rather than fixed parameters. This approach provides realistic performance expectations for PLATO operations. This concern is directly addressed by our revised approach using realistic parameter diversity. Rather than assuming uniform transit depths and durations, we now sample (δ, td) pairs from the Kepler Eclipsing Binary Catalog (Kirk et al. 2016), which provides authentic parameter distributions from observed systems.
 
-This approach ensures that each contaminant EB has realistic pair of parameters. 
+This approach ensures that each contaminant EB has realistic pair of parameters.
 
 **Manuscript Changes:**
 
