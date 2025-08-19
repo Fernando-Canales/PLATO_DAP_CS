@@ -112,18 +112,18 @@ sigma_cob_sec_24_cameras = data_sec[:, 10]
 eta_cob_sec_6_cameras = data_sec[:, 12]
 delta_cob_sec_6_cameras = data_sec[:, 13]
 sigma_cob_sec_6_cameras = data_sec[:, 14]
+delta_cob_ext = data_ext[:, 10]
+eta_cob_ext = data_ext[:, 11]
+sigma_cob_ext = data_ext[:, 12]
 
 # We get now the 10 first values for each param. of the nominal cob shift
 SPRK10_first = data[:, 17:27]
 eta_cob_nom_10first_24_cameras = data[:, 46:56]
 sigma_cob_10first_24_cameras = data[:, 56:66]
-abs_cob_shift_10first = data[:, 66:76]
+delta_cob_10first_24_cameras = data[:, 66:76]
 eta_cob_nom_10first_6_cameras = data[:, 76:86]
 sigma_cob_10first_6_cameras = data[:, 86:96]
-abs_cob_shift_10first = data[:, 96:106]
-delta_cob_ext = data_ext[:, 10]
-eta_cob_ext = data_ext[:, 11]
-sigma_cob_ext = data_ext[:, 12]
+delta_cob_10first_6_cameras = data[:, 96:106]
 gamma_cob_nom_10first_24_cameras = data[:, 106:116]
 
 
@@ -161,7 +161,7 @@ eficiency_extended_mask_highest_spr_contaminant = fp_single_contaminant_24_camer
 cd = fp_single_contaminant_24_cameras & (eta_cob > cob_thresh)  # nominal mask false positive detection rate via cob shift
 cd_6_cameras = fp_single_contaminant_6_cameras & (eta_cob_6_cameras > cob_thresh)
 secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & (delta_cob_sec > 10*sigma_cob_sec_24_cameras) & fp_single_contaminant_24_cameras  # secondary mask efficiency condition for 24 cameras and cob shift
-secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh) &  (delta_cob_sec_6_cameras > 10*sigma_cob_sec_6_cameras) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras and cob shift
+secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh) &  (delta_cob_sec_6_cameras > 10 *sigma_cob_sec_6_cameras) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras and cob shift
 ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_thresh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
@@ -350,6 +350,36 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 plt.savefig(DIRout + "DAP_Flux_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
 plt.show()
 
+
+def analyze_centroid_issues(delta_cob_nom, delta_cob_ext):
+    # 1. Check for zeros/NaNs
+    print(f"Nominal shifts: {np.sum(delta_cob_nom == 0)} zeros, {np.sum(np.isnan(delta_cob_nom))} NaNs")
+    print(f"Extended shifts: {np.sum(delta_cob_ext == 0)} zeros, {np.sum(np.isnan(delta_cob_ext))} NaNs")
+    
+    # 2. Find examples of small shifts with large distances
+    for i in range(len(dist_target_to_10first_contaminants)):
+        for j in range(10):
+            dist = dist_target_to_10first_contaminants[i,j]
+            shift_nom = delta_cob_10first_24_cameras[i,j]
+            shift_ext = delta_cob_ext_10first_24_cameras[i,j]
+            
+            if dist > 3 and (shift_nom < 0.01 or shift_ext < 0.01):
+                print(f"Anomaly at target {i}, contaminant {j}:")
+                print(f"  Distance={dist:.2f}px, Nom shift={shift_nom:.6f}px, Ext shift={shift_ext:.6f}px")
+                print(f"  Target mag={mag[i]}, Cont mag={mag_target_10first_contaminants[i,j]}")
+                
+                # Optional: Print full imagette
+                # print("Nominal mask:\n", nominal_masks[i])
+                # print("Extended mask:\n", extended_masks[i])
+                return  # Stop after first anomaly
+
+# Run diagnostics
+analyze_centroid_issues(delta_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras)
+
+# Add this filter BEFORE efficiency calculations
+valid_nom = (delta_cob_10first_24_cameras > 0) & (dist_target_to_10first_contaminants > 2)
+valid_ext = (delta_cob_ext_10first_24_cameras > 0) & (dist_target_to_10first_contaminants > 2)
+
 """
 Now we plot the efficiency of the COB shift (all contaminants)
     
@@ -369,10 +399,10 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     s_24_cameras = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[m,:].sum()
     s_6_cameras = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[m,:].sum()
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
-    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[m,:].sum() / s_24_cameras * 100.
-    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[m,:].sum() / s_6_cameras * 100.
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 2*sigma_cob_ext_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_6_cameras > 2*sigma_cob_ext_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 2*sigma_cob_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
+    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_10first_6_cameras > 2*sigma_cob_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
     eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
 
@@ -474,390 +504,14 @@ plt.savefig(DIRout + "DAP_CS_efficiency_variable.pdf", format='pdf', bbox_inches
 plt.show()
 
 
-# ======================================================================
-# COMPLETE P=10.5/P=11.5 ANOMALY INVESTIGATION
-# ======================================================================
-
-print("\n" + "="*80)
-print("INVESTIGATING P=10.5 AND P=11.5 CAMERA SENSITIVITY ANOMALY")
-print("="*80)
-
-# ======================================================================
-# PART 1: ETA DISTRIBUTION PLOTS - Visualize significance across magnitudes
-# ======================================================================
-
-plt.figure(figsize=(15, 10))
-
-# Test magnitudes
-test_mags = [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0]
-
-for i, mag_center in enumerate(test_mags):
-    plt.subplot(2, 4, i+1)
-    
-    # Magnitude mask for plotting
-    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
-    
-    # Get eta values for this magnitude bin (10 contaminants per target)
-    eta_nom_flat = eta_nom_bt_24_cameras[plot_mag_mask, :].flatten()
-    eta_ext_flat = eta_ext_bt_24_cameras[plot_mag_mask, :].flatten()
-    
-    # Remove zeros/invalid values
-    eta_nom_valid = eta_nom_flat[eta_nom_flat > 0]
-    eta_ext_valid = eta_ext_flat[eta_ext_flat > 0]
-    
-    # Plot histograms
-    plt.hist(eta_nom_valid, bins=50, range=(0, 20), alpha=0.6, label='Nominal', density=True)
-    plt.hist(eta_ext_valid, bins=50, range=(0, 20), alpha=0.6, label='Extended', density=True)
-    
-    # Mark critical threshold zones
-    plt.axvline(3, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
-    plt.axvline(6, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
-    plt.axvspan(3, 6, alpha=0.2, color='yellow', label='Sensitive zone' if i == 0 else "")
-    
-    plt.title(f'P = {mag_center}')
-    plt.xlabel('η significance')
-    plt.ylabel('Density')
-    plt.xlim(0, 20)
-    
-    if i == 0:
-        plt.legend(fontsize=8)
-
-plt.tight_layout()
-plt.suptitle('Significance Distribution Across Magnitude Bins\n(10 contaminants per target for Nominal/Extended)', y=1.02)
-plt.savefig(DIRout + "eta_distribution_by_magnitude.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-# Summary statistics for eta distributions
-print("\nETA DISTRIBUTION STATISTICS:")
-print("Magnitude | Mean η_nom | Mean η_ext | Fraction in sensitive zone (3-6)")
-print("-" * 70)
-
-for mag_center in test_mags:
-    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
-    
-    eta_nom_flat = eta_nom_bt_24_cameras[plot_mag_mask, :].flatten()
-    eta_ext_flat = eta_ext_bt_24_cameras[plot_mag_mask, :].flatten()
-    
-    eta_nom_valid = eta_nom_flat[eta_nom_flat > 0]
-    eta_ext_valid = eta_ext_flat[eta_ext_flat > 0]
-    
-    # Fraction in sensitive zone
-    sensitive_nom = np.sum((eta_nom_valid >= 3) & (eta_nom_valid <= 6)) / len(eta_nom_valid) if len(eta_nom_valid) > 0 else 0
-    sensitive_ext = np.sum((eta_ext_valid >= 3) & (eta_ext_valid <= 6)) / len(eta_ext_valid) if len(eta_ext_valid) > 0 else 0
-    
-    mean_nom = np.mean(eta_nom_valid) if len(eta_nom_valid) > 0 else 0
-    mean_ext = np.mean(eta_ext_valid) if len(eta_ext_valid) > 0 else 0
-    
-    print(f"  {mag_center:5.1f}   |   {mean_nom:8.2f}   |   {mean_ext:8.2f}   |   {sensitive_nom:.3f} / {sensitive_ext:.3f}")
-
-# ======================================================================
-# PART 2: DIFFERENTIAL RETENTION RATE ANALYSIS
-# ======================================================================
-
-print("\n" + "="*80)
-print("DIFFERENTIAL RETENTION RATE ANALYSIS")
-print("Investigating why P=10.5 and P=11.5 show camera sensitivity")
-print("="*80)
-
-def analyze_retention_rates(mag_center, binsize=0.5):
-    """
-    Analyze differential retention rates for different methods when going 24->6 cameras
-    """
-    print(f"\nAnalyzing magnitude bin P = {mag_center}")
-    print("-" * 50)
-    
-    # Create magnitude mask for this specific analysis
-    retention_mag_mask = (mag >= mag_center - binsize/2.) & (mag <= mag_center + binsize/2.)
-    
-    # 1. NOMINAL FLUX RETENTION RATE (denominator of efficiency)
-    nom_24_detect = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[retention_mag_mask, :].sum()
-    nom_6_detect = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[retention_mag_mask, :].sum()
-    nom_retention = nom_6_detect / nom_24_detect if nom_24_detect > 0 else 0
-    
-    # 2. EXTENDED FLUX RETENTION RATE (numerator of extended flux efficiency)
-    ext_24_detect = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
-                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
-                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[retention_mag_mask, :].sum()
-    
-    ext_6_detect = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & 
-                    (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & 
-                    (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[retention_mag_mask, :].sum()
-    
-    ext_retention = ext_6_detect / ext_24_detect if ext_24_detect > 0 else 0
-    
-    # 3. SECONDARY FLUX RETENTION RATE (numerator of secondary flux efficiency)
-    sec_24_detect = secondary_mask_conditions_24_cameras[retention_mag_mask].sum()
-    sec_6_detect = secondary_mask_conditions_6_cameras[retention_mag_mask].sum()
-    sec_retention = sec_6_detect / sec_24_detect if sec_24_detect > 0 else 0
-    
-    # 4. CALCULATE DIFFERENTIAL RATES
-    nom_vs_ext_diff = nom_retention - ext_retention
-    nom_vs_sec_diff = nom_retention - sec_retention
-    
-    # Print results
-    print(f"Nominal flux retention:    {nom_retention:.4f} ({nom_6_detect}/{nom_24_detect})")
-    print(f"Extended flux retention:   {ext_retention:.4f} ({ext_6_detect}/{ext_24_detect})")
-    print(f"Secondary flux retention:  {sec_retention:.4f} ({sec_6_detect}/{sec_24_detect})")
-    print(f"")
-    print(f"Differential rates:")
-    print(f"  Nominal - Extended:  {nom_vs_ext_diff:+.4f}")
-    print(f"  Nominal - Secondary: {nom_vs_sec_diff:+.4f}")
-    
-    return {
-        'magnitude': mag_center,
-        'nom_retention': nom_retention,
-        'ext_retention': ext_retention, 
-        'sec_retention': sec_retention,
-        'nom_vs_ext_diff': nom_vs_ext_diff,
-        'nom_vs_sec_diff': nom_vs_sec_diff,
-        'targets_in_bin': retention_mag_mask.sum()
-    }
-
-# Run retention analysis for all magnitude bins
-retention_results = []
-
-for test_mag in test_mags:
-    result = analyze_retention_rates(test_mag)
-    retention_results.append(result)
-
-# ======================================================================
-# PART 3: SUMMARY AND CONCLUSIONS
-# ======================================================================
-
-print("\n" + "="*80)
-print("SUMMARY: Differential Retention Rate Analysis")
-print("="*80)
-
-print("\nMagnitude | Nom-Ext Diff | Nom-Sec Diff | Peak?")
-print("-" * 50)
-
-# Find peaks
-nom_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results]
-nom_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results]
-
-max_ext_diff = max(nom_ext_diffs)
-max_sec_diff = max(nom_sec_diffs)
-
-for result in retention_results:
-    ext_peak = "★" if result['nom_vs_ext_diff'] == max_ext_diff else " "
-    sec_peak = "★" if result['nom_vs_sec_diff'] == max_sec_diff else " "
-    
-    print(f"  {result['magnitude']:5.1f}   |   {result['nom_vs_ext_diff']:+.4f}   |   {result['nom_vs_sec_diff']:+.4f}   | {ext_peak}{sec_peak}")
-
-# Check specifically for P=10.5 and P=11.5
-peak_mags = [10.5, 11.5]
-peak_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results if r['magnitude'] in peak_mags]
-other_ext_diffs = [r['nom_vs_ext_diff'] for r in retention_results if r['magnitude'] not in peak_mags]
-
-peak_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results if r['magnitude'] in peak_mags]
-other_sec_diffs = [r['nom_vs_sec_diff'] for r in retention_results if r['magnitude'] not in peak_mags]
-
-print(f"\nP=10.5, 11.5 vs Other Magnitudes:")
-print(f"Extended flux differential:")
-print(f"  Peak magnitudes (10.5, 11.5): {np.mean(peak_ext_diffs):+.4f}")
-print(f"  Other magnitudes:              {np.mean(other_ext_diffs):+.4f}")
-print(f"  Enhanced differential at peaks: {np.mean(peak_ext_diffs) > np.mean(other_ext_diffs)}")
-
-print(f"Secondary flux differential:")
-print(f"  Peak magnitudes (10.5, 11.5): {np.mean(peak_sec_diffs):+.4f}")
-print(f"  Other magnitudes:              {np.mean(other_sec_diffs):+.4f}")
-print(f"  Enhanced differential at peaks: {np.mean(peak_sec_diffs) > np.mean(other_sec_diffs)}")
-
-print("\n" + "="*80)
-print("CONCLUSION:")
-print("If enhanced differentials are confirmed at P=10.5/11.5,")
-print("your efficiency anomaly is explained by differential retention rates!")
-print("Both eta distributions and retention analysis should show the pattern.")
-print("="*80)
-
-
-# ======================================================================
-# COMPLETE ANALYSIS: Losses + Individual Eta Distribution Plots
-# ======================================================================
-
-# ======================================================================
-# PART 1: LOSS ANALYSIS
-# ======================================================================
-
-print("\n" + "="*80)
-print("LOSS ANALYSIS: Detections lost when going 24→6 cameras")
-print("="*80)
-
-def analyze_detection_losses(mag_center, binsize=0.5):
-    """
-    Analyze how many detections each method loses when going 24->6 cameras
-    """
-    print(f"\nAnalyzing magnitude bin P = {mag_center}")
-    print("-" * 50)
-    
-    # Create magnitude mask
-    loss_mag_mask = (mag >= mag_center - binsize/2.) & (mag <= mag_center + binsize/2.)
-    
-    # 1. NOMINAL FLUX LOSSES
-    nom_24_detect = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[loss_mag_mask, :].sum()
-    nom_6_detect = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[loss_mag_mask, :].sum()
-    nom_loss = nom_24_detect - nom_6_detect
-    nom_loss_fraction = nom_loss / nom_24_detect if nom_24_detect > 0 else 0
-    
-    # 2. EXTENDED FLUX LOSSES
-    ext_24_detect = ((eta_ext_bt_24_cameras > flux_thresh_ext_mask) & 
-                     (delta_obs_ext > delta_obs + depth_sig_scaling * sig_depth_24_cameras_10first) & 
-                     (eta_nom_bt_24_cameras > flux_thresh_nom_mask))[loss_mag_mask, :].sum()
-    
-    ext_6_detect = ((eta_ext_bt_6_cameras > flux_thresh_ext_mask) & 
-                    (delta_obs_ext_6_cameras > delta_obs + depth_sig_scaling * sig_depth_6_cameras_10first) & 
-                    (eta_nom_bt_6_cameras > flux_thresh_nom_mask))[loss_mag_mask, :].sum()
-    
-    ext_loss = ext_24_detect - ext_6_detect
-    ext_loss_fraction = ext_loss / ext_24_detect if ext_24_detect > 0 else 0
-    
-    # 3. SECONDARY FLUX LOSSES
-    sec_24_detect = secondary_mask_conditions_24_cameras[loss_mag_mask].sum()
-    sec_6_detect = secondary_mask_conditions_6_cameras[loss_mag_mask].sum()
-    sec_loss = sec_24_detect - sec_6_detect
-    sec_loss_fraction = sec_loss / sec_24_detect if sec_24_detect > 0 else 0
-    
-    # 4. CALCULATE DIFFERENTIAL LOSSES
-    ext_vs_nom_diff = ext_loss_fraction - nom_loss_fraction
-    sec_vs_nom_diff = sec_loss_fraction - nom_loss_fraction
-    
-    # Print results
-    print(f"Nominal flux:    Lost {nom_loss:3d}/{nom_24_detect:3d} = {nom_loss_fraction:.3f} ({nom_loss_fraction*100:.1f}%)")
-    print(f"Extended flux:   Lost {ext_loss:3d}/{ext_24_detect:3d} = {ext_loss_fraction:.3f} ({ext_loss_fraction*100:.1f}%)")
-    print(f"Secondary flux:  Lost {sec_loss:3d}/{sec_24_detect:3d} = {sec_loss_fraction:.3f} ({sec_loss_fraction*100:.1f}%)")
-    print(f"")
-    print(f"Differential loss rates (vs nominal):")
-    print(f"  Extended - Nominal:  {ext_vs_nom_diff:+.3f} ({ext_vs_nom_diff*100:+.1f}%)")
-    print(f"  Secondary - Nominal: {sec_vs_nom_diff:+.3f} ({sec_vs_nom_diff*100:+.1f}%)")
-    
-    return {
-        'magnitude': mag_center,
-        'nom_loss_fraction': nom_loss_fraction,
-        'ext_loss_fraction': ext_loss_fraction,
-        'sec_loss_fraction': sec_loss_fraction,
-        'ext_vs_nom_diff': ext_vs_nom_diff,
-        'sec_vs_nom_diff': sec_vs_nom_diff
-    }
-
-# Run loss analysis
-test_mags = [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0]
-loss_results = []
-
-for test_mag in test_mags:
-    result = analyze_detection_losses(test_mag)
-    loss_results.append(result)
-
-# ======================================================================
-# PART 2: SECONDARY FLUX ETA DISTRIBUTIONS (Separate Plot)
-# ======================================================================
-
-plt.figure(figsize=(15, 5))
-
-for i, mag_center in enumerate(test_mags):
-    plt.subplot(1, 7, i+1)
-    
-    # Magnitude mask for plotting
-    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
-    
-    # Get secondary flux eta values (1 value per target - most significant contaminant)
-    eta_sec_flux_24 = eta_c[plot_mag_mask]
-    eta_sec_flux_6 = eta_c_6_cameras[plot_mag_mask]
-    
-    # Remove zeros/invalid values
-    eta_sec_24_valid = eta_sec_flux_24[eta_sec_flux_24 > 0]
-    eta_sec_6_valid = eta_sec_flux_6[eta_sec_flux_6 > 0]
-    
-    # Plot histograms
-    plt.hist(eta_sec_24_valid, bins=30, range=(0, 50), alpha=0.6, label='24 cam', density=True, color='purple')
-    plt.hist(eta_sec_6_valid, bins=30, range=(0, 50), alpha=0.6, label='6 cam', density=True, color='green')
-    
-    # Mark critical threshold zones
-    plt.axvline(flux_thresh_sec_mask, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
-    plt.axvline(2*flux_thresh_sec_mask, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
-    plt.axvspan(flux_thresh_sec_mask, 2*flux_thresh_sec_mask, alpha=0.2, color='yellow')
-    
-    # Highlight P=10.5 and P=11.5
-    if mag_center in [10.5, 11.5]:
-        plt.gca().set_facecolor('#ffe6e6')  # Light red background
-    
-    plt.title(f'P={mag_center}', fontsize=12, weight='bold' if mag_center in [10.5, 11.5] else 'normal')
-    plt.xlabel('η_secondary_flux')
-    plt.ylabel('Density')
-    plt.xlim(0, 50)
-    
-    if i == 0:
-        plt.legend(fontsize=8)
-
-plt.suptitle('Secondary Flux: Significance Distributions by Magnitude\n(1 contaminant per target - most significant)', fontsize=14)
-plt.tight_layout()
-plt.savefig(DIRout + "secondary_flux_eta_distributions.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-# ======================================================================
-# PART 3: SECONDARY CENTROIDS ETA DISTRIBUTIONS (Separate Plot)
-# ======================================================================
-
-plt.figure(figsize=(15, 5))
-
-for i, mag_center in enumerate(test_mags):
-    plt.subplot(1, 7, i+1)
-    
-    # Magnitude mask for plotting
-    plot_mag_mask = (mag >= mag_center - 0.25) & (mag <= mag_center + 0.25)
-    
-    # Get secondary centroid eta values (1 value per target)
-    eta_sec_cob_24 = eta_cob_sec_24_cameras[plot_mag_mask]
-    eta_sec_cob_6 = eta_cob_sec_6_cameras[plot_mag_mask]
-    
-    # Remove zeros/invalid values
-    eta_sec_cob_24_valid = eta_sec_cob_24[eta_sec_cob_24 > 0]
-    eta_sec_cob_6_valid = eta_sec_cob_6[eta_sec_cob_6 > 0]
-    
-    # Plot histograms
-    plt.hist(eta_sec_cob_24_valid, bins=30, range=(0, 20), alpha=0.6, label='24 cam', density=True, color='blue')
-    plt.hist(eta_sec_cob_6_valid, bins=30, range=(0, 20), alpha=0.6, label='6 cam', density=True, color='red')
-    
-    # Mark critical threshold zones (using cob_thresh = 3)
-    plt.axvline(cob_thresh, color='red', linestyle='--', alpha=0.8, label='η_min' if i == 0 else "")
-    plt.axvline(2*cob_thresh, color='orange', linestyle='--', alpha=0.8, label='2η_min' if i == 0 else "")
-    plt.axvspan(cob_thresh, 2*cob_thresh, alpha=0.2, color='yellow')
-    
-    # Highlight P=10.5 and P=11.5
-    if mag_center in [10.5, 11.5]:
-        plt.gca().set_facecolor('#ffe6e6')  # Light red background
-    
-    plt.title(f'P={mag_center}', fontsize=12, weight='bold' if mag_center in [10.5, 11.5] else 'normal')
-    plt.xlabel('η_secondary_centroids')
-    plt.ylabel('Density')
-    plt.xlim(0, 20)
-    
-    if i == 0:
-        plt.legend(fontsize=8)
-
-plt.suptitle('Secondary Centroids: Significance Distributions by Magnitude\n(1 contaminant per target - most significant)', fontsize=14)
-plt.tight_layout()
-plt.savefig(DIRout + "secondary_centroids_eta_distributions.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-# ======================================================================
-# PART 4: SUMMARY
-# ======================================================================
-
-print("\n" + "="*80)
-print("SUMMARY: P=10.5 and P=11.5 Analysis")
-print("="*80)
-print("Check the eta distribution plots:")
-print("- P=10.5 and P=11.5 have red backgrounds (highlighted)")
-print("- Look for differences between 24-cam and 6-cam distributions")
-print("- Yellow zones show sensitive regions (3 < η < 6)")
-print("="*80)
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
-nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
-nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 2*sigma_cob_10first_24_cameras)
+nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 2*sigma_cob_ext_10first_24_cameras)
+
 
 nfp_sec_mask = (secondary_mask_conditions_24_cameras)
 nfp_sec_cob = (secondary_mask_conditions_cob_24_cameras)
@@ -959,7 +613,7 @@ for i in range(nP):
     m = (mag >= Pi - binsize / 2.) & (mag <= Pi + binsize / 2.)
     n_star[i] = m.sum() # type: ignore
 
-    # Compute efficiencies and fractions for the current bin
+        # Compute efficiencies and fractions for the current bin
     eff_ext_flux = nfp_ext_mask[m].sum() / nfp[m].sum() * 100.
     eff_sec_flux = (nfp_sec_mask[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100
     eff_ext_flux_single_contaminant = (nfp_ext_mask_single_contaminant[m]).sum() / fp_single_contaminant_24_cameras[m].sum() * 100.
@@ -991,6 +645,8 @@ for i in range(nP):
     fraction_fp_sec_flux_no_ext_cob = ((nfp_ext_cob[m][:, 0] == False) & secondary_mask_conditions_24_cameras[m] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
     fraction_fp_ext_cob_no_sec_flux = ((secondary_mask_conditions_24_cameras[m] == False) & nfp_ext_cob[m][:, 0] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
     fraction_fp_ext_flux_no_sec_cob = ((secondary_mask_conditions_cob_24_cameras[m] == False) & nfp_ext_mask[m][:, 0] & fp_single_contaminant_24_cameras[m]).sum() / fp_single_contaminant_24_cameras[m].sum()
+
+
 
 
     # Accumulate weighted sums

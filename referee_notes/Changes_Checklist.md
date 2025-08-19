@@ -159,11 +159,11 @@ Start to investigate what is going on at P=10.5 and P=11.5 for the:
 - [x] Extended flux measurements
 
 ### Week of 18th of August
--  [ ] P = 10.70 instead of P = 11 in the efficiency plots
--  [ ] Improve the answers from the referee using Réza's comments
--  [ ] Table 3 for Secondary mask methods only
--  [ ] Introduce the noise condition for the extended and nominal cobs as well
--  [ ] Table 3 and new table 3 conclusion
--  [ ] Mention the 1 hour average explanation in Sect. 2.3 
--  [ ] Don't mention real camera PSF in the referee response and in the paper
--  [ ] Check which grows faster, if the nominal significance or the extended significance or the secondary significance at P = 10.5 and P = 11.5
+  - [ ] P = 10.70 instead of P = 11 in the efficiency plots
+  - [x] Table 3 for Secondary mask methods only
+  - [ ]  Improve the answers from the referee using Réza's comments
+  - [ ]  Introduce the noise condition for the extended and nominal cobs as well
+  - [x]  Table 3 and new table 3 conclusion
+  - [ ]  Mention the 1 hour average explanation in Sect. 2.3 
+  - [ ]  Don't mention real camera PSF in the referee response and in the paper
+  - [ ]  Check which grows faster, if the nominal significance or the extended significance or the secondary significance at P = 10.5 and P = 11.5
