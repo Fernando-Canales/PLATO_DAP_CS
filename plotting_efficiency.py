@@ -47,8 +47,8 @@ delta_cob_ext_2_pix = data_ext[:, 246]
 mag_value, star_count = np.loadtxt(dataDIR + 'star_count.txt', unpack=True, usecols=[0, 1])
 ntr = 3        # number of transits in one hour
 n = data.shape[0]
-td_from_dap = data[:, 126:136]
-dback_from_dap = data[:, 136:146]
+td_10first = data[:, 126:136]
+dback_10first = data[:, 136:146]
 seed = 123434434
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
@@ -139,13 +139,25 @@ gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
 mag_target_10first_contaminants = data[:, 169:179]
 dist_target_to_10first_contaminants = data[:, 179:189]
 
-# We get now the new varaibles for the significant transit depth
-sig_depth_secondary_mask_24_cameras = nsr1h_sec*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras*(1 - data_sec[:, 5])/np.sqrt(td_ref*ntr) # NSR*(1-SPRtot)
-sig_depth_extended_mask_24_cameras = data_ext[:, 4]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
-sig_depth_extended_mask_6_cameras = data_ext[:, 44]*(1 - data_ext[:, 13])/np.sqrt(td_ref*ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
-sig_depth_nominal_mask_24_cameras = data[:, 7]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
-sig_depth_nominal_mask_6_cameras = data[:, 148]*(1 - data[:, 11])/np.sqrt(td_ref*ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
+# Check for extreme values
+extreme_mask = td_10first > 100  # More than 4 days
+if extreme_mask.any():
+    print(f"  Warning: {extreme_mask.sum()} values exceed 100 hours (max: {td_10first.max():.1f} hrs)")
+
+# Create safe versions for calculations (avoiding division by zero)
+# Use small value instead of zero to prevent NaN/Inf
+MIN_TD = 0.1  # Minimum transit duration in hours (6 minutes)
+td_1d_safe = np.where(td_10first[:, 0] > 0, td_10first[:, 0], MIN_TD)
+td_10first_safe = np.where(td_10first > 0, td_10first, MIN_TD)
+
+# We get now the new varaibles for the significant transit depth as Réza suggested
+# Corrected significance depth calculations with safety:
+sig_depth_secondary_mask_24_cameras = nsr1h_sec * (1 - data_sec[:, 5]) / np.sqrt(td_1d_safe * ntr) # NSR*(1-SPRtot)
+sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras * (1 - data_sec[:, 5]) / np.sqrt(td_1d_safe * ntr) # NSR*(1-SPRtot)
+sig_depth_extended_mask_24_cameras = data_ext[:, 4] * (1 - data_ext[:, 13]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
+sig_depth_extended_mask_6_cameras = data_ext[:, 44] * (1 - data_ext[:, 13]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
+sig_depth_nominal_mask_24_cameras = data[:, 7] * (1 - data[:, 11]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
+sig_depth_nominal_mask_6_cameras = data[:, 148] * (1 - data[:, 11]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
 
 # We obtainn the value of the quadratic sum of the noises (Eq. (38) of the paper)
 sig_depth_24_cameras = np.sqrt(sig_depth_nominal_mask_24_cameras**2 + sig_depth_extended_mask_24_cameras**2)
@@ -165,21 +177,15 @@ secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh) &
 ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_thresh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
-sig_depth_extended_mask_24_cameras_10first = np.reshape(sig_depth_extended_mask_24_cameras, (n, 1))
-sig_depth_extended_mask_24_cameras_10first = np.repeat(sig_depth_extended_mask_24_cameras_10first, 10, axis=1)
-sig_depth_nominal_mask_24_cameras_10first = np.reshape(sig_depth_nominal_mask_24_cameras, (n, 1))
-sig_depth_nominal_mask_24_cameras_10first = np.repeat(sig_depth_nominal_mask_24_cameras_10first, 10, axis=1)
+# For 10-first arrays with broadcasting (using safe version):
+sig_depth_extended_mask_24_cameras_10first = data_ext[:, 4][:, None] * (1 - data_ext[:, 13][:, None]) / np.sqrt(td_10first_safe * ntr)
+sig_depth_extended_mask_6_cameras_10first = data_ext[:, 44][:, None] * (1 - data_ext[:, 13][:, None]) / np.sqrt(td_10first_safe * ntr)
+sig_depth_nominal_mask_24_cameras_10first = data[:, 7][:, None] * (1 - data[:, 11][:, None]) / np.sqrt(td_10first_safe * ntr)
+sig_depth_nominal_mask_6_cameras_10first = data[:, 148][:, None] * (1 - data[:, 11][:, None]) / np.sqrt(td_10first_safe * ntr)
 
-
-# We reshape some of them for 6 cameras
-sig_depth_extended_mask_6_cameras_10first = np.reshape(sig_depth_extended_mask_6_cameras, (n, 1))
-sig_depth_extended_mask_6_cameras_10first = np.repeat(sig_depth_extended_mask_6_cameras_10first, 10, axis=1)
-sig_depth_nominal_mask_6_cameras_10first = np.reshape(sig_depth_nominal_mask_6_cameras, (n, 1))
-sig_depth_nominal_mask_6_cameras_10first = np.repeat(sig_depth_nominal_mask_6_cameras_10first, 10, axis=1)
 
 sig_depth_24_cameras_10first = np.sqrt(sig_depth_nominal_mask_24_cameras_10first**2 + sig_depth_extended_mask_24_cameras_10first**2)
 sig_depth_6_cameras_10first = np.sqrt(sig_depth_nominal_mask_6_cameras_10first**2 + sig_depth_extended_mask_6_cameras_10first**2)
-
 
 nbad_sp = np.zeros(n) # small planet 2<R_Ee -> 4*84ppm
 eta_ext_bt_24_cameras= np.zeros((n, 10))
@@ -197,8 +203,9 @@ eta_ext_2_pix_bt_6_cameras = np.zeros((n, 10))
 mag_2d = np.repeat(mag[:,np.newaxis], 10, axis=1)
 
 for i in range(n):
-    dback= dback_from_dap[i, ::] #np.ones(10)*dback_ref
-    td = td_from_dap[i, ::] #np.ones(10)*td_ref
+    dback= dback_10first[i, ::] #np.ones(10)*dback_ref
+    #td = td_from_dap[i, ::] #np.ones(10)*td_ref
+    td = td_10first_safe[i, :]
     eta_nom_bt_24_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 7]*(1 - data[i, 11])) # Eq.(12) from the paper
     eta_nom_bt_6_cameras[i, :] = gamma_factor_significance*dback*data[i, 17:27]*np.sqrt(td*ntr)/(data[i, 148]*(1 - data[i, 11]))
     eta_ext_bt_24_cameras[i, :] = gamma_factor_significance*dback*data_ext[i, 14:24]*np.sqrt(td*ntr)/(data_ext[i, 4] * (1 - data_ext[i, 13])) # Eq.(18) from the paper
@@ -399,10 +406,10 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     s_24_cameras = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[m,:].sum()
     s_6_cameras = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[m,:].sum()
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 2*sigma_cob_ext_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
-    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_6_cameras > 2*sigma_cob_ext_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 2*sigma_cob_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
-    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_10first_6_cameras > 2*sigma_cob_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_6_cameras > 10*sigma_cob_ext_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
+    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_10first_6_cameras > 10*sigma_cob_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
     eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
 
