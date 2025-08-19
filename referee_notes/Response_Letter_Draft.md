@@ -104,17 +104,16 @@ RS-> missing answer here
 
 **Response:** We completely agree with this comprehensive critique and have  restructured Section 8.2 to address all concerns:
 
-**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with a 5×5 pairwise matrix table (Table 3) showing all 20 possible comparisons between the five detection methods.
+**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with two pairwise matrix tables (Tables 3 and 4) showing the possible comparisons between the metrics. We have included the abbreviations EFX for extended flux, ECOB for extended centroid shifts, NCOB for nominal centroid shifts, SFX for secondary flux and SCOB for secondary centroid shifts. Table 3 shows the comparison between extended mask and nominal mask-based methods since for those metrics we consider the first 10 contaminants in terms  of SPRk in each window, while for secondary mask-based methods we only consider one contaminant per window, the one with the highest SPRk value. This is related to the next point.
 
-**2. Secondary Flux Inclusion**: The matrix now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee.
+**2. Secondary Flux Inclusion**: Table 4 now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee. Since secondary-mask based method focus only on one contaminant in each window, we cannot directly compare them with extended mask or nominal mask-based methods. Therefore, we created Table 4, including only comparison between SFX and SCOB.
 
-RS-> how it possible to compare SFX or SCOB with the othe metric since the former only concern the contaminant with the highest SPR ?
 
-**3.Language Clarity and precision**: We have clarified the language - the table shows "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the matrix have the same, consistent number of decimal figures.
+**3.Language Clarity and precision**: We have clarified the language - Tables 3 and 4 show "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the Tables have the same, consistent number of decimal figures.
 
 **Manuscript Changes:**
 
-- **Replaced**: 4-point bullet list with comprehensive matrix table
+- **Replaced**: 4-point bullet list with comprehensive matrix tables
 - **Added**: All missing method comparisons, especially secondary flux
 - **Enhanced**: Discussion based on complete pairwise analysis
 - **Clarified**: Percentage interpretation language throughout
