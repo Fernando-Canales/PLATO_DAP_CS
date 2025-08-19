@@ -818,3 +818,225 @@ print(f'Weighted fraction of FPs detected by SFX but not by ECOB: {weighted_frac
 print(f'Weighted fraction of FPs detected by ECOB but not by SFX: {weighted_fraction_fp_ext_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_sec_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by SCOB: {weighted_fraction_fp_ext_flux_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_sec_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}%')
+
+
+# Fixed version that properly handles array dimensions
+def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, 
+                                  delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras,
+                                  eta_nom_bt_24_cameras, flux_thresh_nom_mask, mag):
+    """
+    Analyze centroid shift signal-to-noise ratios with magnitude tracking
+    """
+    
+    # Calculate SNR for nominal and extended centroids
+    # Mask for valid detections (where we expect centroids to work)
+    valid_mask = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    
+    # Calculate SNR, avoiding division by zero
+    snr_nom = np.zeros_like(delta_cob_10first_24_cameras)
+    snr_ext = np.zeros_like(delta_cob_ext_10first_24_cameras)
+    
+    mask_nonzero_nom = sigma_cob_10first_24_cameras > 0
+    mask_nonzero_ext = sigma_cob_ext_10first_24_cameras > 0
+    
+    snr_nom[mask_nonzero_nom] = delta_cob_10first_24_cameras[mask_nonzero_nom] / sigma_cob_10first_24_cameras[mask_nonzero_nom]
+    snr_ext[mask_nonzero_ext] = delta_cob_ext_10first_24_cameras[mask_nonzero_ext] / sigma_cob_ext_10first_24_cameras[mask_nonzero_ext]
+    
+    # Create magnitude array that matches the shape of SNR arrays
+    # Expand mag to match the second dimension (10 contaminants)
+    mag_expanded = np.repeat(mag[:, np.newaxis], 10, axis=1)
+    
+    # Apply the valid detection mask and flatten
+    snr_nom_valid = snr_nom[valid_mask].flatten()
+    snr_ext_valid = snr_ext[valid_mask].flatten()
+    mag_valid = mag_expanded[valid_mask].flatten()
+    
+    # Remove any remaining zeros or infinities
+    good_mask_nom = (snr_nom_valid > 0) & np.isfinite(snr_nom_valid)
+    good_mask_ext = (snr_ext_valid > 0) & np.isfinite(snr_ext_valid)
+    
+    snr_nom_clean = snr_nom_valid[good_mask_nom]
+    snr_ext_clean = snr_ext_valid[good_mask_ext]
+    mag_nom_clean = mag_valid[good_mask_nom]
+    mag_ext_clean = mag_valid[good_mask_ext]
+    
+    return snr_nom_clean, snr_ext_clean, mag_nom_clean, mag_ext_clean
+
+# Updated diagnostic plots function
+def create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='./'):
+    """
+    Create diagnostic plots for the meeting with proper magnitude handling
+    """
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    
+    # Plot 1: Histogram of SNR for nominal centroids
+    ax1 = axes[0, 0]
+    counts_nom, bins_nom, _ = ax1.hist(snr_nom, bins=50, alpha=0.7, color='blue', edgecolor='black')
+    ax1.axvline(3, color='green', linestyle='--', label='3σ threshold')
+    ax1.axvline(5, color='orange', linestyle='--', label='5σ threshold')
+    ax1.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax1.set_xlabel('ΔC_nom / σ_nom')
+    ax1.set_ylabel('Count')
+    ax1.set_title('Nominal Centroid SNR Distribution')
+    ax1.legend()
+    ax1.set_yscale('log')
+    
+    # Calculate percentages
+    pct_above_3_nom = np.sum(snr_nom > 3) / len(snr_nom) * 100
+    pct_above_5_nom = np.sum(snr_nom > 5) / len(snr_nom) * 100
+    pct_above_10_nom = np.sum(snr_nom > 10) / len(snr_nom) * 100
+    ax1.text(0.95, 0.95, f'>3σ: {pct_above_3_nom:.1f}%\n>5σ: {pct_above_5_nom:.1f}%\n>10σ: {pct_above_10_nom:.1f}%',
+             transform=ax1.transAxes, ha='right', va='top', bbox=dict(boxstyle='round', facecolor='white'))
+    
+    # Plot 2: Histogram of SNR for extended centroids
+    ax2 = axes[0, 1]
+    counts_ext, bins_ext, _ = ax2.hist(snr_ext, bins=50, alpha=0.7, color='red', edgecolor='black')
+    ax2.axvline(3, color='green', linestyle='--', label='3σ threshold')
+    ax2.axvline(5, color='orange', linestyle='--', label='5σ threshold')
+    ax2.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax2.set_xlabel('ΔC_ext / σ_ext')
+    ax2.set_ylabel('Count')
+    ax2.set_title('Extended Centroid SNR Distribution')
+    ax2.legend()
+    ax2.set_yscale('log')
+    
+    # Calculate percentages
+    pct_above_3_ext = np.sum(snr_ext > 3) / len(snr_ext) * 100
+    pct_above_5_ext = np.sum(snr_ext > 5) / len(snr_ext) * 100
+    pct_above_10_ext = np.sum(snr_ext > 10) / len(snr_ext) * 100
+    ax2.text(0.95, 0.95, f'>3σ: {pct_above_3_ext:.1f}%\n>5σ: {pct_above_5_ext:.1f}%\n>10σ: {pct_above_10_ext:.1f}%',
+             transform=ax2.transAxes, ha='right', va='top', bbox=dict(boxstyle='round', facecolor='white'))
+    
+    # Plot 3: Direct comparison
+    ax3 = axes[0, 2]
+    ax3.hist(snr_nom, bins=50, alpha=0.5, label='Nominal', color='blue', density=True)
+    ax3.hist(snr_ext, bins=50, alpha=0.5, label='Extended', color='red', density=True)
+    ax3.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ threshold')
+    ax3.set_xlabel('ΔC / σ')
+    ax3.set_ylabel('Normalized Count')
+    ax3.set_title('SNR Comparison: Nominal vs Extended')
+    ax3.legend()
+    ax3.set_xlim(0, 30)
+    
+    # Plot 4: Cumulative distribution
+    ax4 = axes[1, 0]
+    snr_sorted_nom = np.sort(snr_nom)
+    snr_sorted_ext = np.sort(snr_ext)
+    cdf_nom = np.arange(1, len(snr_sorted_nom) + 1) / len(snr_sorted_nom)
+    cdf_ext = np.arange(1, len(snr_sorted_ext) + 1) / len(snr_sorted_ext)
+    ax4.plot(snr_sorted_nom, cdf_nom, label='Nominal', color='blue')
+    ax4.plot(snr_sorted_ext, cdf_ext, label='Extended', color='red')
+    ax4.axvline(3, color='green', linestyle='--', alpha=0.5)
+    ax4.axvline(5, color='orange', linestyle='--', alpha=0.5)
+    ax4.axvline(10, color='red', linestyle='--', linewidth=2)
+    ax4.set_xlabel('ΔC / σ')
+    ax4.set_ylabel('Cumulative Fraction')
+    ax4.set_title('Cumulative Distribution of SNR')
+    ax4.legend()
+    ax4.grid(True, alpha=0.3)
+    ax4.set_xlim(0, 30)
+    
+    # Plot 5: SNR vs Magnitude (using properly matched arrays)
+    ax5 = axes[1, 1]
+    mag_bins = np.arange(10, 13.5, 0.5)
+    mag_centers = []
+    median_nom_list = []
+    median_ext_list = []
+    
+    for i in range(len(mag_bins)-1):
+        # For nominal
+        mask_nom = (mag_nom >= mag_bins[i]) & (mag_nom < mag_bins[i+1])
+        if np.sum(mask_nom) > 0:
+            median_nom = np.median(snr_nom[mask_nom])
+            median_nom_list.append(median_nom)
+            mag_centers.append(mag_bins[i] + 0.25)
+            ax5.scatter(mag_bins[i] + 0.25, median_nom, color='blue', s=100, marker='o', label='Nominal' if i == 0 else '')
+        
+        # For extended
+        mask_ext = (mag_ext >= mag_bins[i]) & (mag_ext < mag_bins[i+1])
+        if np.sum(mask_ext) > 0:
+            median_ext = np.median(snr_ext[mask_ext])
+            median_ext_list.append(median_ext)
+            ax5.scatter(mag_bins[i] + 0.25, median_ext, color='red', s=100, marker='s', label='Extended' if i == 0 else '')
+    
+    ax5.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax5.axhline(5, color='orange', linestyle='--', label='5σ threshold')
+    ax5.axhline(3, color='green', linestyle='--', label='3σ threshold')
+    ax5.set_xlabel('P Magnitude')
+    ax5.set_ylabel('Median SNR')
+    ax5.set_title('Median SNR vs Magnitude')
+    ax5.legend()
+    ax5.grid(True, alpha=0.3)
+    
+    # Plot 6: Efficiency vs Threshold
+    ax6 = axes[1, 2]
+    thresholds = np.linspace(1, 20, 50)
+    eff_nom = [np.sum(snr_nom > t) / len(snr_nom) * 100 for t in thresholds]
+    eff_ext = [np.sum(snr_ext > t) / len(snr_ext) * 100 for t in thresholds]
+    
+    ax6.plot(thresholds, eff_nom, label='Nominal', color='blue', linewidth=2)
+    ax6.plot(thresholds, eff_ext, label='Extended', color='red', linewidth=2)
+    ax6.axvline(3, color='green', linestyle='--', alpha=0.5)
+    ax6.axvline(5, color='orange', linestyle='--', alpha=0.5)
+    ax6.axvline(10, color='red', linestyle='--', linewidth=2)
+    ax6.axhline(70, color='gray', linestyle=':', alpha=0.5, label='70% efficiency')
+    ax6.set_xlabel('SNR Threshold')
+    ax6.set_ylabel('Efficiency (%)')
+    ax6.set_title('Efficiency vs SNR Threshold')
+    ax6.legend()
+    ax6.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(f'{save_dir}/centroid_snr_diagnostics.pdf', dpi=150, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+# Main execution code - use this in your script
+snr_nom, snr_ext, mag_nom, mag_ext = analyze_centroid_snr_with_mag(
+    delta_cob_10first_24_cameras, 
+    sigma_cob_10first_24_cameras,
+    delta_cob_ext_10first_24_cameras, 
+    sigma_cob_ext_10first_24_cameras,
+    eta_nom_bt_24_cameras, 
+    flux_thresh_nom_mask,
+    mag  # Pass magnitude array
+)
+
+# Create the plots
+fig = create_diagnostic_plots_fixed(snr_nom, snr_ext, mag_nom, mag_ext, save_dir=DIRout)
+
+# Print summary statistics for your meeting
+print("\n" + "="*60)
+print("CENTROID SHIFT SNR ANALYSIS SUMMARY")
+print("="*60)
+print("\nNOMINAL CENTROIDS:")
+print(f"  Total valid measurements: {len(snr_nom)}")
+print(f"  Median SNR: {np.median(snr_nom):.2f}")
+print(f"  Mean SNR: {np.mean(snr_nom):.2f}")
+print(f"  Efficiency with 3σ: {np.sum(snr_nom > 3)/len(snr_nom)*100:.1f}%")
+print(f"  Efficiency with 5σ: {np.sum(snr_nom > 5)/len(snr_nom)*100:.1f}%")
+print(f"  Efficiency with 10σ: {np.sum(snr_nom > 10)/len(snr_nom)*100:.1f}%")
+
+print("\nEXTENDED CENTROIDS:")
+print(f"  Total valid measurements: {len(snr_ext)}")
+print(f"  Median SNR: {np.median(snr_ext):.2f}")
+print(f"  Mean SNR: {np.mean(snr_ext):.2f}")
+print(f"  Efficiency with 3σ: {np.sum(snr_ext > 3)/len(snr_ext)*100:.1f}%")
+print(f"  Efficiency with 5σ: {np.sum(snr_ext > 5)/len(snr_ext)*100:.1f}%")
+print(f"  Efficiency with 10σ: {np.sum(snr_ext > 10)/len(snr_ext)*100:.1f}%")
+
+print("\nDIFFERENCE (Nominal - Extended):")
+print(f"  Δ Efficiency at 3σ: {(np.sum(snr_nom > 3)/len(snr_nom) - np.sum(snr_ext > 3)/len(snr_ext))*100:.1f}%")
+print(f"  Δ Efficiency at 5σ: {(np.sum(snr_nom > 5)/len(snr_nom) - np.sum(snr_ext > 5)/len(snr_ext))*100:.1f}%")
+print(f"  Δ Efficiency at 10σ: {(np.sum(snr_nom > 10)/len(snr_nom) - np.sum(snr_ext > 10)/len(snr_ext))*100:.1f}%")
+
+print("\nRECOMMENDATION:")
+eff_10_nom = np.sum(snr_nom > 10)/len(snr_nom)*100
+eff_5_nom = np.sum(snr_nom > 5)/len(snr_nom)*100
+if eff_10_nom < 75:
+    print(f"  The 10σ threshold is too stringent (only {eff_10_nom:.1f}% efficiency).")
+    print(f"  Recommend 5σ threshold for {eff_5_nom:.1f}% efficiency.")
+else:
+    print(f"  The 10σ threshold is acceptable ({eff_10_nom:.1f}% efficiency).")
+print("="*60)
