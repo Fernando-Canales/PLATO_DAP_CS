@@ -147,17 +147,16 @@ if extreme_mask.any():
 # Create safe versions for calculations (avoiding division by zero)
 # Use small value instead of zero to prevent NaN/Inf
 MIN_TD = 0.1  # Minimum transit duration in hours (6 minutes)
-td_1d_safe = np.where(td_10first[:, 0] > 0, td_10first[:, 0], MIN_TD)
 td_10first_safe = np.where(td_10first > 0, td_10first, MIN_TD)
 
 # We get now the new varaibles for the significant transit depth as Réza suggested
 # Corrected significance depth calculations with safety:
-sig_depth_secondary_mask_24_cameras = nsr1h_sec * (1 - data_sec[:, 5]) / np.sqrt(td_1d_safe * ntr) # NSR*(1-SPRtot)
-sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras * (1 - data_sec[:, 5]) / np.sqrt(td_1d_safe * ntr) # NSR*(1-SPRtot)
-sig_depth_extended_mask_24_cameras = data_ext[:, 4] * (1 - data_ext[:, 13]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
-sig_depth_extended_mask_6_cameras = data_ext[:, 44] * (1 - data_ext[:, 13]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
-sig_depth_nominal_mask_24_cameras = data[:, 7] * (1 - data[:, 11]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
-sig_depth_nominal_mask_6_cameras = data[:, 148] * (1 - data[:, 11]) / np.sqrt(td_1d_safe * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
+sig_depth_secondary_mask_24_cameras = nsr1h_sec * (1 - data_sec[:, 5]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR*(1-SPRtot)
+sig_depth_secondary_mask_6_cameras = nsr1h_sec_6_cameras * (1 - data_sec[:, 5]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR*(1-SPRtot)
+sig_depth_extended_mask_24_cameras = data_ext[:, 4] * (1 - data_ext[:, 13]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [24 cameras]
+sig_depth_extended_mask_6_cameras = data_ext[:, 44] * (1 - data_ext[:, 13]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR_1h^ext*(1-SPR_tot^ext) / sqrt(td ntr) [6 cameras]
+sig_depth_nominal_mask_24_cameras = data[:, 7] * (1 - data[:, 11]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [24 cameras]
+sig_depth_nominal_mask_6_cameras = data[:, 148] * (1 - data[:, 11]) / np.sqrt(td_10first_safe[:, 0] * ntr) # NSR_1h^nom*(1-SPR_tot^nom) / sqrt(td ntr) [6 cameras]
 
 # We obtainn the value of the quadratic sum of the noises (Eq. (38) of the paper)
 sig_depth_24_cameras = np.sqrt(sig_depth_nominal_mask_24_cameras**2 + sig_depth_extended_mask_24_cameras**2)
