@@ -49,7 +49,7 @@ ntr = 3        # number of transits in one hour
 n = data.shape[0]
 td_10first = data[:, 126:136]
 dback_10first = data[:, 136:146]
-seed = 123434434
+
 
 # We obtain the magnitude of all the targets and the magnitude of the most problematic contaminants'
 mag = data[:, 1]
