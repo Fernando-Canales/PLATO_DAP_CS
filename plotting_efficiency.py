@@ -821,9 +821,8 @@ print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_frac
 
 
 # STEP 1: Analysis function (from earlier)
-def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, 
-                                  delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras,
-                                  eta_nom_bt_24_cameras, flux_thresh_nom_mask, mag):
+def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras, delta_cob_sec, sigma_cob_sec_24_cameras, eta_nom_bt_24_cameras, flux_thresh_nom_mask, mag):
+    
     """
     Analyze centroid shift signal-to-noise ratios with magnitude tracking
     """
@@ -859,25 +858,51 @@ def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10firs
     snr_ext_clean = snr_ext_valid[good_mask_ext]
     mag_nom_clean = mag_valid[good_mask_nom]
     mag_ext_clean = mag_valid[good_mask_ext]
+
+    # NEW: Secondary centroid SNR calculation
+    snr_sec = np.zeros_like(delta_cob_sec)
+    mask_nonzero_sec = sigma_cob_sec_24_cameras > 0
+    snr_sec[mask_nonzero_sec] = delta_cob_sec[mask_nonzero_sec] / sigma_cob_sec_24_cameras[mask_nonzero_sec]
     
-    return snr_nom_clean, snr_ext_clean, mag_nom_clean, mag_ext_clean
+    # Apply valid detection mask (using first contaminant for secondary)
+    valid_mask_1d = (eta_nom_bt_24_cameras[:, 0] > flux_thresh_nom_mask)  # Secondary is 1D
+    
+    snr_sec_valid = snr_sec[valid_mask_1d]
+    mag_sec_valid = mag[valid_mask_1d]
+    
+    # Clean secondary data
+    good_mask_sec = (snr_sec_valid > 0) & np.isfinite(snr_sec_valid)
+    snr_sec_clean = snr_sec_valid[good_mask_sec]
+    mag_sec_clean = mag_sec_valid[good_mask_sec]
+    
+    snr_sec_valid = snr_sec[valid_mask_1d]
+    mag_sec_valid = mag[valid_mask_1d]
+    
+    # Clean secondary data
+    good_mask_sec = (snr_sec_valid > 0) & np.isfinite(snr_sec_valid)
+    snr_sec_clean = snr_sec_valid[good_mask_sec]
+    mag_sec_clean = mag_sec_valid[good_mask_sec]
+    
+    return snr_nom_clean, snr_ext_clean, snr_sec_clean, mag_nom_clean, mag_ext_clean, mag_sec_clean
+
 
 # STEP 2: RUN THE ANALYSIS (this creates the variables)
-print("Running centroid shift analysis...")
-snr_nom, snr_ext, mag_nom, mag_ext = analyze_centroid_snr_with_mag(
+snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec = analyze_centroid_snr_with_mag(
     delta_cob_10first_24_cameras, 
     sigma_cob_10first_24_cameras,
     delta_cob_ext_10first_24_cameras, 
     sigma_cob_ext_10first_24_cameras,
+    delta_cob_sec,                    # NEW
+    sigma_cob_sec_24_cameras,         # NEW
     eta_nom_bt_24_cameras, 
-    flux_thresh_nom_mask,
-    mag  # Pass magnitude array
+    flux_thresh_nom_mask, # type: ignore
+    mag
 )
 print(f"Analysis complete: {len(snr_nom)} nominal and {len(snr_ext)} extended measurements")
 
 # STEP 3: NOW run the plotting function (paste the create_diagnostic_plots_clear function here)
 # # Updated diagnostic plots with clearer labeling
-def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='./'):
+def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec, save_dir='./'):
     """
     Create diagnostic plots with clear ΔC/σ labeling instead of SNR
     """
@@ -909,6 +934,8 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax2.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
     ax2.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
     ax2.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    #ax2.hist(snr_nom, bins=50, alpha=0.5, label='Nominal', color='blue', density=True)
+    ax2.hist(snr_ext, bins=50, alpha=0.3, label='Extended', color='red', density=True)
     ax2.set_xlabel('ΔC_ext / σ_ext', fontsize=12)
     ax2.set_ylabel('Count', fontsize=12)
     ax2.set_title('ECOB: ΔC/σ Distr.', fontsize=13)
@@ -923,19 +950,26 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
              transform=ax2.transAxes, ha='right', va='top', 
              bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), fontsize=10)
     
-    # Plot 3: Direct comparison (normalized)
+    # Plot 3:SCOB
     ax3 = axes[0, 2]
-    ax3.hist(snr_nom, bins=50, alpha=0.5, label='Nominal', color='blue', density=True)
-    ax3.hist(snr_ext, bins=50, alpha=0.5, label='Extended', color='red', density=True)
-    ax3.axvline(3, color='green', linestyle='--', linewidth=1, alpha=0.7)
-    ax3.axvline(5, color='orange', linestyle='--', linewidth=1, alpha=0.7)
-    ax3.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ threshold')
-    ax3.set_xlabel('ΔC / σ', fontsize=12)
-    ax3.set_ylabel('Normalized Count', fontsize=12)
-    ax3.set_title('NCOB vs ECOB', fontsize=13)
+    counts_sec, bins_sec, _ = ax3.hist(snr_sec, bins=50, alpha=0.7, color='green', edgecolor='black')
+    ax3.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
+    ax3.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
+    ax3.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax3.hist(snr_sec, bins=50, alpha=0.1, label='Secondary', color='green', density=True)
+    ax3.set_xlabel('ΔC_sec / σ', fontsize=12)
+    ax3.set_ylabel('Count', fontsize=12)
+    ax3.set_title('SCOB: ΔC_sec / σ Distr.', fontsize=13)
     ax3.legend(loc='upper right')
-    ax3.set_xlim(0, 30)
-    
+    ax3.set_yscale('log')
+
+    # Calculate percentages
+    pct_above_3_sec = np.sum(snr_sec > 3) / len(snr_sec) * 100
+    pct_above_5_sec = np.sum(snr_sec > 5) / len(snr_sec) * 100
+    pct_above_10_sec = np.sum(snr_sec > 10) / len(snr_sec) * 100
+    ax3.text(0.95, 0.75, f'ΔC/σ > 3: {pct_above_3_sec:.1f}%\nΔC/σ > 5: {pct_above_5_sec:.1f}%\nΔC/σ > 10: {pct_above_10_sec:.1f}%',
+             transform=ax3.transAxes, ha='right', va='top', 
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), fontsize=10)
     # Plot 4: Cumulative distribution
     ax4 = axes[1, 0]
     snr_sorted_nom = np.sort(snr_nom)
@@ -985,11 +1019,14 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     # Plot 6: Efficiency vs Threshold
     ax6 = axes[1, 2]
     thresholds = np.linspace(1, 20, 50)
-    eff_nom = [np.sum(snr_nom > t) / len(snr_nom) * 100 for t in thresholds]
-    eff_ext = [np.sum(snr_ext > t) / len(snr_ext) * 100 for t in thresholds]
+    # Example for efficiency plot (Plot 6):
+    detection_rate_nom = [np.sum(snr_nom > t) / len(snr_nom) * 100 for t in thresholds]
+    detection_rate_ext = [np.sum(snr_ext > t) / len(snr_ext) * 100 for t in thresholds]
+    detection_rate_sec = [np.sum(snr_sec > t) / len(snr_sec) * 100 for t in thresholds]
     
-    ax6.plot(thresholds, eff_nom, label='Nominal', color='blue', linewidth=2)
-    ax6.plot(thresholds, eff_ext, label='Extended', color='red', linewidth=2)
+    ax6.plot(thresholds, detection_rate_nom, label='Nominal', color='blue', linewidth=2)
+    ax6.plot(thresholds, detection_rate_ext, label='Extended', color='red', linewidth=2)
+    ax6.plot(thresholds, detection_rate_sec, label='Secondary', color='green', linewidth=2)
     ax6.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(10, color='red', linestyle='--', linewidth=2)
@@ -1010,7 +1047,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
 
 
 # STEP 4: Create the plots
-fig = create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir=DIRout)
+fig = create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec, save_dir=DIRout)
 
 # STEP 5: Print summary statistics
 print("\n" + "="*60)
