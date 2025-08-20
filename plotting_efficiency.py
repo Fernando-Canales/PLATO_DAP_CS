@@ -515,8 +515,8 @@ nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
-nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 2*sigma_cob_10first_24_cameras)
-nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 2*sigma_cob_ext_10first_24_cameras)
+nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras)
+nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras)
 
 
 nfp_sec_mask = (secondary_mask_conditions_24_cameras)
