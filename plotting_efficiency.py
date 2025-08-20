@@ -881,7 +881,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     """
     Create diagnostic plots with clear ΔC/σ labeling instead of SNR
     """
-    fig, axes = plt.subplots(3, 3, figsize=(16, 12))
+    fig, axes = plt.subplots(2, 3, figsize=(16, 12))
     
     # Plot 1: Histogram of ΔC/σ for nominal centroids
     ax1 = axes[0, 0]
@@ -891,7 +891,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax1.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
     ax1.set_xlabel('ΔC_nom / σ_nom', fontsize=12)
     ax1.set_ylabel('Count', fontsize=12)
-    ax1.set_title('Nominal Centroid: ΔC/σ Distribution', fontsize=13)
+    ax1.set_title('NCOB: ΔC/σ Distr.', fontsize=13)
     ax1.legend(loc='upper right')
     ax1.set_yscale('log')
     
@@ -911,7 +911,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax2.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
     ax2.set_xlabel('ΔC_ext / σ_ext', fontsize=12)
     ax2.set_ylabel('Count', fontsize=12)
-    ax2.set_title('ECOB: ΔC/σ Distribution', fontsize=13)
+    ax2.set_title('ECOB: ΔC/σ Distr.', fontsize=13)
     ax2.legend(loc='upper right')
     ax2.set_yscale('log')
     
@@ -932,7 +932,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax3.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ threshold')
     ax3.set_xlabel('ΔC / σ', fontsize=12)
     ax3.set_ylabel('Normalized Count', fontsize=12)
-    ax3.set_title('Direct Comparison: NCOB vs ECOB', fontsize=13)
+    ax3.set_title('NCOB vs ECOB', fontsize=13)
     ax3.legend(loc='upper right')
     ax3.set_xlim(0, 30)
     
@@ -949,7 +949,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax4.axvline(10, color='red', linestyle='--', linewidth=2)
     ax4.set_xlabel('ΔC / σ', fontsize=12)
     ax4.set_ylabel('Cumulative Fraction', fontsize=12)
-    ax4.set_title('Cumulative Distribution of ΔC/σ', fontsize=13)
+    ax4.set_title('Cumul. Distr. of ΔC/σ', fontsize=13)
     ax4.legend(loc='lower right')
     ax4.grid(True, alpha=0.3)
     ax4.set_xlim(0, 30)
@@ -978,7 +978,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax5.axhline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
     ax5.set_xlabel('P Magnitude', fontsize=12)
     ax5.set_ylabel('Median ΔC/σ', fontsize=12)
-    ax5.set_title('Median ΔC/σ vs Magnitude', fontsize=13)
+    ax5.set_title('Median ΔC/σ vs Mag.', fontsize=13)
     ax5.legend(loc='upper right')
     ax5.grid(True, alpha=0.3)
     
@@ -993,77 +993,16 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, mag_nom, mag_ext, save_dir='
     ax6.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(10, color='red', linestyle='--', linewidth=2)
-    ax6.axhline(70, color='gray', linestyle=':', alpha=0.5, label='70% efficiency')
+    #ax6.axhline(70, color='black', linestyle=':', alpha=0.5, label='70%')
     ax6.set_xlabel('ΔC/σ Threshold', fontsize=12)
-    ax6.set_ylabel('Efficiency (%)', fontsize=12)
-    ax6.set_title('Efficiency vs ΔC/σ Threshold', fontsize=13)
+    ax6.set_ylabel('%', fontsize=12)
+    ax6.set_title('Frac above thesh. vs ΔC/σ', fontsize=13)
     ax6.legend(loc='upper right')
     ax6.grid(True, alpha=0.3)
-    
-    # NEW Plot 7: Direct overlay histogram (not normalized)
-    ax7 = axes[2, 0]
-    # Plot with slight offset for visibility
-    bins = np.linspace(0, max(snr_nom.max(), snr_ext.max()), 60)
-    ax7.hist(snr_nom, bins=bins, alpha=0.6, label='Nominal', color='blue', edgecolor='blue', linewidth=1)
-    ax7.hist(snr_ext, bins=bins, alpha=0.6, label='Extended', color='red', edgecolor='red', linewidth=1)
-    ax7.axvline(3, color='green', linestyle='--', linewidth=1.5, label='3σ')
-    ax7.axvline(5, color='orange', linestyle='--', linewidth=1.5, label='5σ')
-    ax7.axvline(10, color='black', linestyle='--', linewidth=2, label='10σ')
-    ax7.set_xlabel('ΔC / σ', fontsize=12)
-    ax7.set_ylabel('Count', fontsize=12)
-    ax7.set_title('Overlay Comparison: ΔC/σ Distributions', fontsize=13)
-    ax7.legend(loc='upper right')
-    ax7.set_yscale('log')
-    ax7.set_xlim(0, 50)
-    
-    # NEW Plot 8: Box plot comparison
-    ax8 = axes[2, 1]
-    box_data = [snr_nom[snr_nom <= np.percentile(snr_nom, 99)],  # Remove extreme outliers for visibility
-                snr_ext[snr_ext <= np.percentile(snr_ext, 99)]]
-    bp = ax8.boxplot(box_data, labels=['Nominal', 'Extended'], patch_artist=True)
-    bp['boxes'][0].set_facecolor('blue')
-    bp['boxes'][0].set_alpha(0.5)
-    bp['boxes'][1].set_facecolor('red')
-    bp['boxes'][1].set_alpha(0.5)
-    ax8.axhline(3, color='green', linestyle='--', linewidth=1.5, label='3σ threshold')
-    ax8.axhline(5, color='orange', linestyle='--', linewidth=1.5, label='5σ threshold')
-    ax8.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
-    ax8.set_ylabel('ΔC / σ', fontsize=12)
-    ax8.set_title('Box Plot: ΔC/σ Distribution Comparison', fontsize=13)
-    ax8.legend(loc='upper right')
-    ax8.grid(True, alpha=0.3, axis='y')
-    
-    # NEW Plot 9: Difference plot
-    ax9 = axes[2, 2]
-    # Calculate efficiency difference
-    thresholds_fine = np.linspace(1, 20, 100)
-    eff_nom_fine = [np.sum(snr_nom > t) / len(snr_nom) * 100 for t in thresholds_fine]
-    eff_ext_fine = [np.sum(snr_ext > t) / len(snr_ext) * 100 for t in thresholds_fine]
-    eff_diff = np.array(eff_ext_fine) - np.array(eff_nom_fine)
-    
-    ax9.plot(thresholds_fine, eff_diff, color='purple', linewidth=2)
-    ax9.fill_between(thresholds_fine, 0, eff_diff, where=(eff_diff > 0), color='green', alpha=0.3, label='Extended better')
-    ax9.fill_between(thresholds_fine, 0, eff_diff, where=(eff_diff < 0), color='red', alpha=0.3, label='Nominal better')
-    ax9.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
-    ax9.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
-    ax9.axvline(10, color='red', linestyle='--', linewidth=2)
-    ax9.axhline(0, color='black', linestyle='-', linewidth=0.5)
-    ax9.set_xlabel('ΔC/σ Threshold', fontsize=12)
-    ax9.set_ylabel('Efficiency Difference (%)\n(Extended - Nominal)', fontsize=12)
-    ax9.set_title('Efficiency Advantage of Extended over Nominal', fontsize=13)
-    ax9.legend(loc='upper right')
-    ax9.grid(True, alpha=0.3)
-    
-    # Add text showing difference at key thresholds
-    diff_3 = np.sum(snr_ext > 3)/len(snr_ext)*100 - np.sum(snr_nom > 3)/len(snr_nom)*100
-    diff_5 = np.sum(snr_ext > 5)/len(snr_ext)*100 - np.sum(snr_nom > 5)/len(snr_nom)*100
-    diff_10 = np.sum(snr_ext > 10)/len(snr_ext)*100 - np.sum(snr_nom > 10)/len(snr_nom)*100
-    ax9.text(3, diff_3 + 2, f'+{diff_3:.1f}%', ha='center', fontsize=9, color='green')
-    ax9.text(5, diff_5 + 2, f'+{diff_5:.1f}%', ha='center', fontsize=9, color='orange')
-    ax9.text(10, diff_10 + 2, f'+{diff_10:.1f}%', ha='center', fontsize=9, color='red')
-    
+        
     plt.suptitle('Centroid Shift Analysis: ΔC/σ Diagnostics', fontsize=15, y=1.02)
     plt.tight_layout()
+    plt.subplots_adjust(hspace=0.4)
     plt.savefig(f'{save_dir}/centroid_delta_over_sigma_diagnostics.pdf', dpi=150, bbox_inches='tight')
     plt.show()
     
@@ -1078,7 +1017,7 @@ print("\n" + "="*60)
 print("CENTROID SHIFT ANALYSIS: ΔC/σ SUMMARY")
 print("="*60)
 print("\nNOMINAL CENTROIDS (ΔC_nom/σ_nom):")
-print(f"  Total valid measurements: {len(snr_nom)}")
+#print(f"  Total valid measurements: {len(snr_nom)}")
 print(f"  Median ΔC/σ: {np.median(snr_nom):.2f}")
 print(f"  Mean ΔC/σ: {np.mean(snr_nom):.2f}")
 print(f"  25th percentile: {np.percentile(snr_nom, 25):.2f}")
@@ -1088,7 +1027,7 @@ print(f"  Fraction with ΔC/σ > 5: {np.sum(snr_nom > 5)/len(snr_nom)*100:.1f}%"
 print(f"  Fraction with ΔC/σ > 10: {np.sum(snr_nom > 10)/len(snr_nom)*100:.1f}%")
 
 print("\nEXTENDED CENTROIDS (ΔC_ext/σ_ext):")
-print(f"  Total valid measurements: {len(snr_ext)}")
+#print(f"  Total valid measurements: {len(snr_ext)}")
 print(f"  Median ΔC/σ: {np.median(snr_ext):.2f}")
 print(f"  Mean ΔC/σ: {np.mean(snr_ext):.2f}")
 print(f"  25th percentile: {np.percentile(snr_ext, 25):.2f}")
