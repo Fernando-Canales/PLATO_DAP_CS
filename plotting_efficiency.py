@@ -821,82 +821,66 @@ print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_frac
 
 
 # STEP 1: Analysis function (from earlier)
-def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras, delta_cob_sec, sigma_cob_sec_24_cameras, eta_nom_bt_24_cameras, flux_thresh_nom_mask, mag):
+def analyze_centroid_snr_with_mag(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, 
+                                                 delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras,
+                                                 delta_cob_sec, sigma_cob_sec_24_cameras,
+                                                 eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras, 
+                                                 eta_cob_sec_24_cameras, eta_nom_bt_24_cameras,
+                                                 cob_thresh, flux_thresh_nom_mask, mag):
     
     """
     Analyze centroid shift signal-to-noise ratios with magnitude tracking
     """
     
     # Calculate SNR for nominal and extended centroids
-    # Mask for valid detections (where we expect centroids to work)
-    valid_mask = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
+    # For nominal: (eta_cob_nom > cob_thresh) & (eta_nom_bt > flux_thresh_nom_mask)
+    mask_nom = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
     
-    # Calculate SNR, avoiding division by zero
-    snr_nom = np.zeros_like(delta_cob_10first_24_cameras)
-    snr_ext = np.zeros_like(delta_cob_ext_10first_24_cameras)
+    # For extended: same structure (n_targets, 10)
+    mask_ext = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
     
-    mask_nonzero_nom = sigma_cob_10first_24_cameras > 0
-    mask_nonzero_ext = sigma_cob_ext_10first_24_cameras > 0
-    
-    snr_nom[mask_nonzero_nom] = delta_cob_10first_24_cameras[mask_nonzero_nom] / sigma_cob_10first_24_cameras[mask_nonzero_nom]
-    snr_ext[mask_nonzero_ext] = delta_cob_ext_10first_24_cameras[mask_nonzero_ext] / sigma_cob_ext_10first_24_cameras[mask_nonzero_ext]
-    
-    # Create magnitude array that matches the shape of SNR arrays
-    # Expand mag to match the second dimension (10 contaminants)
-    mag_expanded = np.repeat(mag[:, np.newaxis], 10, axis=1)
-    
-    # Apply the valid detection mask and flatten
-    snr_nom_valid = snr_nom[valid_mask].flatten()
-    snr_ext_valid = snr_ext[valid_mask].flatten()
-    mag_valid = mag_expanded[valid_mask].flatten()
-    
-    # Remove any remaining zeros or infinities
-    good_mask_nom = (snr_nom_valid > 0) & np.isfinite(snr_nom_valid)
-    good_mask_ext = (snr_ext_valid > 0) & np.isfinite(snr_ext_valid)
-    
-    snr_nom_clean = snr_nom_valid[good_mask_nom]
-    snr_ext_clean = snr_ext_valid[good_mask_ext]
-    mag_nom_clean = mag_valid[good_mask_nom]
-    mag_ext_clean = mag_valid[good_mask_ext]
+    # For secondary: only most prominent contaminant
+    mask_sec = (eta_cob_sec_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras[:, 0] > flux_thresh_nom_mask)
 
-    # NEW: Secondary centroid SNR calculation
-    snr_sec = np.zeros_like(delta_cob_sec)
-    mask_nonzero_sec = sigma_cob_sec_24_cameras > 0
-    snr_sec[mask_nonzero_sec] = delta_cob_sec[mask_nonzero_sec] / sigma_cob_sec_24_cameras[mask_nonzero_sec]
+        # Calculate SNR only for valid cases
+    def extract_snr_2d(delta, sigma, mask, mag_array):
+        snr = np.zeros_like(delta)
+        valid = mask & (sigma > 0)
+        
+        if valid.any():
+            snr[valid] = delta[valid] / sigma[valid]
+            target_indices = np.where(valid)[0]
+            return snr[valid], mag_array[target_indices]
+        else:
+            return np.array([]), np.array([])
     
-    # Apply valid detection mask (using first contaminant for secondary)
-    valid_mask_1d = (eta_nom_bt_24_cameras[:, 0] > flux_thresh_nom_mask)  # Secondary is 1D
+    def extract_snr_1d(delta, sigma, mask, mag_array):
+        snr = np.zeros_like(delta)
+        valid = mask & (sigma > 0)
+        
+        if valid.any():
+            snr[valid] = delta[valid] / sigma[valid]
+            return snr[valid], mag_array[valid]
+        else:
+            return np.array([]), np.array([])
+        
+    # Extract SNR for each method
+    snr_nom, mag_nom = extract_snr_2d(delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras, mask_nom, mag)
+    snr_ext, mag_ext = extract_snr_2d(delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras, mask_ext, mag)
+    snr_sec, mag_sec = extract_snr_1d(delta_cob_sec, sigma_cob_sec_24_cameras, mask_sec, mag)    
     
-    snr_sec_valid = snr_sec[valid_mask_1d]
-    mag_sec_valid = mag[valid_mask_1d]
-    
-    # Clean secondary data
-    good_mask_sec = (snr_sec_valid > 0) & np.isfinite(snr_sec_valid)
-    snr_sec_clean = snr_sec_valid[good_mask_sec]
-    mag_sec_clean = mag_sec_valid[good_mask_sec]
-    
-    snr_sec_valid = snr_sec[valid_mask_1d]
-    mag_sec_valid = mag[valid_mask_1d]
-    
-    # Clean secondary data
-    good_mask_sec = (snr_sec_valid > 0) & np.isfinite(snr_sec_valid)
-    snr_sec_clean = snr_sec_valid[good_mask_sec]
-    mag_sec_clean = mag_sec_valid[good_mask_sec]
-    
-    return snr_nom_clean, snr_ext_clean, snr_sec_clean, mag_nom_clean, mag_ext_clean, mag_sec_clean
+    return snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec
 
 
-# STEP 2: RUN THE ANALYSIS (this creates the variables)
+
+# Run the analysis for targets meeting detection conditions
 snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec = analyze_centroid_snr_with_mag(
-    delta_cob_10first_24_cameras, 
-    sigma_cob_10first_24_cameras,
-    delta_cob_ext_10first_24_cameras, 
-    sigma_cob_ext_10first_24_cameras,
-    delta_cob_sec,                    # NEW
-    sigma_cob_sec_24_cameras,         # NEW
-    eta_nom_bt_24_cameras, 
-    flux_thresh_nom_mask, # type: ignore
-    mag
+    delta_cob_10first_24_cameras, sigma_cob_10first_24_cameras,
+    delta_cob_ext_10first_24_cameras, sigma_cob_ext_10first_24_cameras,
+    delta_cob_sec, sigma_cob_sec_24_cameras,
+    eta_cob_nom_10first_24_cameras, eta_cob_ext_10first_24_cameras, 
+    eta_cob_sec_24_cameras, eta_nom_bt_24_cameras,
+    cob_thresh=3, flux_thresh_nom_mask=7.1, mag=mag
 )
 print(f"Analysis complete: {len(snr_nom)} nominal and {len(snr_ext)} extended measurements")
 
@@ -935,7 +919,6 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
     ax2.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
     ax2.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
     #ax2.hist(snr_nom, bins=50, alpha=0.5, label='Nominal', color='blue', density=True)
-    ax2.hist(snr_ext, bins=50, alpha=0.3, label='Extended', color='red', density=True)
     ax2.set_xlabel('ΔC_ext / σ_ext', fontsize=12)
     ax2.set_ylabel('Count', fontsize=12)
     ax2.set_title('ECOB: ΔC/σ Distr.', fontsize=13)
@@ -955,7 +938,6 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
     counts_sec, bins_sec, _ = ax3.hist(snr_sec, bins=50, alpha=0.7, color='green', edgecolor='black')
     ax3.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
     ax3.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
-    ax3.axvline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
     ax3.hist(snr_sec, bins=50, alpha=0.1, label='Secondary', color='green', density=True)
     ax3.set_xlabel('ΔC_sec / σ', fontsize=12)
     ax3.set_ylabel('Count', fontsize=12)
@@ -976,6 +958,9 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
     snr_sorted_ext = np.sort(snr_ext)
     cdf_nom = np.arange(1, len(snr_sorted_nom) + 1) / len(snr_sorted_nom)
     cdf_ext = np.arange(1, len(snr_sorted_ext) + 1) / len(snr_sorted_ext)
+    snr_sorted_sec = np.sort(snr_sec)
+    cdf_sec = np.arange(1, len(snr_sorted_sec) + 1) / len(snr_sorted_sec)
+    ax4.plot(snr_sorted_sec, cdf_sec, label='Secondary', color='green', linewidth=2)
     ax4.plot(snr_sorted_nom, cdf_nom, label='Nominal', color='blue', linewidth=2)
     ax4.plot(snr_sorted_ext, cdf_ext, label='Extended', color='red', linewidth=2)
     ax4.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
@@ -1006,6 +991,11 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
             median_ext = np.median(snr_ext[mask_ext])
             ax5.scatter(mag_bins[i] + 0.25, median_ext, color='red', s=100, marker='s', 
                        label='Extended' if i == 0 else '')
+        mask_sec = (mag_sec >= mag_bins[i]) & (mag_sec < mag_bins[i+1])
+        if np.sum(mask_sec) > 0:
+            median_sec = np.median(snr_sec[mask_sec])
+            ax5.scatter(mag_bins[i] + 0.25, median_sec, color='green', s=100, marker='^', 
+               label='Secondary' if i == 0 else '')
     
     ax5.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
     ax5.axhline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
@@ -1048,7 +1038,6 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
 
 # STEP 4: Create the plots
 fig = create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, mag_sec, save_dir=DIRout)
-
 # STEP 5: Print summary statistics
 print("\n" + "="*60)
 print("CENTROID SHIFT ANALYSIS: ΔC/σ SUMMARY")
@@ -1078,15 +1067,3 @@ print(f"  Median ΔC/σ ratio (Ext/Nom): {np.median(snr_ext)/np.median(snr_nom):
 print(f"  Efficiency gain at 3σ: {(np.sum(snr_ext > 3)/len(snr_ext) - np.sum(snr_nom > 3)/len(snr_nom))*100:+.1f}%")
 print(f"  Efficiency gain at 5σ: {(np.sum(snr_ext > 5)/len(snr_ext) - np.sum(snr_nom > 5)/len(snr_nom))*100:+.1f}%")
 print(f"  Efficiency gain at 10σ: {(np.sum(snr_ext > 10)/len(snr_ext) - np.sum(snr_nom > 10)/len(snr_nom))*100:+.1f}%")
-
-print("\nRECOMMENDATION based on ΔC/σ analysis:")
-eff_10_nom = np.sum(snr_nom > 10)/len(snr_nom)*100
-eff_5_nom = np.sum(snr_nom > 5)/len(snr_nom)*100
-eff_3_nom = np.sum(snr_nom > 3)/len(snr_nom)*100
-if eff_10_nom < 75:
-    print(f"  Current 10σ threshold is too stringent:")
-    print(f"    - Only {eff_10_nom:.1f}% of nominal centroids have ΔC/σ > 10")
-    print(f"  Alternative thresholds:")
-    print(f"    - 5σ threshold → {eff_5_nom:.1f}% efficiency (recommended)")
-    print(f"    - 3σ threshold → {eff_3_nom:.1f}% efficiency (standard detection)")
-print("="*60)
