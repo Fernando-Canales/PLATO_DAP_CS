@@ -366,20 +366,25 @@ for i in range(nP):
 
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         ## 24 cameras
-        eta_cob_c, sigma_1_24_c, abs_cob_c, gamma_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
+        eta_cob_sec_24_cameras, sigma_sec_1h_24_cameras, delta_cob_sec_24_cameras,gamma_cob_c = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=24, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         
         sprk_cob_c = np.sum(Ic_max * secondary_mask)/ np.sum((It + Ic_acc) * secondary_mask)
         ## 6 cameras
-        eta_cob_c_6_cameras, sigma_1_6_cameras_c, abs_cob_c_6_cameras, gamma_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
+        eta_cob_sec_6_cameras, sigma_sec_1h_6_cameras, delta_cob_sec_6_cameras, gamma_cob_c_6_cameras = centroid_shift(w=secondary_mask, Ik=Ic_max, n_cam=6, I_t=It, I_contaminants=Ic_acc, 
                                             sprk=sprk_sec[index_contaminant_highest_sprk], dback=dback_10first[0], sb=sb, sd=sd, sq=sq, td=td_10first[0], ntr=ntr)
         # ------------------------------------------SECONDARY COB------------------------------------------------------#
         # Now override if secondary_mask_size == 1:
         if secondary_mask_size == 1:
             #eta_c = 0
             #eta_c_6_cameras = 0
-            eta_cob_c = 0
-            eta_cob_c_6_cameras = 0
+            eta_cob_sec_24_cameras = 0
+            eta_cob_sec_6_cameras = 0
+            delta_cob_sec_24_cameras= 0
+            delta_cob_sec_6_cameras = 0
+            sigma_sec_1h_24_cameras = 0
+            sigma_sec_1h_6_cameras = 0
+
         # -----------------------------------------------------------------------
         ################################################################################################################
         #                                               EXTENDED MASK                                                  #
@@ -569,11 +574,11 @@ for i in range(nP):
         save_info = np.append(save_info, y_tar[k])
 
         # Now we save the important metrics w.r.t the secondary mask
-        save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, abs_cob_c, eta_cob_c, sigma_1_24_c])
+        save_info_contaminant = np.array([ID_t, m_t, secondary_mask_key, secondary_mask_size, nsr_1h_24_cameras_secondary_mask, spr_tot_secondary_mask, eta_c, delta_obs_secondary_mask, delta_cob_sec_24_cameras,eta_cob_sec_24_cameras, sigma_sec_1h_24_cameras])
         save_info_contaminant = np.append(save_info_contaminant, eta_c_6_cameras)
-        save_info_contaminant = np.append(save_info_contaminant, eta_cob_c_6_cameras)
-        save_info_contaminant = np.append(save_info_contaminant, abs_cob_c_6_cameras)
-        save_info_contaminant = np.append(save_info_contaminant, sigma_1_6_cameras_c)
+        save_info_contaminant = np.append(save_info_contaminant, eta_cob_sec_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, delta_cob_sec_6_cameras)
+        save_info_contaminant = np.append(save_info_contaminant, sigma_sec_1h_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c_6_cameras)
         save_info_contaminant = np.append(save_info_contaminant, SPR_tot_sec)
         save_info_contaminant = np.append(save_info_contaminant, gamma_cob_c)
