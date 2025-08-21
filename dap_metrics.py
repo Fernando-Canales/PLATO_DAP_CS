@@ -316,11 +316,11 @@ for i in range(nP):
         eta_cob_10first = np.zeros(10)
         sigma_cob_10first = np.zeros(10)
         gamma_nom_10first = np.zeros(10)
-        abs_cob_shift_10first = np.zeros(10)
+        delta_cob_10first = np.zeros(10)
         eta_cob_10first_6_cameras = np.zeros(10)
         gamma_nom_10first_6cameras = np.zeros(10)
         sigma_cob_10first_6_cameras = np.zeros(10)
-        abs_cob_shift_10first_6_cameras = np.zeros(10)
+        delta_cob_10first_6_cameras = np.zeros(10)
         IDs_from_the_10first_contaminants = np.zeros(10)
         dist_from_target_to_10first_contaminants = np.zeros(10)
         delta_x_from_target_to_10first_contaminants = np.zeros(10)
@@ -350,9 +350,9 @@ for i in range(nP):
         for l in range(nsprmax):
             m = sprk_sorted_index[l]
             eta_10first[l] = sprk[m] * np.sqrt(td[m] * ntr) * dback[m] / nsr_1h_24_cameras_nominal_mask / (1. - SPR_tot)
-            eta_cob_10first[l], sigma_cob_10first[l], abs_cob_shift_10first[l], gamma_nom_10first[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
+            eta_cob_10first[l], sigma_cob_10first[l], delta_cob_10first[l], gamma_nom_10first[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
-            eta_cob_10first_6_cameras[l], sigma_cob_10first_6_cameras[l], abs_cob_shift_10first_6_cameras[l], gamma_nom_10first_6cameras[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
+            eta_cob_10first_6_cameras[l], sigma_cob_10first_6_cameras[l], delta_cob_10first_6_cameras[l], gamma_nom_10first_6cameras[l] = centroid_shift(w=nominal_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk[m], dback=dback_10first[l], sb=sb, sd=sd, sq=sq, td=td_10first[l], ntr=ntr)
         # -------------------------------------------NOMINAL COB-------------------------------------------------------#
         ## 24 cameras
@@ -432,8 +432,8 @@ for i in range(nP):
         eta_cob_ext_10first_6_cameras = np.zeros(10)
         sigma_cob_ext_10first = np.zeros(10)
         sigma_cob_ext_10first_6_cameras = np.zeros(10)
-        abs_cob_shift_ext_10first = np.zeros(10)
-        abs_cob_shift_ext_10first_6_cameras = np.zeros(10)
+        delta_cob_ext_10first = np.zeros(10)
+        delta_cob_ext_10first_6_cameras = np.zeros(10)
         gamma_ext_10first_6_cameras = np.zeros(10)
         dback_ext_10first = np.zeros(10)
         td_ext_10first = np.zeros(10)
@@ -446,8 +446,8 @@ for i in range(nP):
         eta_cob_ext_2_pix_10first_6_cameras = np.zeros(10)
         sigma_cob_ext_2_pix_10first = np.zeros(10)
         sigma_cob_ext_2_pix_10first_6_cameras = np.zeros(10)
-        abs_cob_shift_ext_2_pix_10first = np.zeros(10)
-        abs_cob_shift_ext_2_pix_10first_6_cameras = np.zeros(10)
+        delta_cob_ext_2_pix_10first = np.zeros(10)
+        delta_cob_ext_2_pix_10first_6_cameras = np.zeros(10)
         gamma_ext_2_pix_10first_6_cameras = np.zeros(10)
 
         
@@ -459,15 +459,15 @@ for i in range(nP):
             m = sprk_sorted_index[l]
             eta_ext_10first[l] = sprk_ext[m] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_1h_24_cameras * (1 - SPR_tot_ext))       
             eta_ext_10first_6_cameras[l] = sprk_ext[l] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_1h_6_cameras * (1 - SPR_tot_ext))
-            eta_cob_ext_10first[l], sigma_cob_ext_10first[l], abs_cob_shift_ext_10first[l], gamma_ext_10first[l] = centroid_shift(w=extended_mask, Ik=Ic[m],  
+            eta_cob_ext_10first[l], sigma_cob_ext_10first[l], delta_cob_ext_10first[l], gamma_ext_10first[l] = centroid_shift(w=extended_mask, Ik=Ic[m],  
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
-            eta_cob_ext_10first_6_cameras[l], sigma_cob_ext_10first_6_cameras[l], abs_cob_shift_ext_10first_6_cameras[l], gamma_ext_10first_6_cameras[l] = centroid_shift(w=extended_mask, Ik=Ic[m],
+            eta_cob_ext_10first_6_cameras[l], sigma_cob_ext_10first_6_cameras[l], delta_cob_ext_10first_6_cameras[l], gamma_ext_10first_6_cameras[l] = centroid_shift(w=extended_mask, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
             eta_ext_2_pix_10first[l] = sprk_ext_2_pix[m] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_2_pix_1h_24_cameras * (1 - SPR_tot_ext_2_pix))       
             eta_ext_2_pix_10first_6_cameras[l] = sprk_ext_2_pix[l] * np.sqrt(td_ext_10first[l] * ntr) * dback_ext_10first[l] / (NSR_ext_2_pix_1h_6_cameras * (1 - SPR_tot_ext_2_pix))
-            eta_cob_ext_2_pix_10first[l], sigma_cob_ext_2_pix_10first[l], abs_cob_shift_ext_2_pix_10first[l], gamma_ext_2_pix_10first[l] = centroid_shift(w=extended_mask_2_pix, Ik=Ic[m],  
+            eta_cob_ext_2_pix_10first[l], sigma_cob_ext_2_pix_10first[l], delta_cob_ext_2_pix_10first[l], gamma_ext_2_pix_10first[l] = centroid_shift(w=extended_mask_2_pix, Ik=Ic[m],  
             n_cam=24, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)
-            eta_cob_ext_2_pix_10first_6_cameras[l], sigma_cob_ext_2_pix_10first_6_cameras[l], abs_cob_shift_ext_2_pix_10first_6_cameras[l], gamma_ext_2_pix_10first_6_cameras[l] = centroid_shift(w=extended_mask_2_pix, Ik=Ic[m],
+            eta_cob_ext_2_pix_10first_6_cameras[l], sigma_cob_ext_2_pix_10first_6_cameras[l], delta_cob_ext_2_pix_10first_6_cameras[l], gamma_ext_2_pix_10first_6_cameras[l] = centroid_shift(w=extended_mask_2_pix, Ik=Ic[m],
             n_cam=6, I_t=It, I_contaminants=Ic_acc, sprk=sprk_ext_2_pix[m], dback=dback_ext_10first[l], sb=sb, sd=sd, sq=sq, td=td_ext_10first[l], ntr=ntr)       
         ################################################################################################################
         #                                               EXTENDED MASK                                                  #
@@ -547,10 +547,10 @@ for i in range(nP):
         save_info = np.append(save_info, eta_t_6_cameras)
         save_info = np.append(save_info, eta_cob_10first)
         save_info = np.append(save_info, sigma_cob_10first)
-        save_info = np.append(save_info, abs_cob_shift_10first)
+        save_info = np.append(save_info, delta_cob_10first)
         save_info = np.append(save_info, eta_cob_10first_6_cameras)
         save_info = np.append(save_info, sigma_cob_10first_6_cameras)
-        save_info = np.append(save_info, abs_cob_shift_10first_6_cameras)
+        save_info = np.append(save_info, delta_cob_10first_6_cameras)
         save_info = np.append(save_info, gamma_nom_10first)
         save_info = np.append(save_info, gamma_nom_10first_6cameras)
         save_info = np.append(save_info, td_10first)
@@ -590,10 +590,10 @@ for i in range(nP):
         save_info_ext = np.append(save_info_ext, NSR_ext_1h_6_cameras)
         save_info_ext = np.append(save_info_ext, eta_cob_ext_10first)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first)
-        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first)
+        save_info_ext = np.append(save_info_ext, delta_cob_ext_10first)
         save_info_ext = np.append(save_info_ext, eta_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_10first_6_cameras)
-        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, delta_cob_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, gamma_ext_10first)
         save_info_ext = np.append(save_info_ext, gamma_ext_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, gamma_ext)
@@ -603,10 +603,10 @@ for i in range(nP):
         save_info_ext = np.append(save_info_ext, NSR_ext_2_pix_1h_6_cameras)
         save_info_ext = np.append(save_info_ext, eta_cob_ext_2_pix_10first)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_2_pix_10first)
-        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_2_pix_10first)
+        save_info_ext = np.append(save_info_ext, delta_cob_ext_2_pix_10first)
         save_info_ext = np.append(save_info_ext, eta_cob_ext_2_pix_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, sigma_cob_ext_2_pix_10first_6_cameras)
-        save_info_ext = np.append(save_info_ext, abs_cob_shift_ext_2_pix_10first_6_cameras)
+        save_info_ext = np.append(save_info_ext, delta_cob_ext_2_pix_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, gamma_ext_2_pix_10first)
         save_info_ext = np.append(save_info_ext, gamma_ext_2_pix_10first_6_cameras)
         save_info_ext = np.append(save_info_ext, gamma_ext_2_pix)
