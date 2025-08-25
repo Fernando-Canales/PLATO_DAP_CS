@@ -171,8 +171,8 @@ secondary_mask_conditions_6_cameras = (eta_c_6_cameras > flux_thresh_sec_mask) &
 eficiency_extended_mask_highest_spr_contaminant = fp_single_contaminant_24_cameras & (eta_ext_for_the_most_significant_contaminant > flux_thresh_ext_mask) & (delta_obs_ext_single_contaminant > delta_obs_t + depth_sig_scaling*sig_depth_24_cameras)  # extended mask false positive detection rate
 cd = fp_single_contaminant_24_cameras & (eta_cob > cob_thresh)  # nominal mask false positive detection rate via cob shift
 cd_6_cameras = fp_single_contaminant_6_cameras & (eta_cob_6_cameras > cob_thresh)
-secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & fp_single_contaminant_24_cameras &  (delta_cob_sec > 0) # secondary mask efficiency condition for 24 cameras and cob shift
-secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh)  & fp_single_contaminant_6_cameras  &  (delta_cob_sec_6_cameras > 0) # secondary mask efficiency condition for 6 cameras and cob shift
+secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & fp_single_contaminant_24_cameras &  (delta_cob_sec > 10*sigma_cob_sec_24_cameras/np.sqrt(td_10first_safe[:, 0] * ntr)) # secondary mask efficiency condition for 24 cameras and cob shift
+secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh)  & fp_single_contaminant_6_cameras  &  (delta_cob_sec_6_cameras > 10*sigma_cob_sec_6_cameras/np.sqrt(td_10first_safe[:, 0] * ntr)) # secondary mask efficiency condition for 6 cameras and cob shift
 ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_thresh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
@@ -405,10 +405,10 @@ for i in range(nP):
     m = (mag >= Pi - binsize/2.) & (mag <= Pi + binsize/2.)
     s_24_cameras = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)[m,:].sum()
     s_6_cameras = (eta_nom_bt_6_cameras > flux_thresh_nom_mask)[m,:].sum()
-    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
-    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_6_cameras > 10*sigma_cob_ext_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
-    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras))[m,:].sum() / s_24_cameras * 100.
-    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_10first_6_cameras > 10*sigma_cob_10first_6_cameras))[m,:].sum() / s_6_cameras * 100.
+    eff_ext_cob_overall = ((eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras/ np.sqrt(td_10first_safe * ntr)))[m,:].sum() / s_24_cameras * 100.
+    eff_ext_cob_overall_6_cameras = ((eta_cob_ext_10first_6_cameras > cob_thresh) &  (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_6_cameras > 10*sigma_cob_ext_10first_6_cameras/ np.sqrt(td_10first_safe * ntr)))[m,:].sum() / s_6_cameras * 100.
+    eff_cob = ((eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras/ np.sqrt(td_10first_safe * ntr)))[m,:].sum() / s_24_cameras * 100.
+    eff_cob_6_cameras = ((eta_cob_nom_10first_6_cameras > cob_thresh) & (eta_nom_bt_6_cameras > flux_thresh_nom_mask) & (delta_cob_10first_6_cameras > 10*sigma_cob_10first_6_cameras/ np.sqrt(td_10first_safe * ntr)))[m,:].sum() / s_6_cameras * 100.
     eff_cob_sec = (secondary_mask_conditions_cob_24_cameras[m].sum() / fp_single_contaminant_24_cameras[m].sum()) * 100
     eff_cob_sec_6_cameras = (secondary_mask_conditions_cob_6_cameras[m].sum() / fp_single_contaminant_6_cameras[m].sum()) * 100
 
@@ -513,8 +513,8 @@ nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask_single_contaminant = (eficiency_extended_mask_highest_spr_contaminant)
-nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras)
-nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras)
+nfp_nom_cob = (eta_cob_nom_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_10first_24_cameras > 10*sigma_cob_10first_24_cameras/np.sqrt(td_10first_safe * ntr))
+nfp_ext_cob = (eta_cob_ext_10first_24_cameras > cob_thresh) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask) & (delta_cob_ext_10first_24_cameras > 10*sigma_cob_ext_10first_24_cameras/np.sqrt(td_10first_safe * ntr))
 
 
 nfp_sec_mask = (secondary_mask_conditions_24_cameras)
