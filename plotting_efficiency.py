@@ -313,7 +313,7 @@ for i in range(nP):
     #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore 
     #plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
     plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variabel transit parameters case
-    plt.fill_between([11, 13.4], [40, 40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variabel transit parameters case
+    plt.fill_between([10.7, 13.4], [40, 40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variabel transit parameters case
 
     # Update label tracking
     labels_added['sec_24'] = True
@@ -342,8 +342,8 @@ plt.vlines(10.7, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: 
 plt.ylim(40, 100) # this is for the variabel transit parameters case
 plt.xlim(9.9, 13.1)
 #plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(10, 73.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
-plt.text(11.2, 55, 'On-board light curve processing region', color='red', weight='bold')
+plt.text(10, 75.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
+plt.text(11.2, 63, 'On-board light curve processing region', color='red', weight='bold')
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
@@ -353,7 +353,7 @@ plt.ylabel('Efficiency [%]', fontsize=fsize)
 # Adjust layout to accommodate the legend below
 plt.tight_layout(rect=[0, 0, 1, 0.88])
 #plt.savefig(DIRout + "DAP_Flux_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
-plt.savefig(DIRout + "DAP_Flux_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
+plt.savefig(DIRout + "DAP_Flux_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
 plt.show()
 
 
