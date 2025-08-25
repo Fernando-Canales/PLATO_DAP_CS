@@ -439,7 +439,7 @@ for i in range(nP):
     #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
     #plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
     plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variable transit parameters case
-    plt.fill_between([11, 13.4], [40,40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variable transit parameters case
+    plt.fill_between([10.7, 13.4], [40,40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variable transit parameters case
     
     # Plot lines connecting the points
     if i > 0:
@@ -456,55 +456,23 @@ for i in range(nP):
     #plt.vlines(11.7, ymin=47, ymax = 100, linestyles='dashed', colors='green') # type: ignore
     #plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
     plt.vlines(11.7, ymin=40, ymax = 100, linestyles='dashed', colors='green') # type: ignore this is for the variable transit parameters case
-    plt.vlines(11, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variable transit parameters case
+    plt.vlines(10.7, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variable transit parameters case
     #plt.ylim(47, 100)
     plt.ylim(40, 100) # this is for the variable transit parameters case
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
-    plt.text(10., 71.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(11.1, 60.5, 'On-board light curve process. region', color='red', weight='bold')
+    plt.text(10., 61.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
+    plt.text(10.9, 50.5, 'On-board light curve process. region', color='red', weight='bold')
            
 # Finalize the main plot
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Efficiency [%]', fontsize=fsize)
 plt.tight_layout(rect=[0, 0, 1, 0.88])
-# After loop: plot inset with accumulated data
-#ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="center")
-ax_inset = inset_axes(
-    plt.gca(), 
-    width=1.9,    # Width in inches
-    height=0.5,   # Height in inches
-    loc="center", 
-    bbox_to_anchor=(0.48, 0.8),  # Center it horizontally (0.5) and position lower vertically (0.3)
-    bbox_transform=plt.gca().transAxes
-)
-ax_inset.errorbar(Pi_values, eff_ext_cob_overall_values, fmt='s', yerr=error_ext_cob, color='blue', linewidth=1.5, label='Ext. Mask (24 cameras)') # type: ignore
-ax_inset.errorbar(Pi_values, eff_ext_cob_overall_6_cameras_values, fmt='s', yerr=error_ext_cob_6_cameras, color='red', linewidth=1.5, label='Ext. Mask (6 cameras)') # type: ignore
-ax_inset.errorbar(Pi_values, eff_cob_values, color='orange', fmt='*', yerr=error_cob, linewidth=1.5, label='Nom. Mask (24 cameras)') # type: ignore
-ax_inset.errorbar(Pi_values, eff_cob_6_cameras_values, color='olive', fmt='*', yerr=error_cob_6_cameras,  linewidth=1.5, label='Nom. Mask (6 cameras)') # type: ignore
 
-# Connect the dots
-ax_inset.plot(Pi_values, eff_ext_cob_overall_values, color='blue', linestyle='-')
-ax_inset.plot(Pi_values, eff_cob_values, color='orange', linestyle='-')
-ax_inset.plot(Pi_values, eff_ext_cob_overall_6_cameras_values, color='red', linestyle='-')
-ax_inset.plot(Pi_values, eff_cob_6_cameras_values, color='olive', linestyle='-')
-
-# Add shaded areas and vertical lines to the inset plot
-ax_inset.fill_between([9, 11.7], [95, 95], [100, 100], color='aqua', alpha=0.5)
-ax_inset.fill_between([11, 13.4], [95, 95], [100, 100], color='plum', alpha=0.5)
-ax_inset.vlines(11.7, ymin=95, ymax=100, linestyles='dashed', colors='green')
-ax_inset.vlines(11, ymin=95, ymax=100, linestyles='dashdot', colors='red')
-
-# Set inset plot limits and appearance
-ax_inset.set_ylim(95, 100)
-ax_inset.set_xlim(9.9, 13.1)
-ax_inset.set_yticks([95, 97, 100])
-ax_inset.grid(True, linestyle='--', linewidth=0.5, color='grey', alpha=0.5)
-plt.gca().indicate_inset_zoom(ax_inset, edgecolor="grey")
 
 #plt.savefig(DIRout + "DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
-plt.savefig(DIRout + "DAP_CS_efficiency_variable.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
+plt.savefig(DIRout + "DAP_CS_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
 
