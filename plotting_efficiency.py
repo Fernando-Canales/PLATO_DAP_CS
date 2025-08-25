@@ -337,13 +337,13 @@ for i in range(nP):
 #plt.vlines(11.7, ymin=47, ymax=100, linestyles='dashed', colors='green') # type: ignore
 #plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
 plt.vlines(11.7, ymin=40, ymax=100, linestyles='dashed', colors='green') # type: ignore this is for the variabel transit parameters case
-plt.vlines(11, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variabel transit parameters case
+plt.vlines(10.7, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variabel transit parameters case
 #plt.ylim(55, 100)
 plt.ylim(40, 100) # this is for the variabel transit parameters case
 plt.xlim(9.9, 13.1)
 #plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(10, 72.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
-plt.text(11.2, 50, 'On-board light curve processing region', color='red', weight='bold')
+plt.text(10, 73.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
+plt.text(11.2, 55, 'On-board light curve processing region', color='red', weight='bold')
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
