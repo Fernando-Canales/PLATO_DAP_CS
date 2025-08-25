@@ -380,10 +380,10 @@ for i in range(nP):
             #eta_c_6_cameras = 0
             eta_cob_sec_24_cameras = 0
             eta_cob_sec_6_cameras = 0
-            delta_cob_sec_24_cameras= 0
-            delta_cob_sec_6_cameras = 0
-            sigma_sec_1h_24_cameras = 0
-            sigma_sec_1h_6_cameras = 0
+            #delta_cob_sec_24_cameras= 0
+            #delta_cob_sec_6_cameras = 0
+            #sigma_sec_1h_24_cameras = 0
+            #sigma_sec_1h_6_cameras = 0
 
         # -----------------------------------------------------------------------
         ################################################################################################################
