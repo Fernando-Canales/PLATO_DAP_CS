@@ -168,3 +168,6 @@ Start to investigate what is going on at P=10.5 and P=11.5 for the:
   - [x]  Mention the 1 hour average explanation in Sect. 2.4 
   - [ ]  Don't mention real camera PSF in the referee response and in the paper
   - [x]  Check which grows faster, if the nominal significance or the extended significance or the secondary significance at P = 10.5 and P = 11.5
+### Week of 25th of August
+- [ ] Send an email to A&A about an extension
+- [ ] Implement the new scaled over transit duration and number of transits efficiency condition for the COBs
