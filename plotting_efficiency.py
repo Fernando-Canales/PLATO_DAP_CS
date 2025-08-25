@@ -171,8 +171,8 @@ secondary_mask_conditions_6_cameras = (eta_c_6_cameras > flux_thresh_sec_mask) &
 eficiency_extended_mask_highest_spr_contaminant = fp_single_contaminant_24_cameras & (eta_ext_for_the_most_significant_contaminant > flux_thresh_ext_mask) & (delta_obs_ext_single_contaminant > delta_obs_t + depth_sig_scaling*sig_depth_24_cameras)  # extended mask false positive detection rate
 cd = fp_single_contaminant_24_cameras & (eta_cob > cob_thresh)  # nominal mask false positive detection rate via cob shift
 cd_6_cameras = fp_single_contaminant_6_cameras & (eta_cob_6_cameras > cob_thresh)
-secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & fp_single_contaminant_24_cameras  &  (delta_cob_sec > 0)# secondary mask efficiency condition for 24 cameras and cob shift
-secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh)  & fp_single_contaminant_6_cameras &  (delta_cob_sec_6_cameras > 0) # secondary mask efficiency condition for 6 cameras and cob shift
+secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & fp_single_contaminant_24_cameras &  (delta_cob_sec > 0) # secondary mask efficiency condition for 24 cameras and cob shift
+secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh)  & fp_single_contaminant_6_cameras  &  (delta_cob_sec_6_cameras > 0) # secondary mask efficiency condition for 6 cameras and cob shift
 ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_thresh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
@@ -938,7 +938,8 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
     counts_sec, bins_sec, _ = ax3.hist(snr_sec, bins=50, alpha=0.7, color='green', edgecolor='black')
     ax3.axvline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
     ax3.axvline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
-    ax3.hist(snr_sec, bins=50, alpha=0.1, label='Secondary', color='green', density=True)
+    ax3.axvline(10, color='red', linestyle='--', label='10σ threshold', linewidth=1.5)
+    #ax3.hist(snr_sec, bins=50, alpha=0.1, label='Secondary', color='green', density=True)
     ax3.set_xlabel('ΔC_sec / σ', fontsize=12)
     ax3.set_ylabel('Count', fontsize=12)
     ax3.set_title('SCOB: ΔC_sec / σ Distr.', fontsize=13)
@@ -997,7 +998,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
             ax5.scatter(mag_bins[i] + 0.25, median_sec, color='green', s=100, marker='^', 
                label='Secondary' if i == 0 else '')
     
-    ax5.axhline(10, color='red', linestyle='--', linewidth=2, label='10σ threshold')
+    ax5.axhline(10, color='red', linestyle='--', label='10σ threshold', linewidth=1.5)
     ax5.axhline(5, color='orange', linestyle='--', label='5σ threshold', linewidth=1.5)
     ax5.axhline(3, color='green', linestyle='--', label='3σ threshold', linewidth=1.5)
     ax5.set_xlabel('P Magnitude', fontsize=12)
@@ -1019,7 +1020,7 @@ def create_diagnostic_plots_clear(snr_nom, snr_ext, snr_sec, mag_nom, mag_ext, m
     ax6.plot(thresholds, detection_rate_sec, label='Secondary', color='green', linewidth=2)
     ax6.axvline(3, color='green', linestyle='--', alpha=0.5, linewidth=1.5)
     ax6.axvline(5, color='orange', linestyle='--', alpha=0.5, linewidth=1.5)
-    ax6.axvline(10, color='red', linestyle='--', linewidth=2)
+    ax6.axvline(10, color='red', linestyle='--', alpha=0.5, linewidth=1.5)
     #ax6.axhline(70, color='black', linestyle=':', alpha=0.5, label='70%')
     ax6.set_xlabel('ΔC/σ Threshold', fontsize=12)
     ax6.set_ylabel('%', fontsize=12)
