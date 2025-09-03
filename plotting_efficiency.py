@@ -78,8 +78,8 @@ eta_t_24_cameras_superearth = data[:, 39]
 eta_t_6_cameras_superearth = data[:, 40]
 eta_t_6_cameras = data[:, 45]
 delta_obs_t = data[:, 13]
-eta_c = data_sec[:, 6]
-eta_c_6_cameras = data_sec[:, 11]
+eta_sec_24_cameras= data_sec[:, 6]
+eta_sec_6_cameras = data_sec[:, 11]
 delta_obs_c = data_sec[:, 7]
 eta_ext_for_the_most_significant_contaminant = data_ext[:, 7]
 delta_obs_ext_single_contaminant = data_ext[:, 8]
@@ -164,16 +164,13 @@ sig_depth_6_cameras = np.sqrt(sig_depth_nominal_mask_6_cameras**2 + sig_depth_ex
 
 # First, the expressions for the efficiency false positives detections for the different masks
 fp_single_contaminant_24_cameras = (eta_t > flux_thresh_nom_mask)  # false positive
-sdr_flux = fp_single_contaminant_24_cameras & (eta_c > flux_thresh_nom_mask) & (delta_obs_c > delta_obs_t)  # secondary mask false positive detection rate
+sdr_flux = fp_single_contaminant_24_cameras & (eta_sec_24_cameras> flux_thresh_nom_mask) & (delta_obs_c > delta_obs_t)  # secondary mask false positive detection rate
 fp_single_contaminant_6_cameras = (eta_t_6_cameras > flux_thresh_nom_mask)
-secondary_mask_conditions_24_cameras = (eta_c > flux_thresh_sec_mask) & (delta_obs_c > delta_obs_t  + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras**2 + sig_depth_nominal_mask_24_cameras**2)) & fp_single_contaminant_24_cameras  # secondary mask efficiency condition for 24 cameras
-secondary_mask_conditions_6_cameras = (eta_c_6_cameras > flux_thresh_sec_mask) & (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras**2 + sig_depth_nominal_mask_6_cameras**2)) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras
+secondary_mask_conditions_24_cameras = (eta_sec_24_cameras> flux_thresh_sec_mask) & (delta_obs_c > delta_obs_t  + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_24_cameras**2 + sig_depth_nominal_mask_24_cameras**2)) & fp_single_contaminant_24_cameras  # secondary mask efficiency condition for 24 cameras
+secondary_mask_conditions_6_cameras = (eta_sec_6_cameras > flux_thresh_sec_mask) & (delta_obs_c > delta_obs_t + depth_sig_scaling*np.sqrt(sig_depth_secondary_mask_6_cameras**2 + sig_depth_nominal_mask_6_cameras**2)) & fp_single_contaminant_6_cameras # secondary mask efficiency condition for 6 cameras
 eficiency_extended_mask_highest_spr_contaminant = fp_single_contaminant_24_cameras & (eta_ext_for_the_most_significant_contaminant > flux_thresh_ext_mask) & (delta_obs_ext_single_contaminant > delta_obs_t + depth_sig_scaling*sig_depth_24_cameras)  # extended mask false positive detection rate
-cd = fp_single_contaminant_24_cameras & (eta_cob > cob_thresh)  # nominal mask false positive detection rate via cob shift
-cd_6_cameras = fp_single_contaminant_6_cameras & (eta_cob_6_cameras > cob_thresh)
 secondary_mask_conditions_cob_24_cameras = (eta_cob_sec_24_cameras > cob_thresh) & fp_single_contaminant_24_cameras &  (delta_cob_sec > 10*sigma_cob_sec_24_cameras/np.sqrt(td_10first_safe[:, 0] * ntr)) # secondary mask efficiency condition for 24 cameras and cob shift
 secondary_mask_conditions_cob_6_cameras = (eta_cob_sec_6_cameras > cob_thresh)  & fp_single_contaminant_6_cameras  &  (delta_cob_sec_6_cameras > 10*sigma_cob_sec_6_cameras/np.sqrt(td_10first_safe[:, 0] * ntr)) # secondary mask efficiency condition for 6 cameras and cob shift
-ecd = fp_single_contaminant_24_cameras & (eta_cob_ext > cob_thresh)  # extended mask false positive detection rate via cob shift
 
 # We reshape some of them for 24 cameras
 # For 10-first arrays with broadcasting (using safe version):
@@ -523,6 +520,40 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 plt.savefig(DIRout + "DAP_CS_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
+# Flatten centroid arrays and repeat corresponding arrays to match
+eta_cob_flat = eta_cob_nom_10first_24_cameras.flatten()
+eta_cob_ext_flat = eta_cob_ext_10first_24_cameras.flatten()
+
+# Repeat magnitude and secondary flux arrays to match flattened centroid arrays
+mag_repeated = np.repeat(mag, 10)
+eta_sec_24_cameras_repeated = np.repeat(eta_sec_24_cameras, 10)
+
+# Create the comparison plot
+plt.figure(6, figsize=(12, 8))
+
+# Remove invalid values
+valid_mask = (eta_sec_24_cameras_repeated > 0) & (eta_cob_flat > 0) & (eta_cob_ext_flat > 0)
+
+plt.subplot(2, 1, 1)
+plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
+plt.scatter(mag_repeated[valid_mask], eta_cob_flat[valid_mask], marker='^', alpha=0.2, s=2, color='red', label=r'Nominal Centroid ($\eta_k^{\Delta C, \mathrm{nom}}$)') # type: ignore
+plt.xlabel('P Magnitude', fontsize=fsize)
+plt.ylabel('Significance', fontsize=fsize)
+plt.legend(markerscale=5)
+plt.yscale('log')
+
+plt.subplot(2, 1, 2)
+plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
+plt.scatter(mag_repeated[valid_mask], eta_cob_ext_flat[valid_mask], marker='^', alpha=0.2, s=2, color='green', label=r'Extended Centroid ($\eta_k^{\Delta C, \mathrm{ext}}$)') # type: ignore
+plt.xlabel('P Magnitude', fontsize=fsize)
+plt.ylabel('Significance', fontsize=fsize)
+#plt.title('Secondary Flux vs Extended Centroid Significance', fontsize=fsize)
+plt.legend(markerscale=5)
+plt.yscale('log')
+
+plt.tight_layout()
+plt.savefig(DIRout + "Significances_eta_sec_nom_and_ext_cob_shift.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
+plt.show()
 
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
