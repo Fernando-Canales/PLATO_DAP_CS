@@ -784,3 +784,4 @@ print(f'Weighted fraction of FPs detected by SFX but not by ECOB: {weighted_frac
 print(f'Weighted fraction of FPs detected by ECOB but not by SFX: {weighted_fraction_fp_ext_cob_no_sec_flux * 100:.2f}% ± {weighted_error_fraction_fp_ext_cob_no_sec_flux * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by SCOB: {weighted_fraction_fp_ext_flux_no_sec_cob * 100:.2f}% ± {weighted_error_fraction_fp_ext_flux_no_sec_cob * 100:.2f}%')
 print(f'Weighted fraction of FPs detected by EFX but not by NCOB: {weighted_fraction_fp_ext_flux_no_nom_cob * 100:.1f}% ± {weighted_error_fraction_fp_ext_flux_no_nom_cob * 100:.1f}%')
+ 
