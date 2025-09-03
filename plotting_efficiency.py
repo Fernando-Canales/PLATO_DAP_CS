@@ -361,30 +361,78 @@ def analyze_centroid_issues(delta_cob_nom, delta_cob_ext):
     # 1. Check for zeros/NaNs
     print(f"Nominal shifts: {np.sum(delta_cob_nom == 0)} zeros, {np.sum(np.isnan(delta_cob_nom))} NaNs")
     print(f"Extended shifts: {np.sum(delta_cob_ext == 0)} zeros, {np.sum(np.isnan(delta_cob_ext))} NaNs")
+
+# 2. Collect data for contaminants producing zero centroid shifts
+    zero_nom_distances = []
+    zero_nom_cont_mags = []
+    zero_nom_target_mags = []
+    zero_nom_mag_diffs = []
     
-    # 2. Find examples of small shifts with large distances
+    zero_ext_distances = []
+    zero_ext_cont_mags = []
+    zero_ext_target_mags = []
+    zero_ext_mag_diffs = []
+    
     for i in range(len(dist_target_to_10first_contaminants)):
         for j in range(10):
             dist = dist_target_to_10first_contaminants[i,j]
             shift_nom = delta_cob_10first_24_cameras[i,j]
             shift_ext = delta_cob_ext_10first_24_cameras[i,j]
+            target_mag = mag[i]
+            cont_mag = mag_target_10first_contaminants[i,j]
+            mag_diff = cont_mag - target_mag
             
-            if dist > 3 and (shift_nom < 0.01 or shift_ext < 0.01):
-                print(f"Anomaly at target {i}, contaminant {j}:")
-                print(f"  Distance={dist:.2f}px, Nom shift={shift_nom:.6f}px, Ext shift={shift_ext:.6f}px")
-                print(f"  Target mag={mag[i]}, Cont mag={mag_target_10first_contaminants[i,j]}")
-                
-                # Optional: Print full imagette
-                # print("Nominal mask:\n", nominal_masks[i])
-                # print("Extended mask:\n", extended_masks[i])
-                return  # Stop after first anomaly
+            if shift_nom == 0:
+                zero_nom_distances.append(dist)
+                zero_nom_cont_mags.append(cont_mag)
+                zero_nom_target_mags.append(target_mag)
+                zero_nom_mag_diffs.append(mag_diff)
+            
+            if shift_ext == 0:
+                zero_ext_distances.append(dist)
+                zero_ext_cont_mags.append(cont_mag)
+                zero_ext_target_mags.append(target_mag)
+                zero_ext_mag_diffs.append(mag_diff)
+    
+    # Convert to numpy arrays
+    zero_nom_distances = np.array(zero_nom_distances)
+    zero_nom_cont_mags = np.array(zero_nom_cont_mags)
+    zero_nom_mag_diffs = np.array(zero_nom_mag_diffs)
+    
+    zero_ext_distances = np.array(zero_ext_distances)
+    zero_ext_cont_mags = np.array(zero_ext_cont_mags)
+    zero_ext_mag_diffs = np.array(zero_ext_mag_diffs)
+    
+    print(f"\nNominal zero shifts:\n - Distance stats: mean={np.mean(zero_nom_distances):.2f}, std={np.std(zero_nom_distances):.2f}")
+    print(f"Nominal zero shifts:\n - Mag diff stats: mean={np.mean(zero_nom_mag_diffs):.2f}, std={np.std(zero_nom_mag_diffs):.2f}")
+    print(f"Extended zero shifts\n - Distance stats: mean={np.mean(zero_ext_distances):.2f}, std={np.std(zero_ext_distances):.2f}")
+    print(f"Extended zero shifts\n - Mag diff stats: mean={np.mean(zero_ext_mag_diffs):.2f}, std={np.std(zero_ext_mag_diffs):.2f}")
+    
+    return zero_nom_distances, zero_nom_mag_diffs, zero_ext_distances, zero_ext_mag_diffs
 
-# Run diagnostics
-analyze_centroid_issues(delta_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras)
+# Unpack the returned tuple
+nom_distances, nom_mag_diffs, ext_distances, ext_mag_diffs = analyze_centroid_issues(delta_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras) # type: ignore
 
-# Add this filter BEFORE efficiency calculations
-valid_nom = (delta_cob_10first_24_cameras > 0) & (dist_target_to_10first_contaminants > 2)
-valid_ext = (delta_cob_ext_10first_24_cameras > 0) & (dist_target_to_10first_contaminants > 2)
+# Now use the unpacked variables directly
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 2, 1)
+plt.hist(nom_distances, bins=30, alpha=0.7, label='Nominal')
+plt.hist(ext_distances, bins=30, alpha=0.7, label='Extended')
+plt.xlabel('Distance (px)')
+plt.ylabel('Count')
+plt.title('Distance Distribution for Zero Shifts')
+plt.legend()
+
+plt.subplot(2, 2, 2)
+plt.hist(nom_mag_diffs, bins=30, alpha=0.7, label='Nominal')
+plt.hist(ext_mag_diffs, bins=30, alpha=0.7, label='Extended')
+plt.xlabel('Magnitude Difference')
+plt.ylabel('Count')
+plt.title('Mag Difference Distribution for Zero Shifts')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
 
 """
 Now we plot the efficiency of the COB shift (all contaminants)
