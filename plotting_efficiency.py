@@ -536,7 +536,7 @@ valid_mask = (eta_sec_24_cameras_repeated > 0) & (eta_cob_flat > 0) & (eta_cob_e
 
 plt.subplot(2, 1, 1)
 plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
-plt.scatter(mag_repeated[valid_mask], eta_cob_flat[valid_mask], marker='^', alpha=0.2, s=2, color='red', label=r'Nominal Centroid ($\eta_k^{\Delta C, \mathrm{nom}}$)') # type: ignore
+plt.scatter(mag_repeated[valid_mask], eta_cob_flat[valid_mask], marker='^', alpha=0.2, s=2, color='red', label=r'Nominal Centroid ($\eta_k^{\mathrm{nom}, \Delta C}$)') # type: ignore
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Significance', fontsize=fsize)
 plt.legend(markerscale=5)
@@ -544,7 +544,7 @@ plt.yscale('log')
 
 plt.subplot(2, 1, 2)
 plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
-plt.scatter(mag_repeated[valid_mask], eta_cob_ext_flat[valid_mask], marker='^', alpha=0.2, s=2, color='green', label=r'Extended Centroid ($\eta_k^{\Delta C, \mathrm{ext}}$)') # type: ignore
+plt.scatter(mag_repeated[valid_mask], eta_cob_ext_flat[valid_mask], marker='^', alpha=0.2, s=2, color='green', label=r'Extended Centroid ($\eta_k^{\mathrm{ext}, \Delta C}$)') # type: ignore
 plt.xlabel('P Magnitude', fontsize=fsize)
 plt.ylabel('Significance', fontsize=fsize)
 #plt.title('Secondary Flux vs Extended Centroid Significance', fontsize=fsize)
