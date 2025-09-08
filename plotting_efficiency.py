@@ -532,28 +532,31 @@ eta_sec_24_cameras_repeated = np.repeat(eta_sec_24_cameras, 10)
 plt.figure(6, figsize=(12, 8))
 
 # Remove invalid values
+# Compute valid mask (same as before)
 valid_mask = (eta_sec_24_cameras_repeated > 0) & (eta_cob_flat > 0) & (eta_cob_ext_flat > 0)
 
-plt.subplot(2, 1, 1)
-plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
-plt.scatter(mag_repeated[valid_mask], eta_cob_flat[valid_mask], marker='^', alpha=0.2, s=2, color='red', label=r'Nominal Centroid ($\eta_k^{\mathrm{nom}, \Delta C}$)') # type: ignore
-plt.xlabel('P Magnitude', fontsize=fsize)
-plt.ylabel('Significance', fontsize=fsize)
-plt.legend(markerscale=5)
-plt.yscale('log')
+# Compute log ratios
+log_ratio_nom = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_flat[valid_mask])
+log_ratio_ext = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_ext_flat[valid_mask])
 
-plt.subplot(2, 1, 2)
-plt.scatter(mag_repeated[valid_mask], eta_sec_24_cameras_repeated[valid_mask], alpha=0.2, s=2, color='blue', label=r'Secondary Flux ($\eta_{\mathrm{k_{max}}}^{\mathrm{sec}}$)')
-plt.scatter(mag_repeated[valid_mask], eta_cob_ext_flat[valid_mask], marker='^', alpha=0.2, s=2, color='green', label=r'Extended Centroid ($\eta_k^{\mathrm{ext}, \Delta C}$)') # type: ignore
-plt.xlabel('P Magnitude', fontsize=fsize)
-plt.ylabel('Significance', fontsize=fsize)
-#plt.title('Secondary Flux vs Extended Centroid Significance', fontsize=fsize)
-plt.legend(markerscale=5)
-plt.yscale('log')
+plt.subplot(1, 2, 1)
+plt.hist(log_ratio_nom, bins=50, color='red', alpha=0.7)
+plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
+plt.xlabel(r'$\log_{10}(\eta_{\mathrm{sec}} / \eta_{k}^{\mathrm{nom}, \Delta C})$', fontsize=fsize)
+plt.ylabel('Counts', fontsize=fsize)
+
+
+plt.subplot(1, 2, 2)
+plt.hist(log_ratio_ext, bins=50, color='green', alpha=0.7)
+plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
+plt.xlabel(r'$\log_{10}(\eta_{\mathrm{sec}} / \eta_{k}^{\mathrm{ext}, \Delta C})$', fontsize=fsize)
+plt.ylabel('Counts', fontsize=fsize)
 
 plt.tight_layout()
-plt.savefig(DIRout + "Significances_eta_sec_nom_and_ext_cob_shift.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
+plt.savefig(DIRout + "Hist_log_ratios_eta_sec_vs_nom_and_ext_cob.pdf", format='pdf', bbox_inches='tight')
 plt.show()
+
+
 
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
