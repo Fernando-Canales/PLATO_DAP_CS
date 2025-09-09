@@ -542,14 +542,14 @@ log_ratio_ext = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_ext_f
 plt.subplot(1, 2, 1)
 plt.hist(log_ratio_nom, bins=50, color='red', alpha=0.7)
 plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
-plt.xlabel(r'$\log_{10}(\eta_{\mathrm{sec}} / \eta_{k}^{\mathrm{nom}, \Delta C})$', fontsize=fsize)
+plt.xlabel(r'$\log_{10}(\eta_{\mathrm{k_{max}}}^{\mathrm{sec}} / \eta_{k}^{\mathrm{nom}, \Delta C})$', fontsize=fsize)
 plt.ylabel('Counts', fontsize=fsize)
 
 
 plt.subplot(1, 2, 2)
 plt.hist(log_ratio_ext, bins=50, color='green', alpha=0.7)
 plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
-plt.xlabel(r'$\log_{10}(\eta_{\mathrm{sec}} / \eta_{k}^{\mathrm{ext}, \Delta C})$', fontsize=fsize)
+plt.xlabel(r'$\log_{10}(\eta_{\mathrm{k_{max}}}^{\mathrm{sec}} / \eta_{k}^{\mathrm{ext}, \Delta C})$', fontsize=fsize)
 plt.ylabel('Counts', fontsize=fsize)
 
 plt.tight_layout()
