@@ -404,11 +404,6 @@ def analyze_centroid_issues(delta_cob_nom, delta_cob_ext):
     zero_ext_cont_mags = np.array(zero_ext_cont_mags)
     zero_ext_mag_diffs = np.array(zero_ext_mag_diffs)
     
-    print(f"\nNominal zero shifts:\n - Distance stats: mean={np.mean(zero_nom_distances):.2f}, std={np.std(zero_nom_distances):.2f}")
-    print(f"Nominal zero shifts:\n - Mag diff stats: mean={np.mean(zero_nom_mag_diffs):.2f}, std={np.std(zero_nom_mag_diffs):.2f}")
-    print(f"Extended zero shifts\n - Distance stats: mean={np.mean(zero_ext_distances):.2f}, std={np.std(zero_ext_distances):.2f}")
-    print(f"Extended zero shifts\n - Mag diff stats: mean={np.mean(zero_ext_mag_diffs):.2f}, std={np.std(zero_ext_mag_diffs):.2f}")
-    
     return zero_nom_distances, zero_nom_mag_diffs, zero_ext_distances, zero_ext_mag_diffs
 
 # Unpack the returned tuple
@@ -561,7 +556,17 @@ plt.savefig(DIRout + "Hist_log_ratios_eta_sec_vs_nom_and_ext_cob.pdf", format='p
 plt.show()
 
 
+# Define tolerance for "zero" peak (accounting for numerical precision)
+tolerance = 0.05  # ±0.05 in log space
 
+# Identify cases in the zero peak for both comparisons
+zero_peak_ext_mask = np.abs(log_ratio_ext) < tolerance
+
+print(f"Total valid contaminant cases: {len(eta_sec_24_cameras_repeated[valid_mask])}")
+print(f"Cases in zero peak for extended comparison: {zero_peak_ext_mask.sum()}")
+
+# Get the indices and properties of contaminants in each zero peak
+zero_peak_ext_indices = np.where(zero_peak_ext_mask)[0]
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
