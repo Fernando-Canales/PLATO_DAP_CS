@@ -258,6 +258,10 @@ for i in range(nP):
     cumulative_total.append(total_masks)
     P_values.append(Pi)
 
+# Set consistent figure size for both plots
+fig_width = 8
+fig_height = 6
+plt.figure(4, figsize=(fig_width, fig_height))
 """
 Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
 """
@@ -442,7 +446,7 @@ eff_ext_cob_overall_6_cameras_values = []
 eff_cob_values = []
 eff_cob_6_cameras_values = []
 
-plt.figure(5)
+plt.figure(5, figsize=(fig_width, fig_height))
 for i in range(nP):
     Pi = Pmin + i * binsize
     Pi_values.append(Pi)  # Store Pi for later
