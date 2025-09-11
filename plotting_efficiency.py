@@ -531,12 +531,12 @@ eta_sec_24_cameras_repeated = np.repeat(eta_sec_24_cameras, 10)
 plt.figure(6, figsize=(12, 8))
 
 # Remove invalid values
-# Compute valid mask (same as before)
 valid_mask = (eta_sec_24_cameras_repeated > 0) & (eta_cob_flat > 0) & (eta_cob_ext_flat > 0)
 
 # Compute log ratios
 log_ratio_nom = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_flat[valid_mask])
 log_ratio_ext = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_ext_flat[valid_mask])
+
 
 plt.subplot(1, 2, 1)
 plt.hist(log_ratio_nom, bins=50, color='red', alpha=0.7)
@@ -562,79 +562,6 @@ zero_peak_ext_mask = np.abs(log_ratio_ext) < tolerance
 
 print(f"Total cases in zero peak: {zero_peak_ext_mask.sum()}")
 
-# 2. Get flat indices relative to the *valid subset*
-valid_flat_indices = np.where(valid_mask)[0]  # indices in flattened space
-peak_flat_indices = valid_flat_indices[zero_peak_ext_mask]
-
-# 3. Map flat indices back to (target, contaminant)
-rows, cols = np.unravel_index(peak_flat_indices, (n, 10))
-
-# 4. Retrieve properties
-target_mag = mag[rows]
-cont_mag = mag_target_10first_contaminants[rows, cols]
-cont_dist = dist_target_to_10first_contaminants[rows, cols]
-eta_sec_vals = eta_sec_24_cameras[rows]
-eta_cob_ext_vals = eta_cob_ext_10first_24_cameras[rows, cols]
-cont_mags_sec = mag_target_10first_contaminants[rows, 0]  # or mag_bad[rows] 
-cont_dist_sec = dist_target_to_10first_contaminants[rows, 0]
-target_mags_sec = mag[rows]
-
-# 5. Example: inspect first 5
-for i in range(760):
-    print(f"Target {rows[i]} (mag={target_mag[i]:.2f}), "
-          f"Cont {cols[i]}: mag={cont_mag[i]:.2f}, dist={cont_dist[i]:.2f}, "
-          f"eta_sec={eta_sec_vals[i]:.3e}, eta_ext_cob={eta_cob_ext_vals[i]:.3e}")
-# 6. Filter for contaminants where the secondary mask is centered (cols == 0)
-
-# 4. Print some summary
-print(f"\nNumber of secondary-mask contaminants in zero peak: {len(cont_mags_sec)}")
-for i in range(760):
-    print(f"Target {rows[i]} (mag={target_mags_sec[i]:.2f}), "
-          f"Secondary Cont: mag={cont_mags_sec[i]:.2f}, dist={cont_dist_sec[i]:.2f}")
-
-print(f"Range of secondary contaminant magnitudes: {cont_mags_sec.min():.2f} – {cont_mags_sec.max():.2f}")
-print(f"Range of secondary contaminant distances: {cont_dist_sec.min():.2f} – {cont_dist_sec.max():.2f}")
-
-# Optional: histogram
-# 1. All zero-peak contaminants distances
-cont_dist_peak = cont_dist  # distances of all contaminants in zero peak
-
-# 2. Secondary contaminants only (always column 0)
-secondary_mask = (cols == 0)
-cont_dist_sec_peak = cont_dist[secondary_mask]
-
-# Plotting
-plt.figure(figsize=(12,5))
-
-# Histogram of all contaminants in zero peak
-plt.subplot(1,2,1)
-plt.hist(cont_dist_peak, bins=30, color="green", alpha=0.7)
-plt.xlabel("Distance to target [pix]")
-plt.ylabel("Counts")
-plt.title("All contaminants in zero peak")
-
-# Histogram of secondary contaminants in zero peak
-plt.subplot(1,2,2)
-plt.hist(cont_dist_sec_peak, bins=30, color="blue", alpha=0.7)
-plt.xlabel("Distance to target [pix]")
-plt.ylabel("Counts")
-plt.title("Secondary contaminants (cols=0) in zero peak")
-
-plt.tight_layout()
-plt.show()
-
-# --- Save results to a tab-delimited text file for Excel ---
-with open("zero_peak_contaminants.txt", "w") as f:
-    # Write the header
-    f.write("Target ID\tTarget Mag\tContaminant Number\tContaminant Mag\tContaminant Dist. to Target\tEta COB Ext\tSecondary Contaminant Number\tSecondary Contaminant Dist\tEta Sec\n")
-    
-    # Loop over all zero-peak cases
-    for i in range(len(rows)):
-        f.write(f"{rows[i]}\t{target_mag[i]:.2f}\t{cols[i]}\t{cont_mag[i]:.2f}\t{cont_dist[i]:.2f}\t"
-                f"{eta_cob_ext_vals[i]:.3e}\t0\t{cont_dist_sec[i]:.2f}\t{eta_sec_vals[i]:.3e}\n")
-
-print("Text file saved: zero_peak_contaminants.txt")
- 
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
