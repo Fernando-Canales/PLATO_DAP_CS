@@ -54,85 +54,90 @@ d) PSF Uniformity: We have justified this in the following way
 
 **Manuscript Changes:**
 
-- **Section 2.3**: Added residual drift clarification and ongoing work
-- **Section 5.2**: Added explanation about stellar variability not relevant for our computations
-- **Section 5.3**: Added PSF variation justification
-- **Section 7**: Added real camera PSF validation reference
+- Section 2.3: Added residual drift clarification and ongoing work
+- Section 5.2: Added explanation about stellar variability not relevant for our computations
+- Section 5.3: Added PSF variation justification
+- Section 7: Added real camera PSF validation reference
 
 **Major Point 5:** "The results presented in Section 7 are not sufficiently described or explained. a. In Figure 4b, why is the secondary mask equally efficient for the 6 camera and 24 camera cases at P magnitude 11.0? This is a notable outlier from the behaviour evident at the other magnitudes considered. b. I’m surprised that in Figure 4a, the 24 camera and 6 camera cases are so similar, and that for the secondary mask centroid the 6 camera case is sometimes more efficient. Why is this the case? c. Is the y-axis of Figure 5 the noise of the extended and nominal mask metrics, or the uncertainty in the metric? Per equation (39), this is the error in the absolute centroid shift, averaged over 1 hour and Nt cameras, which could be taken to be either. This should be clarified."
 
-**Response:** We appreciate these detailed observations. So far, in the paper (see response to Major Point 2) the adopted scenario is that every contaminant is an EB but now the transit depth and duration of each EB is randomly sampled from observed distributions. Therefore, the unusual behaviors noted by the referee in a) and b) (equal efficiencies at P=11.0, 6-camera outperforming 24-camera) no longer appear in our revised results using realistic parameter diversity. These anomalies were artifacts of the unrealistic fixed parameter assumption. The revised results show **consistent expected behavior: 24 cameras outperform 6 cameras** across all methods and magnitudes.
+**Response:** We appreciate these detailed observations. So far, in the paper (see response to Major Point 2) the adopted scenario is that every contaminant is an EB but now the transit depth and duration of each EB is randomly sampled from observed distributions. Therefore, the unusual behaviors noted by the referee in a) and b) (equal efficiencies at P=11.0, 6-camera outperforming 24-camera) no longer appear in our revised results using realistic parameter diversity. These anomalies were artifacts of the unrealistic fixed parameter assumption. The revised results show consistent expected behavior: 24 cameras outperform 6 cameras across all methods and magnitudes.
 
-**c) Figure Y-axis Clarification**: We have clarified that the y-axis shows **"uncertainty in the centroid shift"** (not raw noise), representing σ_centroid from Eq. (39) - the error in absolute centroid shift averaged over 1 hour and N_T cameras.
+Furthermore, significant changes were performed to the efficiency computations. The main changes are the following:
+1) There was a bug in the python code regarding the expressions for the significant transit depth conditions in Eq.(50) and Eq.(57). The bug was fixed and the overall efficiency of both extended and secondary fluxes increased by ~2%. Now, the secondary fluxes are the most efficient metric, even above nominal and/or extended centroids.
+2) We introduced a third condition for the efficiency computation of extended, nominal and secondary centroid shifts (namely, Eq.(62), Eq.(65) and Eq.(68)). This third condition refers to the fact that for computing the centroid uncertainty (Eq. (36)) we have to assume that the centroid shift itself has to be significantly larger that the corresponding centroid error, otherwise Eq.(36) will go to infinity. We noticed that we didn't take this into account for the first version of the paper. For instance, we included in our results centroid shifts computed with secondary masks of just 1 pixel in size. The centroid shifts of such secondary masks are obviously zero and therefore Eq.(36) no longer holds. Therefore, the condition that we added to Eq.(62), Eq.(65) and Eq.(68) is (Delta C > 10 sigma/sqrt(ntr td)), where we used the corresponding values of Delta C and sigma for each mask.  When implementing this new condition, the overall efficiency of the extended, nominal and secondary centroid shifts changed significantly. Now the extended centroids have an efficiency of ~87%, nominal centroids of ~83% and secondary centroids of ~75%.  
 
-**Enhanced Results Description**: We have added **comprehensive explanations** for each method's performance characteristics and **physical interpretations** for observed efficiency patterns.
+c) Figure Y-axis Clarification: We have clarified that the y-axis shows "uncertainty in the centroid shift" (not raw noise), representing σ_centroid from Eq. (39) - the error in absolute centroid shift averaged over 1 hour and N_T cameras.
+
+Enhanced Results Description: We have added comprehensive explanations for each method's performance characteristics and physical interpretations for observed efficiency patterns.
 
 **Manuscript Changes:**
 
-- **Figures**: Updated to Scenario B results, eliminating previous anomalies
-- **Section 7**: Added detailed explanations of efficiency patterns and physical reasoning
-- **Figure captions**: Clarified y-axis as "uncertainty" rather than "noise"
-- **Added diagnostic analysis**: Explaining magnitude-dependent camera sensitivity (P=10.5, P=11.5)
+- Figures: Updated to Scenario B results, eliminating previous anomalies
+- Section 7: Added detailed explanations of efficiency patterns and physical reasoning
+- Figure captions: Clarified y-axis as "uncertainty" rather than "noise"
+- Added diagnostic analysis: Explaining magnitude-dependent camera sensitivity (P=10.5, P=11.5)
 
 **Major Point 6:** "It is not clear to me how the magnitude of the target stars is incorporated into the calculations performed, as it does not seem to be mentioned in the derivations worked though in sections 2 to 6. Table 2 shows the efficiencies determined across a magnitude range. For these values, I guess that the efficiency is determined for all target stars in this magnitude range, and the mean/median and standard deviation determined to give the values in the table. Is this correct? Whether it is or not, the steps by which the values in Table 2 were determined should be described. In Figure 4, the paper displays efficiencies at specific magnitudes. How is the magnitude used here? Presumably not all of the target stars are exactly the magnitudes plotted, so were they rounded? Or are these magnitude bins (as suggested by footnote 7), and if so, how are the bins defined? The steps by which the values plotted in Figure 4 were determined should be described."
 
 **Response:** We agree that the magnitude incorporation methodology required explicit description. We have added explanations of both the efficiency plot generation and table value derivation:
 
-**Efficiency Plot Methodology**: We have described the complete binning approach:
+Efficiency Plot Methodology: We have described the complete binning approach:
 
-- **7 magnitude bins** of 0.5 magnitudes each (P = 10.0 to 13.0)
-- **1000 randomly selected targets** per bin from P ± 0.25 range
-- **Each data point** represents efficiency for all 1000 targets in that bin
+- 7 magnitude bins of 0.5 magnitudes each (P = 10.0 to 13.0)
+- 1000 randomly selected targets per bin from P ± 0.25 range
+- Each data point represents efficiency for all 1000 targets in that bin
 
-**Table Value Derivation**: We have **explicitly linked table and figures**, stating:  "Table 2 shows the averaged efficiency of the metrics presented in this work. The values presented are the **magnitude-averaged efficiencies across the entire P5 range** of the values in Figures 5a and 5b"
+Table Value Derivation: We have explicitly linked table and figures, stating:  "Table 2 shows the averaged efficiency of the metrics presented in this work. The values presented are the magnitude-averaged efficiencies across the entire P5 range of the values in Figures 5a and 5b"
 
-**Target vs Contaminant Magnitude**: We have explicitly stated that **all magnitude references correspond to target star magnitudes**, including for secondary mask analyses, maintaining methodological consistency.
+Target vs Contaminant Magnitude: We have explicitly stated that all magnitude references correspond to target star magnitudes, including for secondary mask analyses, maintaining methodological consistency.
 
 **Manuscript Changes:**
 
-- **Before efficiency plots**: Added a description of the binning methodology
-- **Before efficiency table**: Clarified that values are magnitude-averaged from plots
-- **Section 7**: Added target star magnitude clarification for all methods
-- **Figure captions**: Updated to specify "target star P magnitude"
+- Before efficiency plots: Added a description of the binning methodology
+- Before efficiency table: Clarified that values are magnitude-averaged from plots
+- Section 7: Added target star magnitude clarification for all methods
+- Figure captions: Updated to specify "target star P magnitude"
 
 **Major Point 7:** "The discussion of the results in Section 8.1 is not sufficiently detailed and overstates the conclusions that can be drawn from Table 2. The paper states (section 8.1, page 13) that the secondary flux measurements are less efficient at detecting false positives than centroid measurements. However, the results in Table 2 show that this is not strictly correct. Secondary flux measurements are less efficient than nominal and extended centroid shift measurements, true, but their efficiency is equal to that of secondary centroid shift measurements, within uncertainties. One could conclude that they are even marginally more efficient than secondary centroid shift measurements. Similarly, the first sentence of section 8.2 states that centroid measurements are by far the most efficient method for detecting false positives. But this is only true of nominal mask centroid shifts and extended mask centroid shifts, which are equally efficient (within uncertainties) according to Table 2. Secondary mask centroid shifts, on the other hand, are no better than secondary flux measurements, as I noted above. The paper also states (Section 8.1, final paragraph, on page 13) that on average, the statistical significance of the secondary flux measurement is greater than the statistical significance of the centroid shift in the nominal mask (this is stated as an equality). No quantitative evidence is given to support this conclusion, as Table 2 presents efficiencies, and Figure 4 plots efficiencies. Support for the conclusion can be taken from Table D.1, but this presents the various significance values for only one star and its contaminants. This is not enough evidence to support the statement about the relationship of the average significances. Further discussion of the results is needed, with more quantitative support for the conclusions reached, and careful wording that more accurately describes the results."
 **Response:**
 
-RS-> missing answer here
+**Response**: We agree that on the manuscript we mention that, on average,  the statistical significane of the secondary flux is greater than the statistical significance of the nominal centroid shift but no quantitative evidence was given. We have added to Section 8.1 what is now Fig.7, a figure that contains two histograms, the one on the left refers to the counts of log_10(eta_sec/eta_nom_cob) and the one on the right refers to log_10(eta_sec/eta_ext_cob).  Both histograms support our claim that secondary flux significances are on average greater than the one of nominal centroids and also extended centroids.
+We also mention that the other points about efficiencies of nominal and extended centroids in this Major Point no longer apply to the new version of the paper. This new version has the changes that we performed to the efficiency computations of nominal, extended and secondary centroid shifts. These changes modified the overall efficiency of all the metrics. These new results are explained in the new Sections 7 and 8. More details are given in the response to Major Point 5.
 
 **Major Point 8:** "Presentation and discussion of the percentage of false positives detected by each metric, and the comparisons between them, is incomplete. There are five metrics being compared in this paper, giving 10 possible comparisons. But the set of bullet points in the right-hand column of page 13 gives only four comparisons. The secondary flux measurements, which the paper is proposing are the most effective metric, are not mentioned at all, which seems a significant omission. How do they compare to the other metrics in this context? Perhaps the paper is using “extended” in this section in the on-board software sense, as described in footnote 5? If so, this is unnecessarily confusing given that the rest of the paper has used “extended” to mean specifically one of the two double aperture approaches, and it obfuscates the results. Furthermore, the language of these bullet points could be improved as it is somewhat confusing as currently written. The current format is "% of false positives detected only by metric a but not by metric b". If the false positives are detectable 'only' by metric a then mentioning metric b is unnecessary. On the other hand, if the percentages are for false positives detected by metric a but not metric b, do the other metrics detect them or not? Section 8.2 should be updated to better present the comparison of false positive detection percentages between metrics. A table or pairwise matrix may be a better way to present these results, rather than a list of bullet points, and further discussion may be warranted. In addition, Footnote 5 should be removed, as it introduces unnecessary ambiguity, and the text updated (if necessary) to clarify the language used to discuss the results. Finally, the summary of the comparison results in the text should be checked for consistency against the full set of comparison results (currently it reads ~27% vs 28%+/-1.4%). "
 
-**Response:** We completely agree with this comprehensive critique and have  restructured Section 8.2 to address all concerns:
+**Response:** We completely agree with this comprehensive review and have  restructured Section 8.2 to address all concerns:
 
-**1. Complete Comparison Coverage**: We have replaced the incomplete 4-point bullet list with two pairwise matrix tables (Tables 3 and 4) showing the possible comparisons between the metrics. We have included the abbreviations EFX for extended flux, ECOB for extended centroid shifts, NCOB for nominal centroid shifts, SFX for secondary flux and SCOB for secondary centroid shifts. Table 3 shows the comparison between extended mask and nominal mask-based methods since for those metrics we consider the first 10 contaminants in terms  of SPRk in each window, while for secondary mask-based methods we only consider one contaminant per window, the one with the highest SPRk value. This is related to the next point.
+1. Complete Comparison Coverage: We have replaced the incomplete 4-point bullet list with two pairwise matrix tables (Tables 3 and 4) showing the possible comparisons between the metrics. We have included the abbreviations EFX for extended flux, ECOB for extended centroid shifts, NCOB for nominal centroid shifts, SFX for secondary flux and SCOB for secondary centroid shifts. Table 3 shows the comparison between extended mask and nominal mask-based methods since for those metrics we consider the first 10 contaminants in terms  of SPRk in each window, while for secondary mask-based methods we only consider one contaminant per window, the one with the highest SPRk value. This is related to the next point.
 
-**2. Secondary Flux Inclusion**: Table 4 now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee. Since secondary-mask based method focus only on one contaminant in each window, we cannot directly compare them with extended mask or nominal mask-based methods. Therefore, we created Table 4, including only comparison between SFX and SCOB.
+2. Secondary Flux Inclusion: Table 4 now explicitly includes secondary flux measurements (SFX), addressing the significant omission noted by the referee. Since secondary-mask based method focus only on one contaminant in each window, we cannot directly compare them with extended mask or nominal mask-based methods. Therefore, we created Table 4, including only comparison between SFX and SCOB.
+3. Language Clarity and precision: We have clarified the language - Tables 3 and 4 show "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the Tables have the same, consistent number of decimal figures.
 
-
-**3.Language Clarity and precision**: We have clarified the language - Tables 3 and 4 show "percentage of FPs detectable only by the method in the row but not by the method in the column," instead of the confusing "only by this method... but not by this other method" . Also, all the numbers in the Tables have the same, consistent number of decimal figures.
+We mention as well that all the numbers and figures regarding this Major Point are now different in the new version of the paper. This is because we changed the efficiency conditions for the centroid shift efficiencies, as mentioned in more detail on the response of Major Point 5. 
 
 **Manuscript Changes:**
 
-- **Replaced**: 4-point bullet list with comprehensive matrix tables
-- **Added**: All missing method comparisons, especially secondary flux
-- **Enhanced**: Discussion based on complete pairwise analysis
-- **Clarified**: Percentage interpretation language throughout
-- **Removed**: Confusing footnote 5 and associated ambiguity
+- Replaced: 4-point bullet list with comprehensive matrix tables
+- Added: All missing method comparisons, especially secondary flux
+- Enhanced: Discussion based on complete pairwise analysis
+- Clarified: Percentage interpretation language throughout
+- Removed: Confusing footnote 5 and associated ambiguity
 
 **Major Point 9:** "Appendix A discusses the detectability of planets, but as with sections 8.1 and 8.2, the discussion is not sufficiently detailed and is imprecise in its language. Three classes of planets are considered, but these classes are not defined. What radii (or range of radii) are used for this analysis? ‘super-Earth’, in particular, has a number of different definitions in the literature. The last sentence of the section states that the results show that using 6 cameras is sufficient to detect super-Earths, but no evidence is provided to support this statement. Figure A1 shows the case of super-Earths observed with 24 cameras, not 6 cameras. "
 
 **Response:** We thank the referee for catching this inconsistency, which revealed **a caption error**. Figure A1 **does indeed show Super-Earths with 6 cameras** (orange stars), providing direct evidence for our conclusion about 6-camera sufficiency. The figure caption incorrectly stated "24 cameras" - this has been corrected.
 The evidence supporting our claim is the following: Super-Earth significance values (orange stars) are well above the η_min detection threshold when using only 6 cameras, demonstrating adequate detectability.
 
-We have also added **explicit planet definitions** following Borucki et al.(1996) classifications:
+We have also added explicit planet definitions following Borucki et al.(1996) classifications:
 
-- **Earth-like planets**: δ_p = 84 ppm, t_d = 13 hr
-- **Super-Earths**: δ_p = 522 ppm, t_d = 42 hr (interpolated between Earth and Neptune)
-- **Jovian planets**: δ_p = 10,100 ppm, t_d = 29.6 hr
+- Earth-like planets: δ_p = 84 ppm, t_d = 13 hr
+- Super-Earths: δ_p = 522 ppm, t_d = 42 hr (interpolated between Earth and Neptune)
+- Jovian planets: δ_p = 10,100 ppm, t_d = 29.6 hr
 
 **Manuscript Changes:**
 
-- **Corrected figure caption**: Super-Earths now correctly stated as "6 cameras"
+- Corrected figure caption: Super-Earths now correctly stated as "6 cameras"
 - Added explicit planet parameter definitions with literature references
 - Clarified that significance above η_min threshold demonstrates detectability
 
@@ -204,7 +209,7 @@ This methodological detail does not affect our scientific conclusions, as ties h
 
 **Minor Point 9:** "Can the secondary mask pixels overlap with the nominal mask pixels? This point is not clear from the paper, and the example in Figure 1 is just one possible configuration. For example, if the most significant contaminant in the Figure 1 field was the star located at (2.5, 1.5), would the secondary mask method still work, and would it still be an improvement over the extended mask? In such cases of overlapping nominal and secondary masks, would differential analysis have merit?"
 
-**Response:** Overlapping masks are technically possible in our methodology and do not create computational problems. However, mask overlap occurs primarily when target and contaminant stars are very close, making it difficult to disentangle their individual contributions.
+**Response:** Overlapping masks are technically possible in our methodology and do not create computational problems. However, mask overlap occurs primarily when target and contaminant stars are very close, making it difficult to disentangle their individual contributions. Furthermore, we changed the overall look of Fig. 1, now the displayed secondary mask is not only one pixel in size.
 
 This physical limitation is already captured in our efficiency measurements: secondary flux methods achieve ~90% efficiency, with the remaining ~10% likely representing cases where target-contaminant separation is insufficient for reliable secondary mask performance. When stars are too close, the secondary mask cannot effectively isolate the contaminant signal from the target signal.
 
@@ -214,7 +219,7 @@ Our methodology appropriately handles this by measuring **actual achieved effici
 
 **Minor Point 10**: "Equation (39) is described as the average centroid measurement over a duration of one hour and a given number of cameras. But the equation itself seems to be for the uncertainty in the averaged centroid. This should be checked and either the text or the equation updated if necessary."
 
-**Response:** We agree that this required clarification. We have explicitly stated that Eq. (39) represents the uncertainty of averaged centroid measurements rather than single-point measurements. The clarifications emphasize that centroid shifts are averaged over one hour and multiple cameras to reduce statistical uncertainty.
+**Response:** We agree that this required clarification. We have explicitly stated that Eq. (39) represents the uncertainty of averaged centroid measurements rather than single-point measurements. The clarifications emphasize that centroid shifts are averaged over one hour and multiple cameras to reduce statistical uncertainty. We mention as well that we average over one hour because transits typically last only a few hours and also because the values of the transit duraition from the catalog we are using are in hours.
 
 RS->  remind why this choice of time-scale (this is linked to the transit duration, which typical last few hours)
 
