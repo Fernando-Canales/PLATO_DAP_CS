@@ -33,24 +33,25 @@ sb = instrument.sb # Background noise from zodiacal light in e-/px (poisson nois
 sd = instrument.sd # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
 sq = instrument.sq # Quantization noise in units of e-rms/px
 
-
 # Parameters for the eclipsing binaries  
-transit_depth = 132000  # transit depth in ppm
-transit_duration = 6.72*0.46**2   # transit duration in hours
-ntr = 3        # number of transits in one hour
-distance_max = 7 # maximum distance in pixels, from the target, to a star in the window in order to be considered a contaminant
-Delta_P_max = 15.
+transit_depth = eb_config.transit_depth
+transit_duration = eb_config.transit_duration
+ntr = eb_config.ntr
+distance_max = eb_config.distance_max
+Delta_P_max = eb_config.delta_p_max
 # Small change to consider EB occurrence rate
-eb_occurrence_rate = 0.01 # 1% based from Prša et al. (Kepler + TESS)
-use_realistic_eb_rate = False # Set to False to use original assumption about all contaminants being EBs
-max_number_of_contaminants = 500
-use_fixed_values = False  # Change to False if you want to use random values from the catalogue
+eb_occurrence_rate = eb_config.eb_occurrence_rate
+use_realistic_eb_rate = eb_config.use_realistic_eb_rate
+max_number_of_contaminants = eb_config.max_number_of_contaminants
+use_fixed_values = eb_config.use_fixed_values
+
 # Parameters for the magnitude intervals
-n_tar = 1000                            # number of targets per magnitude interval
-Pmin = 10                               # minimum magnitude
-Pmax = 13                               # maximum magnitude
-binsize = 0.5                           # binsize around every magnitude value
-nP = int((Pmax - Pmin) / binsize + 1)   # number of bins
+n_tar = mag_config.n_targets_per_bin
+Pmin = mag_config.pmin
+Pmax = mag_config.pmax  
+binsize = mag_config.binsize
+nP = mag_config.n_bins   # number of bins - using the property from config
+
 # ------------------------------------------------
 
 # ------------------------------------------------
