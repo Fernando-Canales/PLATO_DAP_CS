@@ -3,6 +3,7 @@
 *.txt
 *.hdf5
 .swp
+*.pyc
 xpsf_pix.npy
 ypsf_pix.npy
 pxc.npy
