@@ -2,9 +2,9 @@
 # First we import the main libraries and modules
 import numpy as np # type: ignore
 import spline2dbase # type: ignore
-from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
-from imagette import window, ran_unique_int, centroid_shift
-from NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
+from lib.fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
+from lib.imagette import window, ran_unique_int, centroid_shift
+from lib.NSR import spr_crit, aperture_computation, SPR, mask_to_bitmask, extended_binary_mask
 from tqdm import tqdm # type:ignore
 # ------------------------------------------------
 
