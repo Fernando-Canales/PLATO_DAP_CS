@@ -11,26 +11,28 @@ from config import PathsConfig, InstrumentConfig, EclipsingBinaryConfig, Magnitu
 
 # ------------------------------------------------
 # CONFIGURATION PARAMETERS
+# Initialize configuration objects
+paths = PathsConfig()
+instrument = InstrumentConfig()
+eb_config = EclipsingBinaryConfig()
+mag_config = MagnitudeConfig()
 
 # Parameters relative to all the relevant paths
-cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/' # directory with all star catalogues
-#PSFfile = '/home/fercho/double-aperture-photometry/psf_flight_models_martin/PSF-Leopold7-02470.npz'
-PSFfile = '/home/fercho/double-aperture-photometry/plato_psfs/PSF_Focus_0mu_0.2pxdif.npz'
-#PSFfile = 'PSF_Focus_0mu_0.2pxdif.npz'
-DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
-#DIRout = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
+cataDIR = paths.catalogue_dir
+PSFfile = paths.psf_file  
+DIRout = paths.output_dir
 
 # Parameters for the imagette and PSF decomposition
-size_im_x = 6  # size of the imagette (x-direction)
-size_im_y = 6  # size of the imagette (y-direction)
-subres = 128   # resolution of the PSF
-bsres = 20     # resolution of the b-spline decomposition of the PSF
-#bsres = 5 # This is the resolution when using Elfique, Leopold, etc.
+size_im_x = instrument.size_im_x # size of the imagette (x-direction)
+size_im_y = instrument.size_im_y # size of the imagette (y-direction)
+subres = instrument.subres # resolution of the PSF
+bsres = instrument.bsres # resolution of the b-spline decomposition of the PSF
 
 # Parameters for the NSR
-sb = (45. * 21) # Background noise from zodiacal light in e-/px (poisson noise)times integration time (21 sec.)
-sd = 50.2      # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
-sq = 7.2       # Quantization noise in units of e-rms/px
+sb = instrument.sb # Background noise from zodiacal light in e-/px (poisson noise)times integration time (21 sec.)
+sd = instrument.sd # Overall detector noise(includ. readout at beginning of life,smearing and dark current)in units of e-rms/px
+sq = instrument.sq # Quantization noise in units of e-rms/px
+
 
 # Parameters for the eclipsing binaries  
 transit_depth = 132000  # transit depth in ppm
