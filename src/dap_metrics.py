@@ -1,3 +1,12 @@
+"""
+Main processing routine to produce metrics for False Positive detection
+1. It gathers the PSF and star catalog data
+2. It computes the photometry and centroid shifts metrics for each mask/aperture
+3. It saves the metrics in npy files for each mask/aperture
+
+Created by Fernando with a lot of help from Réza
+21.05.2023
+"""
 # ------- -----------------------------------------
 # First we import the main libraries and modules
 import numpy as np # type: ignore
