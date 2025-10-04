@@ -1,7 +1,8 @@
-# Detecting False Positives with Double-aperture photometry (and Centroid Shifts)
+# Detecting False Positives with Double-aperture photometry and Centroid Shifts
 
 ## Fernando Gutiérrez-Canales
-### (under the supervision of Réza Samadi and Aaron Birch)
+
+### (under the supervision of Dr. Réza Samadi and Dr. Aaron Birch)
 
 ## Description
 
