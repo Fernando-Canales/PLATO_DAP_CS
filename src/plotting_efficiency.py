@@ -519,49 +519,6 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 plt.savefig(DIRout + "DAP_CS_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
 
-# Flatten centroid arrays and repeat corresponding arrays to match
-eta_cob_flat = eta_cob_nom_10first_24_cameras.flatten()
-eta_cob_ext_flat = eta_cob_ext_10first_24_cameras.flatten()
-
-# Repeat magnitude and secondary flux arrays to match flattened centroid arrays
-mag_repeated = np.repeat(mag, 10)
-eta_sec_24_cameras_repeated = np.repeat(eta_sec_24_cameras, 10)
-
-# Create the comparison plot
-plt.figure(6, figsize=(12, 8))
-
-# Remove invalid values
-valid_mask = (eta_sec_24_cameras_repeated > 0) & (eta_cob_flat > 0) & (eta_cob_ext_flat > 0)
-
-# Compute log ratios
-log_ratio_nom = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_flat[valid_mask])
-log_ratio_ext = np.log10(eta_sec_24_cameras_repeated[valid_mask] / eta_cob_ext_flat[valid_mask])
-
-
-plt.subplot(1, 2, 1)
-plt.hist(log_ratio_nom, bins=50, color='red', alpha=0.7)
-plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
-plt.xlabel(r'$\log_{10}(\eta_{\mathrm{k_{max}}}^{\mathrm{sec}} / \eta_{k}^{\mathrm{nom}, \Delta C})$', fontsize=fsize)
-plt.ylabel('Counts', fontsize=fsize)
-
-
-plt.subplot(1, 2, 2)
-plt.hist(log_ratio_ext, bins=50, color='green', alpha=0.7)
-plt.axvline(0, color='black', linestyle='--', linewidth=1)  # reference line
-plt.xlabel(r'$\log_{10}(\eta_{\mathrm{k_{max}}}^{\mathrm{sec}} / \eta_{k}^{\mathrm{ext}, \Delta C})$', fontsize=fsize)
-plt.ylabel('Counts', fontsize=fsize)
-
-plt.tight_layout()
-plt.savefig(DIRout + "Hist_log_ratios_eta_sec_vs_nom_and_ext_cob.pdf", format='pdf', bbox_inches='tight')
-plt.show()
-
-
-# 1. Define tolerance around 0 (adjust if needed)
-tolerance = 0.05
-zero_peak_ext_mask = np.abs(log_ratio_ext) < tolerance
-
-print(f"Total cases in zero peak: {zero_peak_ext_mask.sum()}")
-
 
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
