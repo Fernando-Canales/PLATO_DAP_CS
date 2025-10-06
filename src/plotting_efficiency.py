@@ -2,6 +2,7 @@ import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes #type: ignore
 from matplotlib.ticker import FuncFormatter  # type: ignore
+from matplotlib.ticker import PercentFormatter # type: ignore
 
 from lib.imagette import ran_unique_int
 
@@ -138,6 +139,14 @@ delta_cob_ext_10first_6_cameras = data_ext[:, 95:105]
 gamma_cob_ext_10first_24_cameras = data_ext[:, 105:115]
 mag_target_10first_contaminants = data[:, 169:179]
 dist_target_to_10first_contaminants = data[:, 179:189]
+
+plt.figure(0)
+plt.hist(n_bad_p5, bins=bins, weights=[1 / len(n_bad_p5)] * len(n_bad_p5), edgecolor='black', rwidth=0.8)
+plt.gca().yaxis.set_major_formatter(PercentFormatter(1)) # type: ignore
+plt.xlabel('Number of potential FPs', fontsize=fsize)
+plt.ylabel('Fraction of targets [%] ', fontsize=fsize)
+plt.savefig(DIRout + "Fps.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
+plt.show()
 
 # Check for extreme values
 extreme_mask = td_10first > 100  # More than 4 days
