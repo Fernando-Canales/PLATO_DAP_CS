@@ -1,5 +1,15 @@
 # Cover letter
 
+Dear referee,
+
+Thank you very much for your thorough and constructive review of our manuscript. We greatly appreciate the time and effort you dedicated to providing such valuable feedback, which has helped us substantially improve the paper.
+
+We have carefully considered all your comments and have substantially revised the manuscript accordingly. This letter contains our detailed point-by-point responses, organized into two main sections: the first addresses the Major Points, and the second addresses the Minor Points. All editorial comments have also been fully incorporated; these changes are visible in the tracked-changes document we have submitted alongside the revised manuscript.
+
+We believe the manuscript has been significantly strengthened by these revisions. We hope that our responses and the revised version now fully address all your concerns and that the paper is now suitable for publication in A&A.
+
+
+
 ## Major Points
 
 **Major Point 1:** "The paper assumes that all background stars are eclipsing binaries undergoing transit-like events, and therefore potentially capable of generating a false positive signal. This is an unrealistic assumption, and I think an unnecessary one. I appreciate that, as stated in section 5.2, it is not possible to know the details of individual contamination sources. However, as also stated in section 5.2, there are studies about the number and occurrence rates of eclipsing binaries. Could these have been used to assign eclipsing binary status to suitable fractions of the stars in the sample, allowing for a more realistic proportion of possible eclipsing binary contaminants in each window? Such an approach should be considered."
@@ -43,7 +53,7 @@ This approach ensures that each contaminant EB has realistic pair of parameters.
 
 a) L1 assumption: Nothing to add
 
-b) Residual Stellar Drift: We have clarified in Section 2.3 that "residual drift" refers to remaining positional drift after L1 correction**, acknowledging that drift and correction effectiveness vary across the FoV and that detailed assessment is ongoing consortium work.
+b) Residual Stellar Drift: We have clarified in Section 2.3 that "residual drift" refers to remaining positional drift after L1 correction, acknowledging that drift and correction effectiveness vary across the FoV and that detailed assessment is ongoing consortium work.
 
 c) Stellar Variability: We have added in Section 5.2 that "Another important assumption of this work is related to stellar variability, that is not explicitly modeled in our flux and centroid shift calculations. This simplification is justified because intrinsic stellar variations typically occur on timescales different from the transit detection averaging process described in Sections 2.3 and 4.2 "
 
@@ -65,7 +75,7 @@ d) PSF Uniformity: We have justified this in the following way
 
 Furthermore, significant changes were performed to the efficiency computations. The main changes are the following:
 1) There was a bug in the python code regarding the expressions for the significant transit depth conditions in Eq.(50) and Eq.(57). The bug was fixed and the overall efficiency of both extended and secondary fluxes increased by ~2%. 
-2) We introduced a third condition for the efficiency computation of extended, nominal and secondary centroid shifts (namely, Eq.(62), Eq.(65) and Eq.(68)). This third condition has to do directly with Eq.(36) , that we derived based on the hypothesis that centroid error should be significantly smaller than centroid shifts. However, we noticed that Eq.(36) didn't hold for some of the measurements. In particular, we noticed that we included in our results centroid shifts computed with secondary masks of just 1 pixel in size.  Naturally, centroid shifts computed with 1-pixel secondary masks are obviously zero and therefore Eq.(36) no longer holds. Therefore, the condition that we added to Eq.(62), Eq.(65) and Eq.(68) is (Delta C > 10 sigma/sqrt(ntr td) where we used the corresponding values of Delta C and sigma for each mask) makes sure that centroid shifts are always bigger than the corresponding centroid errors.  When implementing this new condition to all the centroid metrics, the overall efficiency of the extended, nominal and secondary centroid shifts changed significantly. Now the extended centroids have an efficiency of ~87%, nominal centroids of ~83% and secondary centroids of ~75%. Due to this decrease in nominal, extended and secondary centroids efficiencies, secondary flux measurements are now the most efficient metric overall.
+2) We introduced a third condition for the efficiency computation of extended, nominal and secondary centroid shifts (namely, Eq.(62), Eq.(65) and Eq.(68)). This third condition has to do directly with Eq.(36) , that we derived based on the hypothesis that centroid error should be significantly smaller than centroid shifts. However, we noticed that Eq.(36) didn't hold for some of the measurements. In particular, we noticed that we included in our results centroid shifts computed with secondary masks of just 1 pixel in size.  Naturally, centroid shifts computed with 1-pixel secondary masks are obviously zero and therefore Eq.(36) no longer holds. Therefore, the condition that we added to Eq.(62), Eq.(65) and Eq.(68)  (Delta C > 10 sigma/sqrt(ntr td), where we used the corresponding values of Delta C and sigma for each mask) makes sure that centroid shifts are always bigger than the corresponding centroid errors.  When implementing this new condition to all the centroid metrics, the overall efficiency of the extended, nominal and secondary centroid shifts changed significantly. Now the extended centroids have an efficiency of ~87%, nominal centroids of ~83% and secondary centroids of ~75%. Due to this decrease in nominal, extended and secondary centroids efficiencies, secondary flux measurements are now the most efficient metric overall.
 
 c) Figure Y-axis Clarification: We have clarified that the y-axis shows "uncertainty in the centroid shift" (not raw noise), representing σ_centroid from Eq. (39) - the error in absolute centroid shift averaged over 1 hour and N_T cameras.
 
@@ -103,8 +113,7 @@ Target vs Contaminant Magnitude: We have explicitly stated that all magnitude re
 
 **Response**: We agree that in Section 8.1 the descriptions were overstated from Table 2 and misleading. Furthermore, due to the changes in the code and the conditions for centroid metrics, the results referred to in this Major Point are changed. However, Section 8.1 now clearly states the efficiencies of the new results and discuss them in detail, alongside with the values for the new comparative table/matrices between metrics that are mentioned in the next Major Point. We recall that the paper has new efficiency results for the metrics and that these new results are explained in the new Sections 7 and 8. More details are given in the response to Major Point 5.
 
-We also agree that on the manuscript we mention that, on average,  the statistical significane of the secondary flux is greater than the statistical significance of the nominal centroid shift but no quantitative evidence was given. We have  deleted the paragraph mentioning this since it is confusing to compare the significances of secondary-mask based methods (that focus only on one contaminant per window) against nominal centroid shifts (that have to do with several contaminants per window). This is as well related to the response to the next Major Point, where we state that we have included in the paper two different tables (one for secondary-mask based methods and the other table for nominal-mask and extended-mask based methods) comparing the percentages of FPs with different metrics.
-
+We also agree that the claim of secondary flux having greater statistical significance than nominal centroid shifts lacked quantitative support. We have  deleted the paragraph mentioning this since it is confusing to compare the significances of secondary-mask based methods (that focus only on one contaminant per window) against nominal centroid shifts (that have to do with several contaminants per window). This is as well related to the response to the next Major Point, where we state that we have included in the paper two different tables (one for secondary-mask based methods and the other table for nominal-mask and extended-mask based methods) comparing the percentages of FPs with different metrics.
 
 
 **Major Point 8:** "Presentation and discussion of the percentage of false positives detected by each metric, and the comparisons between them, is incomplete. There are five metrics being compared in this paper, giving 10 possible comparisons. But the set of bullet points in the right-hand column of page 13 gives only four comparisons. The secondary flux measurements, which the paper is proposing are the most effective metric, are not mentioned at all, which seems a significant omission. How do they compare to the other metrics in this context? Perhaps the paper is using “extended” in this section in the on-board software sense, as described in footnote 5? If so, this is unnecessarily confusing given that the rest of the paper has used “extended” to mean specifically one of the two double aperture approaches, and it obfuscates the results. Furthermore, the language of these bullet points could be improved as it is somewhat confusing as currently written. The current format is "% of false positives detected only by metric a but not by metric b". If the false positives are detectable 'only' by metric a then mentioning metric b is unnecessary. On the other hand, if the percentages are for false positives detected by metric a but not metric b, do the other metrics detect them or not? Section 8.2 should be updated to better present the comparison of false positive detection percentages between metrics. A table or pairwise matrix may be a better way to present these results, rather than a list of bullet points, and further discussion may be warranted. In addition, Footnote 5 should be removed, as it introduces unnecessary ambiguity, and the text updated (if necessary) to clarify the language used to discuss the results. Finally, the summary of the comparison results in the text should be checked for consistency against the full set of comparison results (currently it reads ~27% vs 28%+/-1.4%). "
@@ -183,7 +192,7 @@ This factor-of-two difference in data volume directly translates to the 50% redu
 
 **Response:** We have added clarification in Section 3.1 using inverse logic: if a true planet were transiting the target star, the extended light curve would show equal or shallower depth than the nominal curve due to dilution from additional flux in the larger aperture.
 
-**The key insight is that deeper extended transits are physically incompatible with target-star planets**, making contamination the only viable explanation. This eliminates false positives while preserving all genuine planetary signals.
+The key insight is that deeper extended transits are physically incompatible with target-star planets, making contamination the only viable explanation. This eliminates false positives while preserving all genuine planetary signals.
 
 **Manuscript Changes:**
 
@@ -209,11 +218,11 @@ This methodological detail does not affect our scientific conclusions, as ties h
 
 **Minor Point 9:** "Can the secondary mask pixels overlap with the nominal mask pixels? This point is not clear from the paper, and the example in Figure 1 is just one possible configuration. For example, if the most significant contaminant in the Figure 1 field was the star located at (2.5, 1.5), would the secondary mask method still work, and would it still be an improvement over the extended mask? In such cases of overlapping nominal and secondary masks, would differential analysis have merit?"
 
-**Response:** Overlapping masks are technically possible in our methodology and do not create computational problems. However, mask overlap occurs primarily when target and contaminant stars are very close, making it difficult to disentangle their individual contributions. Furthermore, we changed the overall look of Fig. 1, now the displayed secondary mask is not only one pixel in size.
+**Response:** Overlapping masks are technically possible in our methodology and do not create computational problems. However, mask overlap occurs primarily when target and contaminant stars are very close, making it difficult to disentangle their individual contributions. This physical limitation is already captured in our efficiency measurements: secondary flux methods achieve ~90% efficiency, with the remaining ~10% likely representing cases where target-contaminant separation is insufficient for reliable secondary mask performance. When stars are too close, the secondary mask cannot effectively isolate the contaminant signal from the target signal.
 
-This physical limitation is already captured in our efficiency measurements: secondary flux methods achieve ~90% efficiency, with the remaining ~10% likely representing cases where target-contaminant separation is insufficient for reliable secondary mask performance. When stars are too close, the secondary mask cannot effectively isolate the contaminant signal from the target signal.
+Our methodology appropriately handles this by measuring actual achieved efficiency rather than assuming perfect performance, so these challenging configurations are already accounted for in our results. 
 
-Our methodology appropriately handles this by measuring **actual achieved efficiency** rather than assuming perfect performance, so these challenging configurations are already accounted for in our results.
+Furthermore, we changed the overall look of Fig. 1, now the displayed secondary mask is not only one pixel in size.
 
 **Manuscript Changes:** None required.
 
@@ -225,8 +234,8 @@ RS->  remind why this choice of time-scale (this is linked to the transit durati
 
 **Manuscript Changes:**
 
-- Before Eq. (39): Added explanation that centroid measurements are "averaged over a duration of one hour and a given number of cameras, NT, **in order to accordingly reduce the uncertainty**"
-- Figure caption: Clarified that the plot shows "**Distribution of Eq. (39)**" (the averaged uncertainty) along target magnitude
+- Before Eq. (39): Added explanation that centroid measurements are "averaged over a duration of one hour and a given number of cameras, NT, in order to accordingly reduce the uncertainty"
+- Figure caption: Clarified that the plot shows "Distribution of Eq. (39)" (the averaged uncertainty) along target magnitude
 
 **Minor Point 11:** "Why is magnitude 21 the faint cutoff for the stellar sample used in this work? Does this correspond to the sensitivity limit of PLATO? Is it the magnitude at which stars stop being relevant as potential contaminants? "
 
@@ -238,7 +247,7 @@ RS->  remind why this choice of time-scale (this is linked to the transit durati
 
 **Minor Point 12:** "In section 6.1.1, the three conditions used in the computation of NextFP are not sufficiently well-defined in the text. At the start of the left-hand column of page 9. First, what is the threshold used for determining that the transit depth difference is statistically significant? Per equation (45) it seems to be 3-sigma, but this should be stated explicitly. Secondly, at what precision are the statistical significances and thresholds (eta terms) measured? This affects how quickly the threshold is considered to be passed. These conditions should be expanded on in the text. Similar comments apply to the conditions in sections 6.1.2, 6.2.1 and 6.2.2."
 
-**Response:** We agree that the efficiency computation conditions should be stated more explicitly. We have specified the criteria for all detection thresholds and efficiency criteria:
+**Response:** We agree that the efficiency computation conditions should be stated more explicitly. We have specified the criteria for all detection thresholds and efficiency criteria:  
 **For flux measurements:**
  - Extended flux: η > 3.0 AND δ_extended > δ_nominal + 3σ_depth
  - Secondary flux: η > 3.0 AND δ_secondary > δ_nominal + 3σ_depth
@@ -250,7 +259,7 @@ RS->  remind why this choice of time-scale (this is linked to the transit durati
 
  Regarding the comment about "how quickly the threshold is considered to be passed" - Our statistical significances are theoretical computations (like SPR_k) with no numerical precision limitations, so we're uncertain how this applies to our threshold evaluations.
  
-**Manuscript Changes:** 
+**Manuscript Changes:**  
 - Section 6: Added explicit threshold criteria for all efficiency calculations
 
 **Minor Point 13:** "In section 7 and Appendix B, the P magnitude values are referenced as belonging to the target star. This is clear for the nominal mask and extended mask cases, but for the secondary mask case, is it still the magnitude of the target that is relevant, or the magnitude of the most significant contaminant (i.e. the one used to position the secondary mask)? This should be clarified in the text, and also in the appropriate figure captions and/or axis labels."

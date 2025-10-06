@@ -1,5 +1,5 @@
 import numpy as np # type: ignore
-from fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
+from lib.fitting_psf import from_pix_2_mm, reference_flux_target, reference_flux_contaminant
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.colors import LogNorm #type: ignore
 from astropy.io import fits # type: ignore
@@ -178,4 +178,4 @@ plt.xlabel('Pixels', fontsize=fsize)
 plt.ylim(52, 78)
 # Manually adjust bottom margin to prevent x-label from being cropped
 plt.subplots_adjust(bottom=0.2)
-plt.savefig('NSR_agg_evolution.png', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as PNG
+plt.savefig('NSR_agg_evolution.pdf', dpi=300, bbox_inches='tight', pad_inches=0.2)  # Save as PDF
