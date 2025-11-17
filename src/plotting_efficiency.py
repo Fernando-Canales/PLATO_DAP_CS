@@ -529,6 +529,24 @@ plt.savefig(DIRout + "DAP_CS_efficiency_variable_standard_results.pdf", format='
 plt.show()
 
 
+
+"""
+Now we plot the noise for the centroid shifts
+"""
+plt.figure(6, figsize=(fig_width, fig_height))
+plt.plot(mag_2d, sigma_cob_ext_10first_24_cameras, 'b^', markersize = 3)
+plt.plot(mag_2d, sigma_cob_10first_24_cameras, 'ko', markersize=3)
+plt.semilogy()
+plt.ylabel(r'$ \sigma_{k}^{1h, N_{T}} [pix]$', fontsize=fsize)
+plt.xlabel('P Magnitude', fontsize=fsize)
+plt.plot([], [], 'b^', label='Ext. mask')
+plt.plot([], [], 'ko', label='Nom. mask')
+plt.legend()
+plt.savefig(DIRout + "cob_noise.png", format='png', dpi=300, bbox_inches='tight')
+plt.show()
+"""
+Now we compute the weighted efficiency considering the star count bias
+"""
 nfp = (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_mask = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) & (delta_obs_ext > delta_obs + depth_sig_scaling*sig_depth_24_cameras_10first) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
 nfp_ext_flux_without_significant_transit_depth_condition = (eta_ext_bt_24_cameras> flux_thresh_ext_mask) &  (delta_obs_ext > delta_obs) & (eta_nom_bt_24_cameras > flux_thresh_nom_mask)
