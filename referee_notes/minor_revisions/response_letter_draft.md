@@ -6,7 +6,7 @@ Thank you very much for the constructive revision of the manuscript. We greatly 
 
 We hope that our responses make the paper suitable now for publication in A&A.  
 
-Best regards,
+Best regards,  
 Dr. Fernando Gutiérrez Canales  
 
 ## Minor Points
