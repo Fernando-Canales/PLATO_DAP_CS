@@ -23,7 +23,7 @@ To do this, we need to consider all situations in which we can potentially have 
 
 **Comment:** Referencing the lead authors’ thesis for the detailed demonstration that the metrics’ efficiency does not significantly change for different PSFs is a good step. However, **is there a reference that could be added for the Monte Carlo simulations that generated the camera-to-camera variations, or were those simulations performed as part of this work?**  
 
-**Response:**   
+**Response:**  This is a valid point. These Monte Carlos simulations were carried out by a member of the systems team using an optical model of the camera (built with the optical software Zemax). The corresponding PSF data set was distributed to the PLATO consortium. A technical note describing this data set has been included in the list of references.
 
 >RS: These Monte Carlo simulations were carried out by a member of the systems team, using an optical model of the camera (built with Zemax software).
 The corresponding PSF data set was distributed to the PLATO consortium.  A technical note describing this data set has been included in the list of references. <
@@ -44,8 +44,7 @@ The fact that overall the extended centroid is the more efficient than the nomin
  
 Regarding the manuscript changes listed in the response, it is not clear to me which changes the third bullet point is referring to, as I can find no discussion of magnitude-dependent camera sensitivity.  
 
-**Response:**  
-
+**Response:**  We thank the referee for this comment. However, the increase of efficiency in the extended centroid between 12 and 12.5 remains within 3 sigma. Therefore, it is not a significant change. Furthermore, we removed the sentence "the extended centroids are the most efficient for either 24 or 6 cameras" since it is in fact not relevant when referring to Fig. 5 since indeed the relative efficiency of the various centroid metric varies with the magnitude.  The fact that, overall, the extended centroid is the more efficient than the nominal centroid is related to the averaged efficiency reported in Table 2. Furthermore, we found an additional typo next to the sentence mentioned by the referee. We found the sentence that reads "The nominal centroids are very close in efficiency to the nominal ones." when it should say "The nominal centroids are very close in efficiency to the extended ones.". This has been corrected as well.   
 
 
 
@@ -60,7 +59,7 @@ However, the secondary mask can only be defined for a single contaminant. In cas
 
 >RS: to be check but it seams indeed that the penultimate row is not commented. Then it should be removed. <
 
-**Response:**  
+**Response:**  This is a valid point. The penultimate row of Table 2 has been removed. However, the last row of Table 2 it is still useful since constitutes an example for  the discussion at the beginning of Section 8.1 about the differential analysis. 
 
 **Comment:** However, the final listed manuscript change, the removal of the footnote, as not been implemented. The footnote is still present in the revised paper but is now numbered as footnote 8. **Please remove this footnote, as you stated you had done.**  
 
