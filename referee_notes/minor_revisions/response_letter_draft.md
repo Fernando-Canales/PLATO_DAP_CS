@@ -15,31 +15,18 @@ Dr. Fernando Gutiérrez Canales
 
 **Response:** This is a valid point. However, it is a bit subtle. Our aim is not to set a realistic estimation for the amount of false positives expected for PLATO. Our aim is to compare different metrics in order to assess which is the most effective at detecting false positives. To do this, we need to consider all situations in which we can potentially have an EB-generated transit. As consequence, we consider that every contaminant is an EB, and then evaluate for each metric its ability to detect a FP. We do, however, concede that this can be seen as a worst-case scenario approach. Having said that, at the end of section 5.2 we have added the following text: "We note that assuming all contaminants are EBs represents a worst-case scenario for contamination. This allow us to assess the maximum capability of each detection method under challenging conditions."
 
-> RS:  I don't agree with the referee's point of view. How can our estimates be considered an upper limit? 
-Once again, our aim is to compare different metrics in order to assess which is the most effective at detecting false positives.
-To do this, we need to consider all situations in which we can potentially have an EB-generated transit.  Consequently, we consider 
- that every contaminant is an EB, and then evaluate for each metric its ability to detect a false positive.     The effectiveness (or efficiency) of a metric in detecting false positives is then the ratio between the number of cases where a false positive is detectable and the number of transits detectable in the nominal flux.  <
-
 
 **Comment:** Referencing the lead authors’ thesis for the detailed demonstration that the metrics’ efficiency does not significantly change for different PSFs is a good step. However, **is there a reference that could be added for the Monte Carlo simulations that generated the camera-to-camera variations, or were those simulations performed as part of this work?**  
 
 **Response:**  This is a good point from the referee. The Monte Carlo simulations mentioned in Sect. 5.3 of the paper were carried out by a member of the systems team using an optical model of the camera (built with the optical software Zemax). The corresponding PSF data set was distributed to the PLATO consortium. A technical note describing this data set exists but since it is an internal PLATO document is not suitable for citation in this paper. We however added the following text to Section 5.3 in the paper, after the mention of the Monte Carlo simulations: "These simulations were carried out by a member of the systems team and distributed within the PLATO consortium."
 
->RS: These Monte Carlo simulations were carried out by a member of the systems team, using an optical model of the camera (built with Zemax software).
-The corresponding PSF data set was distributed to the PLATO consortium.  A technical note describing this data set has been included in the list of references. <
 
 **Comment:** Thank you for these extensive changes. However, I'm still not entirely convinced by Figure 5a. While the extended mask centroid is an improvement over the nominal centroid case, it is not clearly so. For the brightest stars (P=10), the results are consistent between these two methods, as they are at P=11. But at other magnitudes there is a greater difference.  
 
 In particular, the results for P=12.5 catch my eye. Here the extended mask centroid efficiency increases compared to slightly brighter (P=12) stars. Why is that? Is it a numerical artefact?  
 
->RS: I think you can show that the increase of the efficiency in the extended centroid between 12 and 12.5 remains within 3 sigma, so it is not statically significant.<
-
 
 Furthermore, the relative efficiency of the various extended mask centroids and nominal mask centroids varies considerably, with the ordering of most to least efficiency changing from magnitude bin to magnitude bin. **Could you comment on why this is the case?** This variation means that the statement on page 13 (left-hand column), the paragraph referring to Figure 5a, that “the extended centroids are the most efficient for either 24 or 6 cameras” is an incorrect generalisation; counterpoints can be seen in the figure. **Please justify this general statement or explain it further in the text.**  
-
->RS: I think the statement that “the extended centroids are the most efficient for either 24 or 6 cameras” is not    relevant when referring to the figure 5. since indeed the   relative efficiency of the various centroid metric varies with the magnitude;
-The fact that overall the extended centroid is the more efficient than the nominal centroid is related to the averaged  efficiency reported in table 2. I then propose to remove this sentence. 
-<
  
 Regarding the manuscript changes listed in the response, it is not clear to me which changes the third bullet point is referring to, as I can find no discussion of magnitude-dependent camera sensitivity.  
 
@@ -53,12 +40,8 @@ Regarding the manuscript changes listed in the response, it is not clear to me w
 
 **Response:**  This is a valid point. We are glad the referee spot it. The sentence "Table 2 shows that nominal and extended centroids could be prioritized where computationally feasible given their high efficiency and their capability to detect FP in several contaminants" has been removed of the paragraph. Instead, we have added the following text after Table 2: "Secondary flux is particularly effective when only one contaminant is capable of generating a FP, as secondary masks are specifically designed for single-contaminant scenarios. However, when multiple contaminants can generate FPs, nominal and extended centroids become preferable due to their ability to simultaneously monitor several contaminants and their higher efficiency compared to extended flux, though only where computational resources allow it". And then we refer to Sect. 8.2 where we discuss these considerations when presenting the overall strategy for selecting the best metrics.  
 
->RS:   SFX is the most effective at detecting FP when there is only one contaminant capable of generating a FP.
-However, the secondary mask can only be defined for a single contaminant. In cases where several contaminants are likely to generate a PF, another metric should be preferred. In this case, the nominal and extended centroids should be preferred to the extended flow because of their greater efficiency, but only if resources allow. This point is discussed in details in section 8.2<
 
 **Comment:** However, with the deletion of that paragraph, there is now no explanation of the penultimate row of Table 2, which was included to allow a more direct comparison between the secondary flux and extended flux cases. **Is the penultimate row of Table 2 still needed?** Similarly, I question the use of the final row of Table 2 given the updated results and discussion. **Is the final row of Table 2 still useful?**  
-
->RS: to be check but it seams indeed that the penultimate row is not commented. Then it should be removed. <
 
 **Response:**  This is a valid point. The penultimate row of Table 2 has been removed. However, the last row of Table 2 it is still useful since constitutes an example for  the discussion at the beginning of Section 8.1 about the differential analysis. 
 
