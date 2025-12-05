@@ -6,29 +6,39 @@ from matplotlib.ticker import PercentFormatter # type: ignore
 
 from lib.imagette import ran_unique_int
 
-dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/' 
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Fixed_transit_depths_and_durations/magnitude_bins/fixed_dback_132000ppm_and_td_1_422_hr/1000_targets_per_magnitude_bin/standard_results/'
-#dataDIR = '/home/fercho//double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/EBs_rate/1000_targets_per_magnitude_bin/'
-#dataDIR = '/home/fercho/double-aperture-photometry/test_results/'
-#dataDIR = '/home/fercho/double-aperture-photometry/simulation_results/Long_Observational_Phase_Nord/1000_targets_per_magnitude_bin_fixed_dback_132000ppm_and_td_1_422_hr/'
-cataDIR = '/home/fercho/double-aperture-photometry/catalogues_stars/'
-#DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/EBs_rate/Distribution_transit_depth_and_durations/'
-DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Distribution_transit_depth_and_durations/'
-#DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Fixed_transit_depth_and_durations/'
-#DIRout = '/home/fercho/double-aperture-photometry/plots_pdfs/EBs_rate/Distribution_transit_depth_and_durations/'
+from config import PathsConfig, MagnitudeConfig, PlottingConfig, ThresholdConfig
+
+# Setting up the paths and variables
+paths = PathsConfig()
+mag_config = MagnitudeConfig()
+plot_params = PlottingConfig()
+threshold_params = ThresholdConfig()
+
+dataDIR = paths.data_dir_plots
+cataDIR = paths.catalogue_dir
+DIRout = paths.output_dir_plots
+
+# Parameters for the magnitude intervals
+n_tar = mag_config.n_targets_per_bin
+Pmin = mag_config.pmin
+Pmax = mag_config.pmax  
+binsize = mag_config.binsize
+nP = mag_config.n_bins   # number of bins - using the property from config
+
 # Parameters for the plots
-Pmin = 10
-Pmax = 13
-binsize = 0.5
-nP = int((Pmax - Pmin) / binsize + 1)
-fsize = 14
-flux_thresh_nom_mask, cob_thresh = 7.1, 3 
-flux_thresh_ext_mask, flux_thresh_sec_mask = 3, 3
-n_tar = 1000
-depth_sig_scaling = 3
-gamma_factor_significance = 1 ## other 0.46
-td_ref = 6.72*0.46**2
-dback_ref = 132000
+fsize = plot_params.font_size
+td_ref = plot_params.td_ref
+dback_ref = plot_params.dback_ref
+
+flux_thresh_nom_mask = threshold_params.flux_thresh_nom_mask
+flux_thresh_ext_mask = threshold_params.flux_thresh_ext_mask
+flux_thresh_sec_mask = threshold_params.flux_thresh_sec_mask
+cob_thresh = threshold_params.cob_thresh
+
+depth_sig_scaling = threshold_params.depth_sig_scaling
+gamma_factor_significance = threshold_params.gamma_factor_significance
+
+
 
 #data_catalogue = np.load(cataDIR + 'LOPN1_DR3_20241011_gr0.npy') # star catalogue from GAIA
 data_catalogue = np.load(cataDIR + 'SFP_DR3_20230101.npy')
