@@ -11,7 +11,7 @@ from dataclasses import dataclass
 class PathsConfig:
     """Files paths and directories"""
     catalogue_dir: str = '/home/fercho/double-aperture-photometry/catalogues_stars/'
-    output_dir: str = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin'
+    output_dir: str = '/home/fercho/double-aperture-photometry/simulation_results/Distribution_transit_depths_and_durations/1000_targets_per_magnitude_bin/'
     plots_output_dir: str = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Distribution_transit_depth_and_durations/'
     data_dir_plots: str = output_dir
     output_dir_plots: str = '/home/fercho/double-aperture-photometry/plots_pdfs/all_contaminants_are_EBs/Distribution_transit_depth_and_durations/'
