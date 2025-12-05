@@ -84,7 +84,7 @@ class ThresholdConfig:
     
     # Significance scaling
     depth_sig_scaling: float = 3.0
-    gamma_factor_significance: float = 1.0    
+    gamma_factor_significance: float = 1.0    ## other 0.46
 
 
 @dataclass
