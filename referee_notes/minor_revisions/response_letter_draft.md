@@ -1,8 +1,8 @@
-# Response Letter Draft 
+# Response Letter
 
 Dear referee,  
 
-Thank you very much for the constructive revision of the manuscript. We greatly appreciated this second round of revisions.  We have carefully considered all your comments and have revised the manuscript accordingly. This letter contains our detailed point-by-point responses.  
+Thank you very much for the constructive revision of the manuscript. We greatly appreciated this second round of revisions and the fact that they are minor revisions now.  We have carefully considered all your comments and have revised the manuscript accordingly. This letter contains our detailed point-by-point responses. Furthermore, we would like to note that we slightly reworded the abstract to ensure full compliance with the 300-word limit required by _A&A_. We also made minor stylistic adjustments to the introduction. These changes are purely aesthetic.
 
 We hope that our responses make the paper suitable now for publication in A&A.  
 
@@ -31,7 +31,7 @@ Furthermore, the relative efficiency of the various extended mask centroids and 
 Regarding the manuscript changes listed in the response, it is not clear to me which changes the third bullet point is referring to, as I can find no discussion of magnitude-dependent camera sensitivity.  
 
 **Response:**  We thank the referee for this comment. In particular:  
-- The efficiency variation for the extended and nominal centroids with increasing P magnitude is mentioned already in the paper, when referring to Fig. 6, that is the figure showing the  uncertainty of extended and nominal centroid shifts alongside P magnitude.
+- The efficiency variation for the extended and nominal centroids with increasing P magnitude is mentioned already in the paper, in Section 7.2, when referring to Fig. 6, that is the figure showing the  averaged uncertainty of extended and nominal centroid shifts alongside P magnitude. However, we added more details to the  sentence  where we refer to this Figure to make it more explicit. Now the sentence reads: "This can be explained showing the variation of the averaged centroid shift uncertainty, $\rm \sigma_{\rm k}^{\rm 1h, N_{T}}$, of each metric with the magnitude. Fig.~\ref{fig:cob-noise} shows this variation..."
 - The efficiency increase in the extended centroid between P = 12 and P = 12.5 remains within 3 sigma. Therefore, it is not a significant change. Furthermore, we removed the sentence "the extended centroids are the most efficient for either 24 or 6 cameras" since it is in fact not relevant when referring to Fig. 5 since indeed the relative efficiency of the various centroid metric varies with the magnitude.  The fact that, overall, the extended centroid is the more efficient than the nominal centroid is related to the averaged efficiency reported in Table 2. Furthermore, we found an additional typo next to the sentence mentioned by the referee. We found the sentence that reads "The nominal centroids are very close in efficiency to the nominal ones." when it should say "The nominal centroids are very close in efficiency to the extended ones." This has been corrected as well in the paper.   
 -  The third bullet point in our response to Major Point 5 refers to the strange peaks in efficiency at P=10.5 and P=11 that our first results used to have. Such strange efficiency peaks vanished when implementing the new results (EBs sampled transit duration and depth and the other changes detailed in the response to the major revisions). We concede that the third bullet point of the section "Manuscript changes" of our Response to Major point 5 was misleading as the referee spot it and we appreciate it.   
 
@@ -66,7 +66,7 @@ Regarding the manuscript changes listed in the response, it is not clear to me w
 where $\sigma_\delta$ is the ​combined 1-σ uncertainty of the two depth measurements. Afer the Equation (42), we already mentioned in the previous version of the paper that "The condition $(\rm \delta_{k}^{ext} > \delta_{k}^{nom} + 3 \, \sigma_\delta)$ in Eq.(42) ensures that the (apparent) transit depth measured in the extended flux is significantly larger than in the nominal flux." We however agree regarding the footnote that says "Significantly in a statistical sense.". We have removed that footnote. 
 ## Editorials
 
-Here we list the editorials spotted from the referee and our responses.  
+Here we list the editorials spotted by the referee and our responses.  
 
 1.- In the reference list, PLATO Science Requierement Document (2021)  -> PLATO Science **Requirement** Document (2021)  
 
