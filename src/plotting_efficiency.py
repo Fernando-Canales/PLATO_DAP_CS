@@ -281,9 +281,12 @@ for i in range(nP):
 fig_width = 8
 fig_height = 6
 plt.figure(4, figsize=(fig_width, fig_height))
+
 """
-Now we plot the comparison between extended mask and the correct version of it as a function of the target P magnitude
+Now we plot the efficiency of the FLUX (all contaminants)
+    
 """
+
 # To store whether a label has been added for each type
 labels_added = {
     'sec_24': False,
@@ -321,17 +324,11 @@ for i in range(nP):
     combined_error_sec_flux = np.sqrt(error_sec**2 + error_sec_6_cameras**2)
     test_significance_sec_flux = delta_eff_sec_flux/combined_error_sec_flux
 
-
-    #print("Diagnostic extended flux:", test_significance_ext_flux)
-    #print("Diagnostic secondary flux:", delta_eff_sec_flux)
-
     # Plotting errorbars with labels only once
     plt.errorbar(Pi, eff_sec, yerr=error_sec, fmt='o', color='purple', ecolor='purple', capsize=5, label='Sec. Mask (24 cameras)' if not labels_added['sec_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_sec_6_cameras, yerr=error_sec_6_cameras, fmt='o', color='green', ecolor='green', capsize=5, label='Sec. Mask (6 cameras)' if not labels_added['sec_6'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_24_cameras, yerr=error, fmt='s', color='blue', ecolor='blue', capsize=5, label='Ext. Mask (24 cameras)' if not labels_added['ext_24'] else "", markersize=4)
     plt.errorbar(Pi, eff_ext_overall_6_cameras, yerr=error_6_cameras, fmt='s', color='red', ecolor='red', capsize=5, label='Ext. Mask (6 cameras)' if not labels_added['ext_6'] else "", markersize=4)
-    #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore 
-    #plt.fill_between([11, 13.4], [47, 47], [100, 100], color='plum', alpha=0.1) # type: ignore
     plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variabel transit parameters case
     plt.fill_between([10.7, 13.4], [40, 40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variabel transit parameters case
 
@@ -362,8 +359,8 @@ plt.vlines(10.7, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: 
 plt.ylim(40, 100) # this is for the variabel transit parameters case
 plt.xlim(9.9, 13.1)
 #plt.text(10, 78.1, 'Earth-like planet detection\nregion (24 cameras)', color='green', weight='bold')
-plt.text(10, 75.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', weight='bold') # This line is fo the variable transit parameters case
-plt.text(11.2, 63, 'On-board light curve processing region', color='red', weight='bold')
+plt.text(10, 75.1, 'Earth-like planet detection\nregion (24 cameras)',  color='green', fontweight='bold')
+plt.text(11.2, 63, 'On-board light curve processing region', color='red', fontweight='bold')
 
 # Display legend below the plot
 plt.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', borderaxespad=0., ncol=2)
@@ -376,78 +373,6 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 plt.savefig(DIRout + "DAP_Flux_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable transit parameters case
 plt.show()
 
-
-def analyze_centroid_issues(delta_cob_nom, delta_cob_ext):
-    # 1. Check for zeros/NaNs
-    print(f"Nominal shifts: {np.sum(delta_cob_nom == 0)} zeros, {np.sum(np.isnan(delta_cob_nom))} NaNs")
-    print(f"Extended shifts: {np.sum(delta_cob_ext == 0)} zeros, {np.sum(np.isnan(delta_cob_ext))} NaNs")
-
-# 2. Collect data for contaminants producing zero centroid shifts
-    zero_nom_distances = []
-    zero_nom_cont_mags = []
-    zero_nom_target_mags = []
-    zero_nom_mag_diffs = []
-    
-    zero_ext_distances = []
-    zero_ext_cont_mags = []
-    zero_ext_target_mags = []
-    zero_ext_mag_diffs = []
-    
-    for i in range(len(dist_target_to_10first_contaminants)):
-        for j in range(10):
-            dist = dist_target_to_10first_contaminants[i,j]
-            shift_nom = delta_cob_10first_24_cameras[i,j]
-            shift_ext = delta_cob_ext_10first_24_cameras[i,j]
-            target_mag = mag[i]
-            cont_mag = mag_target_10first_contaminants[i,j]
-            mag_diff = cont_mag - target_mag
-            
-            if shift_nom == 0:
-                zero_nom_distances.append(dist)
-                zero_nom_cont_mags.append(cont_mag)
-                zero_nom_target_mags.append(target_mag)
-                zero_nom_mag_diffs.append(mag_diff)
-            
-            if shift_ext == 0:
-                zero_ext_distances.append(dist)
-                zero_ext_cont_mags.append(cont_mag)
-                zero_ext_target_mags.append(target_mag)
-                zero_ext_mag_diffs.append(mag_diff)
-    
-    # Convert to numpy arrays
-    zero_nom_distances = np.array(zero_nom_distances)
-    zero_nom_cont_mags = np.array(zero_nom_cont_mags)
-    zero_nom_mag_diffs = np.array(zero_nom_mag_diffs)
-    
-    zero_ext_distances = np.array(zero_ext_distances)
-    zero_ext_cont_mags = np.array(zero_ext_cont_mags)
-    zero_ext_mag_diffs = np.array(zero_ext_mag_diffs)
-    
-    return zero_nom_distances, zero_nom_mag_diffs, zero_ext_distances, zero_ext_mag_diffs
-
-# Unpack the returned tuple
-nom_distances, nom_mag_diffs, ext_distances, ext_mag_diffs = analyze_centroid_issues(delta_cob_10first_24_cameras, delta_cob_ext_10first_24_cameras) # type: ignore
-
-# Now use the unpacked variables directly
-plt.figure(figsize=(12, 8))
-plt.subplot(2, 2, 1)
-plt.hist(nom_distances, bins=30, alpha=0.7, label='Nominal')
-plt.hist(ext_distances, bins=30, alpha=0.7, label='Extended')
-plt.xlabel('Distance (px)')
-plt.ylabel('Count')
-plt.title('Distance Distribution for Zero Shifts')
-plt.legend()
-
-plt.subplot(2, 2, 2)
-plt.hist(nom_mag_diffs, bins=30, alpha=0.7, label='Nominal')
-plt.hist(ext_mag_diffs, bins=30, alpha=0.7, label='Extended')
-plt.xlabel('Magnitude Difference')
-plt.ylabel('Count')
-plt.title('Mag Difference Distribution for Zero Shifts')
-plt.legend()
-
-plt.tight_layout()
-plt.show()
 
 """
 Now we plot the efficiency of the COB shift (all contaminants)
@@ -499,8 +424,7 @@ for i in range(nP):
     plt.errorbar(Pi, eff_cob_6_cameras, fmt='*', yerr=error_cob_6_cameras, label='Nom. Mask (6 cameras)' if i == 0 else "", color='olive', ecolor='olive', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec, fmt='o', yerr=error_cob_sec, label='Sec. Mask (24 cameras)' if i == 0 else "", color='purple', ecolor='purple', capsize=5, markersize=4)
     plt.errorbar(Pi, eff_cob_sec_6_cameras, fmt='o', yerr=error_cob_sec_6_cameras, label='Sec. Mask (6 cameras)' if i == 0 else "", color='green', ecolor='green', capsize=5, markersize=4)
-    #plt.fill_between([9, 11.7], [47, 47], [100, 100], color='aqua', alpha=0.1) # type: ignore
-    #plt.fill_between([11, 13.4], [47,47], [100, 100], color='plum', alpha=0.1) # type: ignore
+
     plt.fill_between([9, 11.7], [40, 40], [100, 100], color='aqua', alpha=0.1) # type: ignore this is for the variable transit parameters case
     plt.fill_between([10.7, 13.4], [40,40], [100, 100], color='plum', alpha=0.1) # type: ignore this is for the variable transit parameters case
     
@@ -516,16 +440,14 @@ for i in range(nP):
     prev_Pi, prev_eff_ext_cob_overall, prev_eff_cob, prev_eff_cob_sec, prev_eff_ext_cob_overall_6_cameras, prev_eff_cob_6_cameras, prev_eff_cob_sec_6_cameras = Pi, eff_ext_cob_overall, eff_cob, eff_cob_sec, eff_ext_cob_overall_6_cameras, eff_cob_6_cameras, eff_cob_sec_6_cameras
 
 
-    #plt.vlines(11.7, ymin=47, ymax = 100, linestyles='dashed', colors='green') # type: ignore
-    #plt.vlines(11, ymin=47, ymax=100, linestyles='dashdot', colors='red') # type: ignore
     plt.vlines(11.7, ymin=40, ymax = 100, linestyles='dashed', colors='green') # type: ignore this is for the variable transit parameters case
     plt.vlines(10.7, ymin=40, ymax=100, linestyles='dashdot', colors='red') # type: ignore this is for the variable transit parameters case
     #plt.ylim(47, 100)
     plt.ylim(40, 100) # this is for the variable transit parameters case
     plt.xlim(9.9, 13.1)
     # Move text down a bit to make room for inset if inside plot
-    plt.text(10., 61.5,'Earth-like planet detection \nregion (24 cameras)', color='green', weight='bold')
-    plt.text(10.9, 50.5, 'On-board light curve process. region', color='red', weight='bold')
+    plt.text(10., 61.5,'Earth-like planet detection \nregion (24 cameras)', color='green')
+    plt.text(10.9, 50.5, 'On-board light curve processing region', color='red')
            
 # Finalize the main plot
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.21), borderaxespad=0., fancybox=True, ncol=3, columnspacing=0.6)
@@ -537,8 +459,6 @@ plt.tight_layout(rect=[0, 0, 1, 0.88])
 #plt.savefig(DIRout + "DAP_CS_efficiency_standard.pdf", format='pdf', bbox_inches='tight')
 plt.savefig(DIRout + "DAP_CS_efficiency_variable_standard_results.pdf", format='pdf', bbox_inches='tight') # this is for the variable 
 plt.show()
-
-
 
 """
 Now we plot the noise for the centroid shifts
